@@ -280,9 +280,9 @@ export default function PianoMagico({ userId, onExit }) {
 
         if (Array.isArray(userSongs)) {
           setSongs(userSongs.sort((a, b) => {
-            if (a.isUserCreated && !b.isUserCreated) return 1;
-            if (!a.isUserCreated && b.isUserCreated) return -1;
-            return a.id - b.id;
+            const orderA = a.order_index !== null && a.order_index !== undefined ? Number(a.order_index) : Number(a.id);
+            const orderB = b.order_index !== null && b.order_index !== undefined ? Number(b.order_index) : Number(b.id);
+            return orderA - orderB;
           }));
         } else {
           setSongs([]);
@@ -578,10 +578,8 @@ export default function PianoMagico({ userId, onExit }) {
     newAdminSongs.splice(index, 1);
     newAdminSongs.splice(index + direction, 0, itemToMove);
 
-    // Update local state instantly for UI feedback
     setAdminSongs(newAdminSongs);
 
-    // Prepare payload for backend: [{id, order_index}]
     const payload = newAdminSongs.map((song, i) => ({
       id: song.id,
       order_index: i
@@ -590,11 +588,17 @@ export default function PianoMagico({ userId, onExit }) {
     try {
       await fetch(`${API_URL}?action=reorder_songs`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orders: payload })
       });
-      // fetchAdminSongs() not strictly needed immediately since we optimistically updated,
-      // but uncomment below if we want to ensure sync:
-      // await fetchAdminSongs();
+      await fetchAdminSongs();
+      if (userId) {
+        const resSongs = await fetch(`${API_URL}?action=get_songs&user_id=${userId}&instrument=piano`);
+        const userSongs = await resSongs.json();
+        if (Array.isArray(userSongs)) {
+          setSongs(userSongs.sort((a, b) => (Number(a.order_index ?? a.id)) - (Number(b.order_index ?? b.id))));
+        }
+      }
     } catch (e) {
       console.error("Error reordering:", e);
     }
@@ -2301,7 +2305,10 @@ export default function PianoMagico({ userId, onExit }) {
                         const targetIdx = Math.max(0, desiredPos - 1);
 
                         const body = {
-                          ...(editingSong.id ? editingSong : { ...editingSong, userId: null }),
+                          ...editingSong,
+                          userId: null,
+                          is_user_created: 0,
+                          isUserCreated: false,
                           order_index: targetIdx
                         };
 
@@ -2339,6 +2346,13 @@ export default function PianoMagico({ userId, onExit }) {
 
                         setIsEditingSong(false);
                         await fetchAdminSongs();
+                        if (userId) {
+                          const resSongs = await fetch(`${API_URL}?action=get_songs&user_id=${userId}&instrument=piano`);
+                          const userSongs = await resSongs.json();
+                          if (Array.isArray(userSongs)) {
+                            setSongs(userSongs.sort((a, b) => (Number(a.order_index ?? a.id)) - (Number(b.order_index ?? b.id))));
+                          }
+                        }
                       }}
                       className="flex-1 p-5 bg-gradient-to-tr from-green-600 to-emerald-500 text-white rounded-2xl font-black text-lg uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
                     >

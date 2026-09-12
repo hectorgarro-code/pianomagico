@@ -100,7 +100,7 @@ try {
     case 'add_song':
         $userId = isset($input->userId) ? (int)$input->userId : null;
         $instrument = isset($input->instrument) ? $input->instrument : 'piano';
-        $isUserCreated = $userId ? 1 : 0;
+        $isUserCreated = isset($input->is_user_created) ? (int)$input->is_user_created : (isset($input->isUserCreated) ? ($input->isUserCreated ? 1 : 0) : 0);
         
         $orderIndex = isset($input->order_index) ? (int)$input->order_index : null;
         if ($orderIndex === null && isset($input->targetOrder)) {
