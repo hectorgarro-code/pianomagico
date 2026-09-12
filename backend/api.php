@@ -101,7 +101,19 @@ try {
         $userId = isset($input->userId) ? (int)$input->userId : null;
         $instrument = isset($input->instrument) ? $input->instrument : 'piano';
         $isUserCreated = $userId ? 1 : 0;
-        $stmt = $conn->prepare("INSERT INTO songs (user_id, title, sequence, sticker_id, speed, rhythm, is_user_created, instrument) VALUES (:user_id, :title, :sequence, :sticker_id, :speed, :rhythm, :is_user_created, :instrument)");
+        
+        $orderIndex = isset($input->order_index) ? (int)$input->order_index : null;
+        if ($orderIndex === null && isset($input->targetOrder)) {
+            $orderIndex = (int)$input->targetOrder - 1;
+        }
+        if ($orderIndex === null) {
+            $stmtMax = $conn->prepare("SELECT COALESCE(MAX(order_index), -1) + 1 FROM songs WHERE instrument = :instrument");
+            $stmtMax->bindParam(':instrument', $instrument);
+            $stmtMax->execute();
+            $orderIndex = (int)$stmtMax->fetchColumn();
+        }
+
+        $stmt = $conn->prepare("INSERT INTO songs (user_id, title, sequence, sticker_id, speed, rhythm, is_user_created, instrument, order_index) VALUES (:user_id, :title, :sequence, :sticker_id, :speed, :rhythm, :is_user_created, :instrument, :order_index)");
         $stmt->bindParam(':is_user_created', $isUserCreated);
         $stmt->bindParam(':user_id', $userId);
         $stmt->bindParam(':title', $input->title);
@@ -111,6 +123,7 @@ try {
         $stmt->bindParam(':speed', $input->speed);
         $stmt->bindParam(':rhythm', $input->rhythm);
         $stmt->bindParam(':instrument', $instrument);
+        $stmt->bindParam(':order_index', $orderIndex);
         if ($stmt->execute()) {
             echo json_encode(["message" => "Song added", "id" => $conn->lastInsertId()]);
         }
@@ -134,7 +147,14 @@ try {
     case 'update_song':
         $songId = isset($input->id) ? (int)$input->id : null;
         if (!$songId) { echo json_encode(["error" => "No song id"]); break; }
-        $stmt = $conn->prepare("UPDATE songs SET title = :title, sequence = :sequence, sticker_id = :sticker_id, speed = :speed, rhythm = :rhythm WHERE id = :id");
+        
+        if (isset($input->order_index) || isset($input->targetOrder)) {
+            $orderIndex = isset($input->order_index) ? (int)$input->order_index : ((int)$input->targetOrder - 1);
+            $stmt = $conn->prepare("UPDATE songs SET title = :title, sequence = :sequence, sticker_id = :sticker_id, speed = :speed, rhythm = :rhythm, order_index = :order_index WHERE id = :id");
+            $stmt->bindParam(':order_index', $orderIndex);
+        } else {
+            $stmt = $conn->prepare("UPDATE songs SET title = :title, sequence = :sequence, sticker_id = :sticker_id, speed = :speed, rhythm = :rhythm WHERE id = :id");
+        }
         $stmt->bindParam(':title', $input->title);
         $sequence = json_encode($input->sequence);
         $stmt->bindParam(':sequence', $sequence);

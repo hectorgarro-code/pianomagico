@@ -407,6 +407,9 @@ export default function PianoMagico({ userId, onExit }) {
         if (beat === 1) { playKick(time); playSnare(time); }
         if (beat === 2 || beat === 4) playSnare(time);
         if (beat === 3) playKick(time);
+      } else if (type === 'clasico' || type === 'clásico') {
+        if (beat === 1) playKick(time);
+        if (beat === 2 || beat === 3 || beat === 4) playSnare(time);
       }
 
       beatCount.current++;
@@ -946,7 +949,7 @@ export default function PianoMagico({ userId, onExit }) {
 
               {isDrumEnabled && (
                 <div className="flex items-center gap-1 ml-1 pr-1">
-                  {['pop', 'rock', 'marcha'].map(r => (
+                  {['pop', 'rock', 'clasico', 'marcha'].map(r => (
                     <button
                       key={r}
                       onClick={() => {
@@ -956,7 +959,7 @@ export default function PianoMagico({ userId, onExit }) {
                       }}
                       className={`px-2 py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-tighter transition-all cursor-pointer ${(view === 'game' ? currentSong?.rhythm : currentRhythm) === r ? 'bg-white/20 text-white ring-1 ring-white/20' : 'text-white/20 hover:text-white/40'}`}
                     >
-                      {r === 'marcha' ? 'MARCH' : r}
+                      {r === 'marcha' ? 'MARCH' : r === 'clasico' ? 'CLÁSICO' : r}
                     </button>
                   ))}
                 </div>
@@ -2219,11 +2222,16 @@ export default function PianoMagico({ userId, onExit }) {
                       <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-4">Ritmo</label>
                       <select
                         value={editingSong.rhythm}
-                        onChange={e => setEditingSong({ ...editingSong, rhythm: e.target.value })}
+                        onChange={e => {
+                          const rhythmVal = e.target.value;
+                          const speedVal = rhythmVal === 'clasico' ? 136 : editingSong.speed;
+                          setEditingSong({ ...editingSong, rhythm: rhythmVal, speed: speedVal });
+                        }}
                         className="bg-white/5 border border-white/10 p-4 rounded-2xl font-bold text-sm text-white outline-none focus:border-indigo-500 transition-all"
                       >
                         <option value="pop" className="bg-slate-900">POP (4/4)</option>
                         <option value="rock" className="bg-slate-900">ROCK (Fuerte)</option>
+                        <option value="clasico" className="bg-slate-900">CLÁSICO (Elegante - 136 BPM)</option>
                         <option value="bubble" className="bg-slate-900">BUBBLE (Balada)</option>
                         <option value="robot" className="bg-slate-900">ROBOT (Rápido)</option>
                       </select>
@@ -2245,35 +2253,43 @@ export default function PianoMagico({ userId, onExit }) {
                   <div className="flex gap-3 mt-2">
                     <button
                       onClick={async () => {
-                        const action = editingSong.id ? 'update_song' : 'add_song';
-                        const body = editingSong.id ? editingSong : { ...editingSong, userId: null };
+                        const isNew = !editingSong.id;
+                        const action = isNew ? 'add_song' : 'update_song';
+                        const desiredPos = parseInt(editingSong.targetOrder) || (adminSongs.length + (isNew ? 1 : 0));
+                        const targetIdx = Math.max(0, desiredPos - 1);
+
+                        const body = {
+                          ...(editingSong.id ? editingSong : { ...editingSong, userId: null }),
+                          order_index: targetIdx
+                        };
 
                         const saveRes = await fetch(`${API_URL}?action=${action}`, {
                           method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify(body)
                         });
                         const saveObj = await saveRes.json();
                         const songId = editingSong.id || saveObj?.id;
 
-                        // Apply position ordering if specified
+                        // Fetch current list from backend
                         const res = await fetch(`${API_URL}?action=get_admin_songs`);
                         let latestSongs = await res.json();
                         if (Array.isArray(latestSongs) && latestSongs.length > 0 && songId) {
-                          const desiredPos = editingSong.targetOrder ?? latestSongs.length;
-                          const targetIdx = Math.max(0, Math.min(latestSongs.length - 1, desiredPos - 1));
-                          const currentIdx = latestSongs.findIndex(s => s.id === songId);
+                          const targetItem = latestSongs.find(s => String(s.id) === String(songId));
+                          const filtered = latestSongs.filter(s => String(s.id) !== String(songId));
 
-                          if (currentIdx >= 0 && currentIdx !== targetIdx) {
-                            const [item] = latestSongs.splice(currentIdx, 1);
-                            latestSongs.splice(targetIdx, 0, item);
+                          if (targetItem) {
+                            const clampedIdx = Math.max(0, Math.min(filtered.length, targetIdx));
+                            filtered.splice(clampedIdx, 0, targetItem);
 
-                            const payload = latestSongs.map((song, i) => ({
+                            const payload = filtered.map((song, i) => ({
                               id: song.id,
                               order_index: i
                             }));
 
                             await fetch(`${API_URL}?action=reorder_songs`, {
                               method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ orders: payload })
                             });
                           }
