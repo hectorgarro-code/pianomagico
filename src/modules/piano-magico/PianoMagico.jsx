@@ -1425,8 +1425,14 @@ export default function PianoMagico({ userId, onExit }) {
                           </div>
                         </div>
 
-                        {/* Level title (hidden in reference image but good for UX if needed, or keeping it compact) */}
-                        <h4 className="absolute -bottom-16 text-white/40 font-black uppercase text-[8px] tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">{song.title}</h4>
+                        {/* Visible Lesson Title Badge next to bubble */}
+                        <div className={`absolute top-1/2 -translate-y-1/2 ${leftPercent > 50 ? 'right-full mr-3 text-right' : 'left-full ml-3 text-left'} pointer-events-none z-20 whitespace-nowrap`}>
+                          <div className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border backdrop-blur-md shadow-lg flex flex-col ${isUnlocked ? 'bg-slate-900/90 border-white/15 text-indigo-100' : 'bg-slate-950/60 border-white/5 text-white/30'}`}>
+                            <span className="text-[9px] sm:text-xs font-black uppercase tracking-tight max-w-[110px] sm:max-w-[160px] truncate">
+                              {song.title}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
