@@ -184,6 +184,7 @@ export default function PianoMagico({ userId, onExit }) {
   const [editingSong, setEditingSong] = useState(null);
   const [seqHistory, setSeqHistory] = useState([]);
   const [seqHistoryIndex, setSeqHistoryIndex] = useState(-1);
+  const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
 
   // Helper to commit new sequence edits with history tracking
   const commitSequenceHistory = useCallback((newSeq) => {
