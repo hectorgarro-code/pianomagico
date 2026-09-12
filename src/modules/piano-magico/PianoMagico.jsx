@@ -156,10 +156,18 @@ const getNoteDisplayName = (noteStr) => {
 const isNoteMatch = (detected, target) => {
   if (!detected || !target) return false;
   if (detected === target) return true;
-  if (!/\d/.test(target)) {
-    return String(detected).replace(/\d+/g, '') === target;
-  }
-  return false;
+
+  const getPitchClass = (str) => {
+    if (!str) return '';
+    const clean = String(str).split(':')[0].trim().toUpperCase();
+    const withoutOctave = clean.replace(/\d+/g, '');
+    return SOLFEGE_MAP[withoutOctave] || withoutOctave;
+  };
+
+  const detectedPitch = getPitchClass(detected);
+  const targetPitch = getPitchClass(target);
+
+  return detectedPitch !== '' && detectedPitch === targetPitch;
 };
 
 // Legacy fallback maps for components expecting FREQUENCIES / NOTE_COLORS / NOTE_NAMES
@@ -337,8 +345,8 @@ export default function PianoMagico({ userId, onExit }) {
   const [consecutiveHits, setConsecutiveHits] = useState(0);
   const [isSupernova, setIsSupernova] = useState(false);
 
-  const { isListening, toggleMic } = usePianoMic((note) => {
-    handleAction(note);
+  const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note) => {
+    handleAction(note, 'mic');
   });
 
   // Calculate cumulative positions for proportional rhythm jumps
@@ -865,7 +873,7 @@ export default function PianoMagico({ userId, onExit }) {
     }
   };
 
-  const handleAction = useCallback((note) => {
+  const handleAction = useCallback((note, source = 'touch') => {
     // Reset glow behavior
     lastInteractionRef.current = Date.now();
     setHighlightTarget(false);
@@ -1018,6 +1026,7 @@ export default function PianoMagico({ userId, onExit }) {
         }
       }, 350);
     } else {
+      if (source === 'mic') return; // Ignore ambient room noise misses from microphone!
       setFeedback({ msg: "¡UPS!", type: "miss" });
       setConsecutiveHits(0);
       setIsSupernova(false);
@@ -1179,6 +1188,10 @@ export default function PianoMagico({ userId, onExit }) {
     setPerformanceLog([]); setStartTime(Date.now()); setIsRecordingPerformance(true);
     setView('game'); initAudio(); setMemoryIntegrity(memoryMode);
 
+    if (localStorage.getItem('piano_mic_auto') === 'true' && !isListening) {
+      startMic();
+    }
+
     if (m === 'oído') setTimeout(() => runSimonSequence(1), 600);
     if (m === 'eco') setTimeout(() => runEcoSequence(), 600);
   };
@@ -1310,9 +1323,17 @@ export default function PianoMagico({ userId, onExit }) {
             )}
 
             <button
-              onClick={toggleMic}
+              onClick={() => {
+                if (!isListening) {
+                  localStorage.setItem('piano_mic_auto', 'true');
+                  startMic();
+                } else {
+                  localStorage.setItem('piano_mic_auto', 'false');
+                  stopMic();
+                }
+              }}
               className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-[#FF4B4B] text-white border-b-2 border-[#EA2B2B] animate-pulse' : 'bg-slate-100 border-2 border-slate-200 text-slate-500 hover:bg-slate-200'}`}
-              title="Escuchar Piano Real"
+              title="Escuchar Piano Real (Micrófono)"
             >
               {isListening ? <Mic size={15} /> : <MicOff size={15} />}
             </button>
@@ -2127,6 +2148,30 @@ export default function PianoMagico({ userId, onExit }) {
             {mode !== 'oído' && (
               <div className={`absolute bottom-0 w-full h-[120px] bg-gradient-to-t from-white/10 to-transparent border-t-2 z-10 transition-all duration-500 ${noteReady ? 'border-green-500/50 shadow-lg' : 'border-red-500/20 opacity-30'}`}>
                 <div className="flex justify-center pt-4"><ChevronDown className={`transition-all duration-300 ${noteReady ? 'text-green-400 animate-bounce scale-125' : 'text-red-500/20'}`} size={28} /></div>
+              </div>
+            )}
+
+            {/* CARTEL HABILITAR MICRÓFONO EN LECCIÓN */}
+            {view === 'game' && !isListening && !isDemoPlaying && (
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[90] bg-slate-900/95 border-2 border-indigo-500/50 backdrop-blur-xl p-3 sm:p-4 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-3 max-w-sm sm:max-w-md w-[92%] animate-in slide-in-from-bottom duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-indigo-600/30 border border-indigo-500/40 rounded-xl">
+                    <Mic className="text-indigo-400 animate-pulse" size={20} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-black uppercase text-white tracking-wide">¿Usar Piano Real?</span>
+                    <span className="text-[10px] text-white/60 font-medium">Activa el micrófono para tocar con tu piano</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.setItem('piano_mic_auto', 'true');
+                    startMic();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-all cursor-pointer border border-white/20"
+                >
+                  Activar Micrófono
+                </button>
               </div>
             )}
             <div className="flex-1 relative flex justify-around px-2">
