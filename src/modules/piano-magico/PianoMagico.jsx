@@ -1295,7 +1295,7 @@ export default function PianoMagico({ userId, onExit }) {
     return () => clearInterval(interval);
   }, [view, isPreviewing, mode, currentSong]);
 
-  const startLevel = (song, m) => {
+  const startLevel = (song, m, isRetry = false) => {
     stopDemoPlayback();
     const parsedSequence = getSequenceArray(song?.sequence);
     const songWithParsedSeq = { ...song, sequence: parsedSequence };
@@ -1313,7 +1313,7 @@ export default function PianoMagico({ userId, onExit }) {
     setPerformanceLog([]); setStartTime(Date.now()); setIsRecordingPerformance(true);
     setView('game'); initAudio(); setMemoryIntegrity(memoryMode);
 
-    if (m === 'solo' || m === 'duo' || m === 'boss') {
+    if (!isRetry && (m === 'solo' || m === 'duo' || m === 'boss')) {
       setShowListenFirstModal(true);
     } else {
       setShowListenFirstModal(false);
@@ -2229,7 +2229,7 @@ export default function PianoMagico({ userId, onExit }) {
                   )}
 
                   <button
-                    onClick={() => startLevel(currentSong, mode)}
+                    onClick={() => startLevel(currentSong, mode, true)}
                     className="w-16 h-16 shrink-0 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-[0_6px_0_#3730a3] hover:bg-indigo-500 active:translate-y-1.5 active:shadow-[0_0px_0_#3730a3] transition-all self-center"
                     title="Repetir Lección"
                   >
@@ -3227,53 +3227,49 @@ export default function PianoMagico({ userId, onExit }) {
         </div>
       )}
 
-      {/* MODAL PRIMERO ESCUCHA */}
+      {/* MODAL PRIMERO ESCUCHA - BOTONES GIGANTES EN SÍMBOLOS */}
       {showListenFirstModal && currentSong && (
         <div className="fixed inset-0 z-[120] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-slate-900 border-4 border-indigo-500 rounded-[2.5rem] p-6 sm:p-8 max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-5 text-white">
+          <div className="bg-slate-900 border-4 border-indigo-500/80 rounded-[2.5rem] p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-6 text-white">
             
-            {/* Header Icon */}
-            <div className="relative">
-              <div className="w-20 h-20 bg-indigo-600/30 border-2 border-indigo-500 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
-                <Ear size={40} className="text-indigo-300 animate-bounce" />
-              </div>
-              <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-slate-900 text-lg rounded-full p-1 border-2 border-slate-900 shadow">
+            {/* Header Sticker & Song Title */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-24 h-24 bg-gradient-to-tr from-yellow-500 via-amber-400 to-yellow-200 rounded-[2rem] border-4 border-white/40 flex items-center justify-center text-5xl shadow-[0_10px_30px_rgba(250,204,21,0.4)] animate-bounce">
                 {STICKERS_BASE[currentSong.stickerId]?.emoji || '🎵'}
               </div>
+              <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tight text-white mt-2 drop-shadow-md">
+                {currentSong.title}
+              </h2>
             </div>
 
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black italic uppercase text-white tracking-tight">¡Primero Escucha!</h2>
-              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mt-1">Lección: {currentSong.title}</p>
-            </div>
-
-            <p className="text-xs text-white/70 max-w-xs leading-relaxed">
-              Escucha cómo debe sonar esta lección antes de tocarla en el piano para reconocer el ritmo y las notas.
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3 w-full mt-2">
-              {!isDemoPlaying ? (
-                <button
-                  onClick={() => startDemoPlayback()}
-                  className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 border border-white/20 cursor-pointer"
-                >
-                  <Volume2 size={20} fill="white" />
-                  <span>Escuchar Lección</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
+            {/* DOS BOTONES GIGANTES BASADOS EN SÍMBOLOS (SIN NECESIDAD DE LEER) */}
+            <div className="grid grid-cols-2 gap-4 w-full mt-2">
+              
+              {/* BOTÓN 1: PLAY DEMO / REPRODUCIR */}
+              <button
+                onClick={() => {
+                  if (!isDemoPlaying) {
+                    startDemoPlayback();
+                  } else {
                     if (isDemoPaused) resumeDemoPlayback();
                     else pauseDemoPlayback();
-                  }}
-                  className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
-                >
-                  {isDemoPaused ? <Play size={20} fill="white" /> : <Pause size={20} fill="white" />}
-                  <span>{isDemoPaused ? 'Continuar Escuchando' : 'Pausar Demostración'}</span>
-                </button>
-              )}
+                  }
+                }}
+                className={`aspect-square w-full rounded-[2.2rem] flex items-center justify-center transition-all cursor-pointer shadow-xl active:translate-y-1.5 active:border-b-0 ${
+                  isDemoPlaying && !isDemoPaused
+                    ? 'bg-amber-500 border-b-[8px] border-amber-700 text-white animate-pulse'
+                    : 'bg-[#CE82FF] border-b-[8px] border-[#A558D8] text-white hover:brightness-105'
+                }`}
+                title="Escuchar"
+              >
+                {isDemoPlaying && !isDemoPaused ? (
+                  <Pause size={56} fill="white" className="drop-shadow-md" />
+                ) : (
+                  <Volume2 size={56} fill="white" className="drop-shadow-md" />
+                )}
+              </button>
 
+              {/* BOTÓN 2: SALTEAR / JUGAR (FLECHA DERECHA GIGANTE) */}
               <button
                 onClick={() => {
                   stopDemoPlayback();
@@ -3281,11 +3277,12 @@ export default function PianoMagico({ userId, onExit }) {
                   setStep(0);
                   stepRef.current = 0;
                 }}
-                className="w-full py-3.5 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-2xl font-black text-xs uppercase tracking-wider border border-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="aspect-square w-full bg-[#58CC02] border-b-[8px] border-[#46A302] hover:brightness-105 text-white rounded-[2.2rem] flex items-center justify-center transition-all cursor-pointer shadow-xl active:translate-y-1.5 active:border-b-0"
+                title="Ir a Tocar"
               >
-                <span>{isDemoPlaying ? '¡Listo, Ir a Tocar!' : 'Saltear e Ir a Tocar'}</span>
-                <ChevronRight size={16} />
+                <ChevronRight size={72} className="stroke-[3.5] drop-shadow-md" />
               </button>
+
             </div>
 
           </div>
