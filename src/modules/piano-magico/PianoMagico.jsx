@@ -942,7 +942,7 @@ export default function PianoMagico({ userId, onExit }) {
   const progressPercent = Math.min(100, (totalScore / (RANKS.find(r => r.min > totalScore)?.min || totalScore)) * 100);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col items-center overflow-x-hidden select-none relative">
+    <div className="h-[100dvh] w-full bg-slate-950 text-white font-sans flex flex-col items-center overflow-hidden select-none relative">
 
       {/* HUD SUPERIOR FIXED PERSISTENTE */}
       <div className="fixed top-0 left-0 right-0 z-[100] bg-slate-950/95 backdrop-blur-2xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
@@ -999,50 +999,52 @@ export default function PianoMagico({ userId, onExit }) {
             )}
 
             {(view === 'game' || view === 'composer') && (
-              <div className="flex items-center bg-black/30 rounded-xl p-1 border border-white/10 animate-in slide-in-from-right-2">
+              <div className="flex items-center bg-slate-900/80 rounded-xl p-1 border border-white/10 shrink-0">
                 <button
                   onClick={() => {
                     initAudio();
                     setIsDrumEnabled(!isDrumEnabled);
                   }}
-                  className={`p-1.5 sm:p-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${isDrumEnabled ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' : 'bg-white/5 text-white/40'}`}
+                  className={`p-1.5 sm:p-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' : 'bg-white/5 text-white/40'}`}
                   title="Acompañamiento Rítmico"
                 >
                   <Drum size={15} className={isDrumEnabled ? 'animate-bounce' : ''} />
                 </button>
 
                 {isDrumEnabled && (
-                  <div className="flex items-center gap-1 ml-1 pr-1">
-                    {['pop', 'rock', 'clasico', 'marcha'].map(r => (
-                      <button
-                        key={r}
-                        onClick={() => {
-                          initAudio();
-                          if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
-                          setCurrentRhythm(r);
-                        }}
-                        className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-tighter transition-all cursor-pointer ${(view === 'game' ? currentSong?.rhythm : currentRhythm) === r ? 'bg-white/20 text-white ring-1 ring-white/20' : 'text-white/30 hover:text-white/60'}`}
-                      >
-                        {r === 'marcha' ? 'MARCH' : r === 'clasico' ? 'CLÁSICO' : r}
-                      </button>
-                    ))}
-                  </div>
+                  <select
+                    value={(view === 'game' ? currentSong?.rhythm : currentRhythm) || 'pop'}
+                    onChange={(e) => {
+                      const r = e.target.value;
+                      initAudio();
+                      if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
+                      setCurrentRhythm(r);
+                    }}
+                    className="ml-1 bg-slate-950 text-indigo-200 text-xs font-black uppercase rounded-lg px-1.5 py-1 border border-white/10 outline-none cursor-pointer hover:border-indigo-400/50 transition-all"
+                  >
+                    <option value="pop">POP</option>
+                    <option value="rock">ROCK</option>
+                    <option value="clasico">CLÁSICO</option>
+                    <option value="marcha">MARCHA</option>
+                  </select>
                 )}
               </div>
             )}
 
             {view === 'game' && (
-              <div className="flex items-center bg-black/30 rounded-xl p-1 border border-white/10 shrink-0">
-                {[0.5, 0.75, 1, 1.25, 1.5].map(factor => (
-                  <button
-                    key={factor}
-                    onClick={() => setTempoFactor(factor)}
-                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-tighter transition-all cursor-pointer ${tempoFactor === factor ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400' : 'text-white/30 hover:text-white/60'}`}
-                    title={`Velocidad ${factor}x (${Math.round((currentSong?.speed || 100) * factor)} BPM)`}
-                  >
-                    {factor === 1 ? '1x' : `${factor}x`}
-                  </button>
-                ))}
+              <div className="flex items-center bg-slate-900/80 rounded-xl p-1 border border-white/10 shrink-0">
+                <select
+                  value={tempoFactor}
+                  onChange={(e) => setTempoFactor(Number(e.target.value))}
+                  className="bg-slate-950 text-indigo-200 text-xs font-black rounded-lg px-2 py-1 border border-white/10 outline-none cursor-pointer hover:border-indigo-400/50 transition-all"
+                  title={`Velocidad (${Math.round((currentSong?.speed || 100) * tempoFactor)} BPM)`}
+                >
+                  <option value={0.5}>0.5x</option>
+                  <option value={0.75}>0.75x</option>
+                  <option value={1}>1.0x</option>
+                  <option value={1.25}>1.25x</option>
+                  <option value={1.5}>1.5x</option>
+                </select>
               </div>
             )}
 
@@ -1092,7 +1094,7 @@ export default function PianoMagico({ userId, onExit }) {
       </div>
 
       {/* ÁREA CENTRAL */}
-      <div className="flex-1 w-full max-w-7xl pt-12 sm:pt-14 relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4">
+      <div className="flex-1 min-h-0 w-full max-w-7xl pt-12 sm:pt-14 relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4">
 
         {/* AUTH / SELECCIÓN DE USUARIO */}
         {view === 'auth' && (
@@ -1840,7 +1842,7 @@ export default function PianoMagico({ userId, onExit }) {
 
         {/* JUEGO */}
         {view === 'game' && currentSong && (
-          <div className="flex-1 flex flex-col relative overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden">
             {/* ADHD PROGRESS BAR */}
             <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5 z-50">
               <div
@@ -2551,7 +2553,7 @@ export default function PianoMagico({ userId, onExit }) {
       {/* TECLADO */}
       {
         !['auth', 'id_card', 'parent_gate', 'admin'].includes(view) && (
-          <div className={`w-full max-w-7xl h-[95px] sm:h-[130px] lg:h-[150px] bg-slate-950/90 backdrop-blur-xl p-1.5 flex gap-1 sm:gap-2 border-t-2 border-white/10 relative z-30 transition-all rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.8)]`}>
+          <div className={`w-full max-w-7xl h-[85px] sm:h-[120px] lg:h-[140px] shrink-0 bg-slate-950/90 backdrop-blur-xl p-1.5 flex gap-1 sm:gap-2 border-t-2 border-white/10 relative z-30 transition-all rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.8)]`}>
             {Object.keys(NOTE_NAMES).filter(n => !n.includes('#') && n !== 'R').map((naturalNote) => {
               const sharpNote = naturalNote + '#';
               const hasSharp = ['C', 'D', 'F', 'G', 'A'].includes(naturalNote);
