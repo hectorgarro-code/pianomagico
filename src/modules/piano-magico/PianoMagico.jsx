@@ -4,7 +4,7 @@ import {
   Wind, BookOpen, Trophy, Zap, Users, Music2, Drum, Radio, Volume2,
   ChevronDown, VolumeX, Sparkles, Settings, Plus, Trash2, Save, X,
   Pencil, Mic2, RefreshCw, Gauge, Brain, Share2, Download, Medal, Flame, Ear, Crown, Target, LogOut, Lock,
-  ChevronLeft, ChevronRight, Search, Bird, Feather, Mountain, ArrowUp, ArrowDown, Square
+  ChevronLeft, ChevronRight, Search, Bird, Feather, Mountain, ArrowUp, ArrowDown, Square, Undo, Redo
 } from 'lucide-react';
 
 import { usePianoMic } from '../../hooks/usePianoMic';
@@ -181,8 +181,51 @@ export default function PianoMagico({ userId, onExit }) {
   const [adminSongs, setAdminSongs] = useState([]);
   const [isEditingSong, setIsEditingSong] = useState(false);
   const [adminTab, setAdminTab] = useState('lessons'); // 'musicians' | 'lessons'
-  const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
+  const [seqHistory, setSeqHistory] = useState([]);
+  const [seqHistoryIndex, setSeqHistoryIndex] = useState(-1);
+
+  // Helper to commit new sequence edits with history tracking
+  const commitSequenceHistory = useCallback((newSeq) => {
+    setEditingSong(prev => prev ? ({ ...prev, sequence: newSeq }) : null);
+    setSeqHistory(prev => {
+      const sliced = prev.slice(0, seqHistoryIndex + 1);
+      const updated = [...sliced, newSeq];
+      setSeqHistoryIndex(updated.length - 1);
+      return updated;
+    });
+  }, [seqHistoryIndex]);
+
+  const handleUndoSequence = useCallback(() => {
+    if (seqHistoryIndex > 0) {
+      const prevIdx = seqHistoryIndex - 1;
+      setSeqHistoryIndex(prevIdx);
+      const prevSeq = seqHistory[prevIdx];
+      setEditingSong(prev => prev ? ({ ...prev, sequence: prevSeq }) : null);
+    }
+  }, [seqHistory, seqHistoryIndex]);
+
+  const handleRedoSequence = useCallback(() => {
+    if (seqHistoryIndex >= 0 && seqHistoryIndex < seqHistory.length - 1) {
+      const nextIdx = seqHistoryIndex + 1;
+      setSeqHistoryIndex(nextIdx);
+      const nextSeq = seqHistory[nextIdx];
+      setEditingSong(prev => prev ? ({ ...prev, sequence: nextSeq }) : null);
+    }
+  }, [seqHistory, seqHistoryIndex]);
+
+  const handleClearSequence = useCallback(() => {
+    commitSequenceHistory([]);
+  }, [commitSequenceHistory]);
+
+  const openLessonEditor = useCallback((songObj) => {
+    const initialSeq = songObj?.sequence || [];
+    setEditingSong(songObj);
+    setSeqHistory([initialSeq]);
+    setSeqHistoryIndex(0);
+    setIsEditingSong(true);
+  }, []);
+
   const [rawSequenceText, setRawSequenceText] = useState('');
   const [isDrumEnabled, setIsDrumEnabled] = useState(true);
   const [currentRhythm, setCurrentRhythm] = useState('pop');
@@ -2192,8 +2235,7 @@ export default function PianoMagico({ userId, onExit }) {
                       </div>
                       <button
                         onClick={() => {
-                          setEditingSong({ title: 'NUEVA LECCIÓN', sequence: ['C4:1'], stickerId: 1, speed: 100, rhythm: 'pop', targetOrder: adminSongs.length + 1 });
-                          setIsEditingSong(true);
+                          openLessonEditor({ title: 'NUEVA LECCIÓN', sequence: ['C4:1'], stickerId: 1, speed: 100, rhythm: 'pop', targetOrder: adminSongs.length + 1 });
                         }}
                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white shadow-lg active:scale-95 transition-all flex items-center gap-2 font-black text-xs uppercase cursor-pointer"
                       >
@@ -2244,8 +2286,7 @@ export default function PianoMagico({ userId, onExit }) {
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               onClick={() => {
-                                setEditingSong({ ...song, targetOrder: idx + 1 });
-                                setIsEditingSong(true);
+                                openLessonEditor({ ...song, targetOrder: idx + 1 });
                               }}
                               className="p-2 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 rounded-xl text-indigo-300 transition-all cursor-pointer"
                               title="Editar Lección"
@@ -2476,27 +2517,74 @@ export default function PianoMagico({ userId, onExit }) {
                         placeholder="Pega notas en español o inglés. Ej: MI5:0.5 RE#5:0.5 MI5:0.5 RE#5:0.5 SI4:0.5 DO5:0.5 LA4:1"
                         className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-white font-mono text-sm resize-none h-24 outline-none focus:border-indigo-500 transition-all placeholder:text-white/20"
                       />
-                      <button
-                        onClick={() => {
-                          if (!rawSequenceText.trim()) return;
-                          const newSeq = parseTextToSequence(rawSequenceText);
-                          if (newSeq.length > 0) {
-                            setEditingSong({ ...editingSong, sequence: newSeq });
-                          }
-                          setRawSequenceText('');
-                        }}
-                        className="self-end px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg cursor-pointer"
-                      >
-                        Importar Texto
-                      </button>
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
+                        <button
+                          onClick={() => {
+                            if (!rawSequenceText.trim()) return;
+                            const parsedNotes = parseTextToSequence(rawSequenceText);
+                            if (parsedNotes.length > 0) {
+                              const newSeq = [...(editingSong.sequence || []), ...parsedNotes];
+                              commitSequenceHistory(newSeq);
+                            }
+                            setRawSequenceText('');
+                          }}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Plus size={14} /> <span>Agregar al Final</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!rawSequenceText.trim()) return;
+                            const parsedNotes = parseTextToSequence(rawSequenceText);
+                            if (parsedNotes.length > 0) {
+                              commitSequenceHistory(parsedNotes);
+                            }
+                            setRawSequenceText('');
+                          }}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-white/10 cursor-pointer"
+                        >
+                          Reemplazar Todo
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* Notas y Música (Visual) */}
                   <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between ml-4 pr-4">
+                    <div className="flex flex-wrap items-center justify-between ml-4 pr-4 gap-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Secuencia Melódica Visual: {editingSong.sequence?.length || 0} Notas</label>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        {/* Undo / Deshacer */}
+                        <button
+                          onClick={handleUndoSequence}
+                          disabled={seqHistoryIndex <= 0}
+                          className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 disabled:opacity-30 border border-white/10 rounded-xl text-xs font-bold text-white flex items-center gap-1 cursor-pointer transition-all"
+                          title="Deshacer"
+                        >
+                          <Undo size={14} /> <span className="hidden sm:inline">Deshacer</span>
+                        </button>
+
+                        {/* Redo / Rehacer */}
+                        <button
+                          onClick={handleRedoSequence}
+                          disabled={seqHistoryIndex < 0 || seqHistoryIndex >= seqHistory.length - 1}
+                          className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 disabled:opacity-30 border border-white/10 rounded-xl text-xs font-bold text-white flex items-center gap-1 cursor-pointer transition-all"
+                          title="Rehacer"
+                        >
+                          <Redo size={14} /> <span className="hidden sm:inline">Rehacer</span>
+                        </button>
+
+                        {/* Clear / Limpiar Todo */}
+                        <button
+                          onClick={handleClearSequence}
+                          disabled={!editingSong.sequence || editingSong.sequence.length === 0}
+                          className="px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/40 disabled:opacity-30 border border-red-500/30 rounded-xl text-xs font-bold text-red-300 flex items-center gap-1 cursor-pointer transition-all"
+                          title="Limpiar todas las notas"
+                        >
+                          <Trash2 size={14} /> <span className="hidden sm:inline">Limpiar</span>
+                        </button>
+
+                        {/* Play / Stop */}
                         <button
                           onClick={async () => {
                             if (!editingSong.sequence || editingSong.sequence.length === 0) return;
@@ -2514,7 +2602,7 @@ export default function PianoMagico({ userId, onExit }) {
                             setDetectedNote(null);
                             setIsPreviewing(false);
                           }}
-                          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 rounded-xl text-indigo-300 text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 rounded-xl text-indigo-300 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ml-1"
                           title="Escuchar secuencia"
                         >
                           <Volume2 size={14} /> Play
@@ -2524,7 +2612,7 @@ export default function PianoMagico({ userId, onExit }) {
                             onClick={() => {
                               stopPreviewRef.current = true;
                             }}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 rounded-xl text-red-300 text-xs font-black uppercase tracking-wider transition-all animate-in fade-in cursor-pointer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 rounded-xl text-red-300 text-xs font-black uppercase tracking-wider transition-all animate-in fade-in cursor-pointer"
                             title="Detener secuencia"
                           >
                             <Square size={14} fill="currentColor" /> Stop
@@ -2536,8 +2624,8 @@ export default function PianoMagico({ userId, onExit }) {
                       {editingSong.sequence && editingSong.sequence.length > 0 && (
                         <button
                           onClick={() => {
-                            const newSeq = ['C:1', ...editingSong.sequence];
-                            setEditingSong({ ...editingSong, sequence: newSeq });
+                            const newSeq = ['C4:1', ...editingSong.sequence];
+                            commitSequenceHistory(newSeq);
                           }}
                           className="w-5 h-10 rounded-lg flex items-center justify-center hover:bg-white/10 text-white/30 hover:text-white transition-all mx-0.5 cursor-pointer"
                           title="Insertar nota al principio"
@@ -2561,7 +2649,7 @@ export default function PianoMagico({ userId, onExit }) {
                                 onChange={(e) => {
                                   const newSeq = [...editingSong.sequence];
                                   newSeq[i] = `${e.target.value}:${parsed.duration}`;
-                                  setEditingSong({ ...editingSong, sequence: newSeq });
+                                  commitSequenceHistory(newSeq);
                                 }}
                               >
                                 {ALL_PITCH_OPTIONS.map((pitch) => (
@@ -2576,7 +2664,7 @@ export default function PianoMagico({ userId, onExit }) {
                                   const nextDur = durs[(durs.indexOf(parsed.duration) + 1) % durs.length] || 1;
                                   const newSeq = [...editingSong.sequence];
                                   newSeq[i] = `${parsed.pitch}:${nextDur}`;
-                                  setEditingSong({ ...editingSong, sequence: newSeq });
+                                  commitSequenceHistory(newSeq);
                                 }}
                                 className="text-[8px] font-black uppercase text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 hover:bg-indigo-500/30 transition-all cursor-pointer"
                                 title="Cambiar Ritmo"
@@ -2586,7 +2674,7 @@ export default function PianoMagico({ userId, onExit }) {
                               <button
                                 onClick={() => {
                                   const newSeq = editingSong.sequence.filter((_, idx) => idx !== i);
-                                  setEditingSong({ ...editingSong, sequence: newSeq });
+                                  commitSequenceHistory(newSeq);
                                 }}
                                 className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover/note:opacity-100 transition-all z-10 cursor-pointer"
                               >
@@ -2596,8 +2684,8 @@ export default function PianoMagico({ userId, onExit }) {
                             <button
                               onClick={() => {
                                 const newSeq = [...editingSong.sequence];
-                                newSeq.splice(i + 1, 0, 'C:1');
-                                setEditingSong({ ...editingSong, sequence: newSeq });
+                                newSeq.splice(i + 1, 0, 'C4:1');
+                                commitSequenceHistory(newSeq);
                               }}
                               className="w-5 h-10 rounded-lg flex items-center justify-center hover:bg-white/10 text-white/30 hover:text-white transition-all mx-0.5 cursor-pointer"
                               title="Insertar nota aquí"
@@ -2608,7 +2696,7 @@ export default function PianoMagico({ userId, onExit }) {
                         );
                       })}
                       <button
-                        onClick={() => setEditingSong({ ...editingSong, sequence: [...(editingSong.sequence || []), 'C:1'] })}
+                        onClick={() => commitSequenceHistory([...(editingSong.sequence || []), 'C4:1'])}
                         className="w-10 h-10 bg-indigo-600/30 rounded-xl flex items-center justify-center text-indigo-400 border-2 border-dashed border-indigo-500/50 hover:bg-indigo-600 hover:text-white transition-all group cursor-pointer"
                         title="Añadir nota al final"
                       >
