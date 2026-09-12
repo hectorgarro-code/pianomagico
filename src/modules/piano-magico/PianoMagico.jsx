@@ -420,11 +420,21 @@ export default function PianoMagico({ userId, onExit }) {
   // --- GAMIFICATION: SUPERNOVA & BOSSES ---
   const [consecutiveHits, setConsecutiveHits] = useState(0);
   const [isSupernova, setIsSupernova] = useState(false);
-  const lastMicHitTimeRef = useRef(0);
+  const lastMicHitInfoRef = useRef({ pitch: null, time: 0, step: -1, peakRms: 0 });
+  const minRmsSinceLastHitRef = useRef(1.0);
 
-  const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note) => {
-    handleAction(note, 'mic');
+  const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note, rms) => {
+    if (note) {
+      handleAction(note, 'mic', rms);
+    }
   });
+
+  useEffect(() => {
+    if (view === 'game' && localStorage.getItem('piano_mic_auto') !== 'false' && !isListening) {
+      localStorage.setItem('piano_mic_auto', 'true');
+      startMic();
+    }
+  }, [view, isListening, startMic]);
 
   // Calculate cumulative positions for proportional rhythm jumps
   const cumulativePositions = useMemo(() => {
@@ -951,7 +961,7 @@ export default function PianoMagico({ userId, onExit }) {
     }
   };
 
-  const handleAction = useCallback((note, source = 'touch') => {
+  const handleAction = useCallback((note, source = 'touch', rms = 0) => {
     if (view !== 'game' && view !== 'composer' && view !== 'admin') return;
     // Reset glow behavior
     lastInteractionRef.current = Date.now();
@@ -1035,13 +1045,21 @@ export default function PianoMagico({ userId, onExit }) {
     if (target === 'R') return; // Ignore mic events during rests
 
     if (source === 'mic') {
+      if (rms > 0.001 && rms < minRmsSinceLastHitRef.current) {
+        minRmsSinceLastHitRef.current = rms;
+      }
+
       const prevStepNode = stepRef.current > 0 ? currentSong.sequence[stepRef.current - 1] : null;
       if (prevStepNode) {
         const prevPitch = parseNote(prevStepNode).pitch;
         if (isNoteMatch(target, prevPitch)) {
-          const timeSinceLastHit = Date.now() - lastMicHitTimeRef.current;
-          if (timeSinceLastHit < 300) {
-            // Sustained vibration from previous identical note - ignore to allow fresh re-strike
+          const timeSinceLastHit = Date.now() - lastMicHitInfoRef.current.time;
+          const minRms = Math.max(0.005, minRmsSinceLastHitRef.current);
+          const rmsJumpRatio = rms / minRms;
+          const isAttackSpike = rmsJumpRatio >= 1.35 || rms >= lastMicHitInfoRef.current.peakRms * 1.15;
+
+          if (timeSinceLastHit < 250 || (!isAttackSpike && timeSinceLastHit < 1500)) {
+            // Sustained vibration from previous strike - ignore until a new attack spike occurs!
             return;
           }
         }
@@ -1065,7 +1083,8 @@ export default function PianoMagico({ userId, onExit }) {
     if (isNoteMatch(note, target)) {
       lockRef.current = true;
       if (source === 'mic') {
-        lastMicHitTimeRef.current = Date.now();
+        lastMicHitInfoRef.current = { pitch: note, time: Date.now(), step: stepRef.current, peakRms: rms || 0.05 };
+        minRmsSinceLastHitRef.current = rms || 0.05;
       }
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
