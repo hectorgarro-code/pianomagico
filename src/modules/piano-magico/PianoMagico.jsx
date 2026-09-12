@@ -1226,15 +1226,14 @@ export default function PianoMagico({ userId, onExit }) {
   // --- EFECTOS ---
   useEffect(() => {
     if (view === 'game' && currentSong && mode !== 'oído' && !isDemoPlaying) {
-      setNoteReady(false);
-
       const currentNoteStr = currentSong.sequence[stepRef.current];
       if (!currentNoteStr) return;
       const parsedCurrent = parseNote(currentNoteStr);
       const isRest = parsedCurrent.pitch === 'R';
-      const delayMs = (getIntervalMs(currentSong.speed) / tempoFactor) * parsedCurrent.duration;
 
       if (isRest) {
+        setNoteReady(false);
+        const delayMs = (getIntervalMs(currentSong.speed) / tempoFactor) * parsedCurrent.duration;
         // Auto-advance for rests (silencios)
         const t = setTimeout(() => {
           if (stepRef.current + 1 >= currentSong.sequence.length) {
@@ -1263,20 +1262,17 @@ export default function PianoMagico({ userId, onExit }) {
         }, delayMs);
         return () => clearTimeout(t);
       } else {
-        const t = setTimeout(() => {
-          setNoteReady(true);
-          readyTimeRef.current = Date.now();
+        setNoteReady(true);
+        readyTimeRef.current = Date.now();
 
-          // Auto-play sound for Detective mode
-          if (mode === 'detective') {
-            const targetNoteStr = currentSong.sequence[stepRef.current];
-            if (targetNoteStr) {
-              const parsedTarget = parseNote(targetNoteStr);
-              playSynth(FREQUENCIES[parsedTarget.pitch], 'triangle', 0.3, 0.8);
-            }
+        // Auto-play sound for Detective mode
+        if (mode === 'detective') {
+          const targetNoteStr = currentSong.sequence[stepRef.current];
+          if (targetNoteStr) {
+            const parsedTarget = parseNote(targetNoteStr);
+            playSynth(FREQUENCIES[parsedTarget.pitch], 'triangle', 0.3, 0.8);
           }
-        }, delayMs);
-        return () => clearTimeout(t);
+        }
       }
     } else if (mode === 'oído') setNoteReady(true);
   }, [step, view, tempoFactor, currentSong, mode, loopEnabled]);
