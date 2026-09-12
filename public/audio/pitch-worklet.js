@@ -112,16 +112,18 @@ class PitchProcessor extends AudioWorkletProcessor {
 
         const channelData = input[0];
 
-        // Calculate RMS volume for noise gate
-        let rms = 0;
         for (let i = 0; i < channelData.length; i++) {
-            rms += channelData[i] * channelData[i];
             this.samplesBuffer.push(channelData[i]);
         }
-        rms = Math.sqrt(rms / channelData.length);
 
         if (this.samplesBuffer.length >= this.bufferSize) {
-            if (rms > 0.01) {
+            let windowRms = 0;
+            for (let i = 0; i < this.bufferSize; i++) {
+                windowRms += this.samplesBuffer[i] * this.samplesBuffer[i];
+            }
+            windowRms = Math.sqrt(windowRms / this.bufferSize);
+
+            if (windowRms > 0.008) {
                 const float32Array = new Float32Array(this.samplesBuffer.slice(0, this.bufferSize));
                 let pitch = null;
 
@@ -138,10 +140,25 @@ class PitchProcessor extends AudioWorkletProcessor {
                             type: 'pitch',
                             pitch: pitch,
                             note: noteName,
-                            rms: rms
+                            rms: windowRms
+                        });
+                    } else {
+                        this.port.postMessage({
+                            type: 'silence',
+                            rms: windowRms
                         });
                     }
+                } else {
+                    this.port.postMessage({
+                        type: 'silence',
+                        rms: windowRms
+                    });
                 }
+            } else {
+                this.port.postMessage({
+                    type: 'silence',
+                    rms: windowRms
+                });
             }
 
             this.samplesBuffer = this.samplesBuffer.slice(this.bufferSize / 2);

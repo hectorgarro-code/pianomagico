@@ -117,26 +117,24 @@ class PitchProcessor extends AudioWorkletProcessor {
 
         const channelData = input[0];
 
-        // Calculate RMS volume for noise gate
-        let rms = 0;
         for (let i = 0; i < channelData.length; i++) {
-            rms += channelData[i] * channelData[i];
             this.samplesBuffer.push(channelData[i]);
         }
-        rms = Math.sqrt(rms / channelData.length);
 
         if (this.samplesBuffer.length >= this.bufferSize) {
-            if (rms > 0.01) {
+            let windowRms = 0;
+            for (let i = 0; i < this.bufferSize; i++) {
+                windowRms += this.samplesBuffer[i] * this.samplesBuffer[i];
+            }
+            windowRms = Math.sqrt(windowRms / this.bufferSize);
+
+            if (windowRms > 0.008) {
                 const float32Array = new Float32Array(this.samplesBuffer.slice(0, this.bufferSize));
                 let pitch = null;
 
-                // Use WASM if successfully initiated, otherwise JS fallback inside the thread
                 if (this.wasmInstance && this.wasmInstance.exports && this.wasmInstance.exports._get_pitch_mpm_c) {
-                    // Not fully implemented without the specific wrapper logic of the package, 
-                    // falling back cleanly to pure JS Worklet which is ALREADY exponentially faster than main-thread JS.
                     pitch = yinDetectPitch(float32Array, this.sampleRate);
                 } else {
-                    // Pure JS YIN running isolated in the AudioWorklet Thread
                     pitch = yinDetectPitch(float32Array, this.sampleRate);
                 }
 
@@ -147,10 +145,25 @@ class PitchProcessor extends AudioWorkletProcessor {
                             type: 'pitch',
                             pitch: pitch,
                             note: noteName,
-                            rms: rms
+                            rms: windowRms
+                        });
+                    } else {
+                        this.port.postMessage({
+                            type: 'silence',
+                            rms: windowRms
                         });
                     }
+                } else {
+                    this.port.postMessage({
+                        type: 'silence',
+                        rms: windowRms
+                    });
                 }
+            } else {
+                this.port.postMessage({
+                    type: 'silence',
+                    rms: windowRms
+                });
             }
 
             this.samplesBuffer = this.samplesBuffer.slice(this.bufferSize / 2); // Overlapping windows

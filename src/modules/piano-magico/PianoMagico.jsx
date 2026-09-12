@@ -420,7 +420,6 @@ export default function PianoMagico({ userId, onExit }) {
   // --- GAMIFICATION: SUPERNOVA & BOSSES ---
   const [consecutiveHits, setConsecutiveHits] = useState(0);
   const [isSupernova, setIsSupernova] = useState(false);
-  const lastMicHitTimeRef = useRef(0);
 
   const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note, rms) => {
     if (note) {
@@ -1043,20 +1042,6 @@ export default function PianoMagico({ userId, onExit }) {
 
     if (target === 'R') return; // Ignore mic events during rests
 
-    if (source === 'mic') {
-      const prevStepNode = stepRef.current > 0 ? currentSong.sequence[stepRef.current - 1] : null;
-      if (prevStepNode) {
-        const prevPitch = parseNote(prevStepNode).pitch;
-        if (isNoteMatch(target, prevPitch)) {
-          const timeSinceLastHit = Date.now() - lastMicHitTimeRef.current;
-          if (timeSinceLastHit < 480) {
-            // Sustained vibration from previous identical note - ignore to require a fresh key strike!
-            return;
-          }
-        }
-      }
-    }
-
     // In Boss Hybrid Mode: Even steps are Visual (Solo), Odd steps are Auditory (Oído)
     if (mode === 'boss' && stepRef.current % 2 !== 0) {
       // It's the oído phase of the boss battle
@@ -1073,9 +1058,6 @@ export default function PianoMagico({ userId, onExit }) {
 
     if (isNoteMatch(note, target)) {
       lockRef.current = true;
-      if (source === 'mic') {
-        lastMicHitTimeRef.current = Date.now();
-      }
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
       if (isRecordingPerformance) setPerformanceLog(prev => [...prev, { note, time: timeOffset }]);
@@ -1100,10 +1082,13 @@ export default function PianoMagico({ userId, onExit }) {
 
       setTimeout(() => {
         setFeedback({ msg: '', type: '' });
+      }, 350);
+
+      setTimeout(() => {
         if (stepRef.current + 1 >= currentSong.sequence.length) {
           if (loopEnabled) {
             setStep(0); stepRef.current = 0;
-            setTimeout(() => { lockRef.current = false; }, 150);
+            setTimeout(() => { lockRef.current = false; }, 80);
           } else {
             setIsRecordingPerformance(false);
             const isFailed = sessionErrors >= 3;
@@ -1135,9 +1120,9 @@ export default function PianoMagico({ userId, onExit }) {
           }
         } else {
           setStep(s => s + 1); stepRef.current++;
-          setTimeout(() => { lockRef.current = false; }, 150);
+          setTimeout(() => { lockRef.current = false; }, 80);
         }
-      }, 350);
+      }, 120);
     } else {
       if (source === 'mic') return; // Ignore ambient room noise misses from microphone!
       setFeedback({ msg: "¡UPS!", type: "miss" });
