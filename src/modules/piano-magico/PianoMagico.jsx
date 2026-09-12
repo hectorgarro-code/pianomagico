@@ -2526,13 +2526,13 @@ export default function PianoMagico({ userId, onExit }) {
                 return (
                   <button
                     key={note}
-                    onMouseDown={(e) => { e.preventDefault(); handleAction(note); }}
-                    onMouseUp={(e) => { e.preventDefault(); handleActionUp(note); }}
+                    onMouseDown={(e) => { if (e.cancelable) e.preventDefault(); handleAction(note); }}
+                    onMouseUp={(e) => { if (e.cancelable) e.preventDefault(); handleActionUp(note); }}
                     onMouseLeave={() => handleActionUp(note)}
-                    onTouchStart={(e) => { e.preventDefault(); handleAction(note); }}
-                    onTouchEnd={(e) => { e.preventDefault(); handleActionUp(note); }}
+                    onTouchStart={(e) => { if (e.cancelable) e.preventDefault(); handleAction(note); }}
+                    onTouchEnd={(e) => { if (e.cancelable) e.preventDefault(); handleActionUp(note); }}
                     className={`
-                      rounded-xl transition-all duration-75 flex flex-col items-center justify-end pb-2 border-b-4 border-black/40 
+                      touch-none select-none rounded-xl transition-all duration-75 flex flex-col items-center justify-end pb-2 border-b-4 border-black/40 
                       ${isSharp ? 'absolute z-40 top-0 -right-[2px] translate-x-1/2 w-[65%] h-[60%] shadow-[0_5px_15px_rgba(0,0,0,0.5)]' : 'w-full h-full z-30 relative'}
                       ${!isPreviewing ? 'active:border-b-0 active:translate-y-1' : ''}
                       ${detectedNote === note && !isPreviewing ? 'brightness-150 scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.4)] z-[60]' : ''}
