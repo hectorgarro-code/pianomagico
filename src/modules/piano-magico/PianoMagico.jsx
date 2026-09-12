@@ -41,7 +41,7 @@ const STICKERS_BASE = {
 
 
 
-const BASE_NOTE_COLORS = { 'C': '#EF4444', 'C#': '#B91C1C', 'D': '#F97316', 'D#': '#C2410C', 'E': '#FACC15', 'F': '#22C55E', 'F#': '#15803D', 'G': '#38BDF8', 'G#': '#0369A1', 'A': '#1D4ED8', 'A#': '#1E3A8A', 'B': '#9333EA', 'R': 'transparent' };
+const BASE_NOTE_COLORS = { 'C': '#EF4444', 'C#': '#B91C1C', 'D': '#F97316', 'D#': '#C2410C', 'E': '#FACC15', 'F': '#4ADE80', 'F#': '#16A34A', 'G': '#15803D', 'G#': '#065F46', 'A': '#EC4899', 'A#': '#BE185D', 'B': '#A855F7', 'R': 'transparent' };
 const BASE_NOTE_NAMES = { 'C': 'DO', 'C#': 'DO#', 'D': 'RE', 'D#': 'RE#', 'E': 'MI', 'F': 'FA', 'F#': 'FA#', 'G': 'SOL', 'G#': 'SOL#', 'A': 'LA', 'A#': 'LA#', 'B': 'SI', 'R': 'SILENCIO' };
 
 const OCTAVE_NATURAL_NOTES = [
