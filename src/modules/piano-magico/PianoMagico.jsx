@@ -940,7 +940,7 @@ export default function PianoMagico({ userId, onExit }) {
     <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col items-center overflow-x-hidden overflow-y-auto select-none">
 
       {/* HUD SUPERIOR STICKY */}
-      <div className="sticky top-0 z-50 w-full bg-slate-950/80 backdrop-blur-xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
+      <div className="sticky top-0 z-[100] w-full bg-slate-950/95 backdrop-blur-2xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
         <div className="w-full max-w-7xl px-3 sm:px-6 py-2.5 flex justify-between items-center gap-2">
           {/* Left: Perfil */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -972,6 +972,18 @@ export default function PianoMagico({ userId, onExit }) {
 
           {/* Right: Acciones y Navegación */}
           <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+            {view === 'menu' && (
+              <button
+                onClick={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
+                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-[10px] sm:text-xs font-bold uppercase transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+                title="Abrir Estudio Mágico"
+              >
+                <Plus size={14} />
+                <span className="hidden sm:inline">Composer Studio</span>
+                <span className="sm:hidden">Studio</span>
+              </button>
+            )}
+
             {(view === 'game' || view === 'composer') && (
               <div className="flex items-center bg-black/30 rounded-xl p-1 border border-white/10 animate-in slide-in-from-right-2">
                 <button
@@ -1197,15 +1209,6 @@ export default function PianoMagico({ userId, onExit }) {
             </div>
 
 
-            <div className="w-full max-w-sm px-4 z-20 mt-6 mb-8">
-              <button
-                onClick={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 p-4 rounded-2xl shadow-[0_0_20px_rgba(79,70,229,0.4)] border-b-4 border-indigo-800 flex items-center justify-center gap-3 active:scale-95 transition-all hover:scale-[1.02]"
-              >
-                <Plus className="text-white" size={20} />
-                <span className="text-sm font-black uppercase italic tracking-tighter text-white">Composer Studio</span>
-              </button>
-            </div>
 
             {/* STAR MAP CONTAINER */}
             {(() => {
