@@ -24,7 +24,7 @@ jobs:
           npm ci
           npm run build
 
-      - name: 📂 Sync FTP Files (dist to public_html)
+      - name: 📂 Sync FTP Files (dist to root)
         uses: SamKirsch/ftp-deploy-action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -32,5 +32,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           local-dir: ./dist/
-          server-dir: /public_html/
+          server-dir: ./
           state-name: .ftp-deploy-sync-state.json
