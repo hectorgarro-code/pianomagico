@@ -52,8 +52,8 @@ export const usePianoMic = (onNoteDetected) => {
                 if (event.data.type === 'pitch') {
                     const { note, rms } = event.data;
 
-                    // Only process natural notes (no sharps/flats as per handleAction)
-                    if (note && !note.includes('#')) {
+                    // Process all detected notes (natural and sharps)
+                    if (note) {
                         const now = Date.now();
 
                         // Hardware debounce
