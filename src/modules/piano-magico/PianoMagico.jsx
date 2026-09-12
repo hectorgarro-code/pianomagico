@@ -906,6 +906,7 @@ export default function PianoMagico({ userId, onExit }) {
   };
 
   const handleAction = useCallback((note, source = 'touch') => {
+    if (view !== 'game' && view !== 'composer' && view !== 'admin') return;
     // Reset glow behavior
     lastInteractionRef.current = Date.now();
     setHighlightTarget(false);
@@ -959,6 +960,10 @@ export default function PianoMagico({ userId, onExit }) {
             unlockStickerOnServer(currentSong.stickerId);
           }
           savePerformanceOnServer(currentSong.id, performanceLog, newScore);
+          stopDrumLoop();
+          stopDemoPlayback();
+          stopAllPreviews();
+          setDetectedNote(null);
           setView('success');
         } else if (userSimonIndex === simonStep - 1) {
           const newScore = totalScore + 200;
@@ -1049,6 +1054,10 @@ export default function PianoMagico({ userId, onExit }) {
               // Implement background unlock or extra logic later
             }
 
+            stopDrumLoop();
+            stopDemoPlayback();
+            stopAllPreviews();
+            setDetectedNote(null);
             setView('success');
             lockRef.current = false;
           }
@@ -1162,6 +1171,10 @@ export default function PianoMagico({ userId, onExit }) {
                 unlockMedalOnServer(currentSong.id);
               }
               savePerformanceOnServer(currentSong.id, performanceLog, totalScore + 100);
+              stopDrumLoop();
+              stopDemoPlayback();
+              stopAllPreviews();
+              setDetectedNote(null);
               setView('success');
             }
           } else {
@@ -2148,8 +2161,14 @@ export default function PianoMagico({ userId, onExit }) {
 
                 {/* ROW 3: Home */}
                 <button
-                  onClick={() => setView('menu')}
-                  className="mt-6 w-14 h-14 mx-auto bg-white/10 text-white rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 active:scale-95 transition-all shadow-lg"
+                  onClick={() => {
+                    stopDrumLoop();
+                    stopDemoPlayback();
+                    stopAllPreviews();
+                    setDetectedNote(null);
+                    setView('menu');
+                  }}
+                  className="mt-6 w-14 h-14 mx-auto bg-white/10 text-white rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 active:scale-95 transition-all shadow-lg cursor-pointer"
                   title="Menú Principal"
                 >
                   <Home size={20} className="opacity-80 drop-shadow-md" />
