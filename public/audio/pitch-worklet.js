@@ -5,10 +5,11 @@ const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const getNoteFromPitch = (frequency) => {
     if (!frequency || frequency < 20 || frequency > 4000) return null;
-    const noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
-    const roundedNoteNum = Math.round(noteNum);
-    const noteIndex = (roundedNoteNum + 9 + 120) % 12;
-    return NOTES[noteIndex];
+    const noteNum = Math.round(12 * (Math.log(frequency / 440) / Math.log(2)));
+    const midi = noteNum + 69;
+    const octave = Math.floor(midi / 12) - 1;
+    const noteIndex = (midi % 12 + 12) % 12;
+    return NOTES[noteIndex] + octave;
 };
 
 /**

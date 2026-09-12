@@ -41,9 +41,65 @@ const STICKERS_BASE = {
 
 
 
-const FREQUENCIES = { 'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13, 'E': 329.63, 'F': 349.23, 'F#': 369.99, 'G': 392.00, 'G#': 415.30, 'A': 440.00, 'A#': 466.16, 'B': 493.88, 'R': 0 };
-const NOTE_COLORS = { 'C': '#EF4444', 'C#': '#B91C1C', 'D': '#F97316', 'D#': '#C2410C', 'E': '#FACC15', 'F': '#22C55E', 'F#': '#15803D', 'G': '#38BDF8', 'G#': '#0369A1', 'A': '#1D4ED8', 'A#': '#1E3A8A', 'B': '#9333EA', 'R': 'transparent' };
-const NOTE_NAMES = { 'C': 'DO', 'C#': 'DO#', 'D': 'RE', 'D#': 'RE#', 'E': 'MI', 'F': 'FA', 'F#': 'FA#', 'G': 'SOL', 'G#': 'SOL#', 'A': 'LA', 'A#': 'LA#', 'B': 'SI', 'R': 'SILENCIO' };
+const BASE_NOTE_COLORS = { 'C': '#EF4444', 'C#': '#B91C1C', 'D': '#F97316', 'D#': '#C2410C', 'E': '#FACC15', 'F': '#22C55E', 'F#': '#15803D', 'G': '#38BDF8', 'G#': '#0369A1', 'A': '#1D4ED8', 'A#': '#1E3A8A', 'B': '#9333EA', 'R': 'transparent' };
+const BASE_NOTE_NAMES = { 'C': 'DO', 'C#': 'DO#', 'D': 'RE', 'D#': 'RE#', 'E': 'MI', 'F': 'FA', 'F#': 'FA#', 'G': 'SOL', 'G#': 'SOL#', 'A': 'LA', 'A#': 'LA#', 'B': 'SI', 'R': 'SILENCIO' };
+
+const OCTAVE_NATURAL_NOTES = [
+  'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
+  'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5'
+];
+
+const ALL_PITCH_OPTIONS = [
+  'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
+  'C5', 'C#5', 'D5', 'D#5', 'E5', 'F5', 'F#5', 'G5', 'G#5', 'A5', 'A#5', 'B5',
+  'R'
+];
+
+const getNoteFrequency = (noteStr) => {
+  if (!noteStr || noteStr === 'R') return 0;
+  const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
+  if (!match) return 261.63;
+  const pitchClass = match[1];
+  const octave = match[2] ? parseInt(match[2], 10) : 4;
+
+  const semitonesFromA4 = {
+    'C': -9, 'C#': -8, 'D': -7, 'D#': -6, 'E': -5,
+    'F': -4, 'F#': -3, 'G': -2, 'G#': -1, 'A': 0, 'A#': 1, 'B': 2
+  }[pitchClass] ?? 0;
+
+  const totalSemitones = semitonesFromA4 + (octave - 4) * 12;
+  return 440 * Math.pow(2, totalSemitones / 12);
+};
+
+const getNoteColor = (noteStr) => {
+  if (!noteStr) return '#EF4444';
+  const pitchClass = String(noteStr).replace(/\d+/g, '');
+  return BASE_NOTE_COLORS[pitchClass] || '#EF4444';
+};
+
+const getNoteDisplayName = (noteStr) => {
+  if (!noteStr) return '';
+  const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
+  if (!match) return String(noteStr);
+  const pitchClass = match[1];
+  const octave = match[2] || '';
+  if (pitchClass === 'R') return 'SILENCIO';
+  return `${BASE_NOTE_NAMES[pitchClass] || pitchClass}${octave}`;
+};
+
+const isNoteMatch = (detected, target) => {
+  if (!detected || !target) return false;
+  if (detected === target) return true;
+  if (!/\d/.test(target)) {
+    return String(detected).replace(/\d+/g, '') === target;
+  }
+  return false;
+};
+
+// Legacy fallback maps for components expecting FREQUENCIES / NOTE_COLORS / NOTE_NAMES
+const FREQUENCIES = new Proxy({}, { get: (_, prop) => getNoteFrequency(prop) });
+const NOTE_COLORS = new Proxy({}, { get: (_, prop) => getNoteColor(prop) });
+const NOTE_NAMES = new Proxy({}, { get: (_, prop) => getNoteDisplayName(prop) });
 
 const API_URL = 'backend/api.php';
 
@@ -101,13 +157,16 @@ export default function PianoMagico({ userId, onExit }) {
     return 60000 / val;
   };
 
-  // Parses a note string like "C:0.5" into { pitch: "C", duration: 0.5 }
-  // Default duration is 1 (Negra) if no colon is present
+  // Parses a note string like "C4:0.5" into { pitch: "C4", duration: 0.5 }
   const parseNote = (noteStr) => {
-    if (!noteStr) return { pitch: 'C', duration: 1 };
+    if (!noteStr) return { pitch: 'C4', duration: 1 };
     const parts = noteStr.split(':');
+    let pitch = parts[0];
+    if (pitch !== 'R' && !/\d/.test(pitch)) {
+      pitch = `${pitch}4`;
+    }
     return {
-      pitch: parts[0],
+      pitch,
       duration: parts.length > 1 ? parseFloat(parts[1]) : 1
     };
   };
@@ -123,20 +182,28 @@ export default function PianoMagico({ userId, onExit }) {
     }
   };
 
-  const getNotePositionPercent = (pitch) => {
-    const naturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-    if (pitch === 'R') return 43.5;
+  const getNotePositionPercent = (pitchStr) => {
+    if (!pitchStr || pitchStr === 'R') return 43.5;
 
+    const pitch = (!/\d/.test(pitchStr) && pitchStr !== 'R') ? `${pitchStr}4` : pitchStr;
     const isSharp = pitch.includes('#');
     const basePitch = pitch.replace('#', '');
-    const baseIndex = naturalNotes.indexOf(basePitch);
 
-    if (baseIndex === -1) return 0;
+    const baseIndex = OCTAVE_NATURAL_NOTES.indexOf(basePitch);
+    const keyWidthPercent = 100 / 14;
+
+    if (baseIndex === -1) {
+      const pitchClass = pitch.replace(/\d+/g, '').replace('#', '');
+      const naturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+      const idx = naturalNotes.indexOf(pitchClass);
+      if (idx === -1) return 0;
+      return (idx * (100 / 7)) + 0.64;
+    }
 
     if (!isSharp) {
-      return (baseIndex * (100 / 7)) + 0.64;
+      return (baseIndex * keyWidthPercent) + (keyWidthPercent * 0.1);
     } else {
-      return ((baseIndex + 1) * (100 / 7)) - 5.0;
+      return ((baseIndex + 1) * keyWidthPercent) - (keyWidthPercent * 0.35);
     }
   };
 
@@ -689,14 +756,14 @@ export default function PianoMagico({ userId, onExit }) {
       // Actually, the note is played via another effect or we just wait for input
     }
 
-    if (note === target && !noteReady) {
+    if (isNoteMatch(note, target) && !noteReady) {
       setFeedback({ msg: "¡ESPERA!", type: "miss" });
       setConsecutiveHits(0);
       setIsSupernova(false);
       return;
     }
 
-    if (note === target) {
+    if (isNoteMatch(note, target)) {
       lockRef.current = true;
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
@@ -2441,9 +2508,9 @@ export default function PianoMagico({ userId, onExit }) {
                           <div key={i} className="flex items-center gap-1">
                             <div className="relative group/note flex flex-col items-center gap-1">
                               <select
-                                className="w-14 h-10 rounded-xl flex items-center justify-center font-black text-[10px] shadow-lg cursor-pointer outline-none appearance-none text-center transition-all hover:scale-110"
+                                className="w-16 h-10 rounded-xl flex items-center justify-center font-black text-[10px] shadow-lg cursor-pointer outline-none appearance-none text-center transition-all hover:scale-110"
                                 style={{
-                                  backgroundColor: NOTE_COLORS[parsed.pitch],
+                                  backgroundColor: getNoteColor(parsed.pitch),
                                   color: parsed.pitch === 'R' ? '#94a3b8' : 'white',
                                   border: parsed.pitch === 'R' ? '2px dashed #475569' : 'none'
                                 }}
@@ -2454,9 +2521,9 @@ export default function PianoMagico({ userId, onExit }) {
                                   setEditingSong({ ...editingSong, sequence: newSeq });
                                 }}
                               >
-                                {Object.entries(NOTE_NAMES).map(([pitch, label]) => (
+                                {ALL_PITCH_OPTIONS.map((pitch) => (
                                   <option key={pitch} value={pitch} className="bg-slate-800 text-white font-sans font-bold">
-                                    {label}
+                                    {getNoteDisplayName(pitch)}
                                   </option>
                                 ))}
                               </select>
@@ -2517,14 +2584,18 @@ export default function PianoMagico({ userId, onExit }) {
       {
         !['auth', 'id_card', 'parent_gate', 'admin'].includes(view) && (
           <div className={`w-full max-w-7xl h-[85px] sm:h-[120px] lg:h-[140px] shrink-0 bg-white p-2 flex gap-1 sm:gap-2 border-t-4 border-slate-200 relative z-30 transition-all rounded-t-3xl shadow-[0_-8px_20px_rgba(0,0,0,0.06)]`}>
-            {Object.keys(NOTE_NAMES).filter(n => !n.includes('#') && n !== 'R').map((naturalNote) => {
-              const sharpNote = naturalNote + '#';
-              const hasSharp = ['C', 'D', 'F', 'G', 'A'].includes(naturalNote);
+            {OCTAVE_NATURAL_NOTES.map((naturalNote) => {
+              const pitchClass = naturalNote.replace(/\d+/g, '');
+              const octave = naturalNote.replace(/\D+/g, '');
+              const sharpNote = `${pitchClass}#${octave}`;
+              const hasSharp = ['C', 'D', 'F', 'G', 'A'].includes(pitchClass);
 
               const renderButton = (note, isSharp) => {
-                const isSimonPlayingThisNote = isPreviewing && detectedNote === note;
+                const isSimonPlayingThisNote = isPreviewing && isNoteMatch(detectedNote, note);
                 const isSimonPlayingOtherNote = isPreviewing && !isSimonPlayingThisNote;
-                let isTargetGlow = highlightTarget && currentSong && !isPreviewing && note === currentSong.sequence[stepRef.current];
+                const targetNode = currentSong?.sequence?.[stepRef.current];
+                const targetPitch = targetNode ? parseNote(targetNode).pitch : null;
+                let isTargetGlow = highlightTarget && currentSong && !isPreviewing && isNoteMatch(note, targetPitch);
 
                 const isLabelHidden = mode === 'detective' || (mode === 'boss' && stepRef.current % 2 !== 0);
                 if (mode === 'boss' && stepRef.current % 2 !== 0) {
@@ -2540,20 +2611,22 @@ export default function PianoMagico({ userId, onExit }) {
                     onTouchStart={(e) => { if (e.cancelable) e.preventDefault(); handleAction(note); }}
                     onTouchEnd={(e) => { if (e.cancelable) e.preventDefault(); handleActionUp(note); }}
                     className={`
-                      touch-none select-none transition-all duration-75 flex flex-col items-center justify-end pb-2 cursor-pointer
+                      touch-none select-none transition-all duration-75 flex flex-col items-center justify-end pb-1 sm:pb-2 cursor-pointer
                       ${isSharp ? 'absolute z-40 top-0 -right-[2px] translate-x-1/2 w-[65%] h-[60%] bg-slate-800 border-2 border-slate-900 border-b-[5px] border-b-black text-white rounded-b-xl active:border-b-2 active:translate-y-1' : 'w-full h-full z-30 relative rounded-b-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 active:border-b-2 active:translate-y-1.5'}
-                      ${detectedNote === note && !isPreviewing ? 'brightness-125 scale-[0.98] z-[60]' : ''}
+                      ${isNoteMatch(detectedNote, note) && !isPreviewing ? 'brightness-125 scale-[0.98] z-[60]' : ''}
                       ${isSimonPlayingOtherNote ? 'opacity-40 grayscale' : ''}
                       ${isSimonPlayingThisNote ? 'brightness-125 scale-105 z-[60]' : ''}
                       ${isTargetGlow ? 'ring-4 ring-[#FFC800] z-[60] animate-bounce' : ''}
                     `}
                     style={{
-                      backgroundColor: NOTE_COLORS[note],
-                      boxShadow: detectedNote === note ? `0 0 20px ${NOTE_COLORS[note]}AA` : 'none'
+                      backgroundColor: getNoteColor(note),
+                      boxShadow: isNoteMatch(detectedNote, note) ? `0 0 20px ${getNoteColor(note)}AA` : 'none'
                     }}
                   >
-                    <div className="bg-white/40 px-1 sm:px-3 py-0.5 rounded-lg backdrop-blur-sm border border-white/20 shadow-inner pointer-events-none mb-1">
-                      <span className={`text-[8px] sm:text-xs font-black text-white drop-shadow-sm transition-opacity duration-300 ${isLabelHidden ? 'opacity-0' : 'opacity-100'}`}>{NOTE_NAMES[note]}</span>
+                    <div className="bg-white/40 px-0.5 sm:px-2 py-0.5 rounded-lg backdrop-blur-sm border border-white/20 shadow-inner pointer-events-none mb-0.5 sm:mb-1">
+                      <span className={`text-[7px] sm:text-[10px] font-black text-white drop-shadow-sm transition-opacity duration-300 ${isLabelHidden ? 'opacity-0' : 'opacity-100'}`}>
+                        {getNoteDisplayName(note)}
+                      </span>
                     </div>
                   </button>
                 );
