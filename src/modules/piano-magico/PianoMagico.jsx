@@ -922,92 +922,114 @@ export default function PianoMagico({ userId, onExit }) {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col items-center overflow-x-hidden overflow-y-auto select-none">
 
-      {/* HUD SUPERIOR */}
-      <div className="w-full max-w-7xl px-3 sm:px-6 py-2 bg-white/5 backdrop-blur-md z-40 border-b border-white/10 flex justify-between items-center shadow-lg transition-all">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <button onClick={() => setView('id_card')} className="flex items-center gap-2 bg-indigo-600/30 p-1 pr-3 rounded-full border border-indigo-500/40 active:scale-95 transition-all hover:bg-indigo-600/50 cursor-pointer">
-            <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center text-lg shadow-lg">
-              {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
-            </div>
-            <span className="text-[10px] sm:text-xs font-black uppercase truncate max-w-[100px] sm:max-w-[150px]">{profile.name}</span>
-          </button>
-        </div>
+      {/* HUD SUPERIOR STICKY */}
+      <div className="sticky top-0 z-50 w-full bg-slate-950/80 backdrop-blur-xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
+        <div className="w-full max-w-7xl px-3 sm:px-6 py-2.5 flex justify-between items-center gap-2">
+          {/* Left: Perfil */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <button onClick={() => setView('id_card')} className="flex items-center gap-2 bg-indigo-600/30 p-1 pr-3 rounded-full border border-indigo-500/40 active:scale-95 transition-all hover:bg-indigo-600/50 cursor-pointer shadow-md">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-50 rounded-full flex items-center justify-center text-base sm:text-lg shadow-inner">
+                {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
+              </div>
+              <span className="text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-[130px] tracking-wider text-indigo-100">{profile.name}</span>
+            </button>
+          </div>
 
-        <div className="flex gap-2 items-center">
-          {(view === 'game' || view === 'composer') && (
-            <div className="flex items-center bg-black/20 rounded-xl p-1 border border-white/5 animate-in slide-in-from-right-2">
+          {/* Center: Galactic Adventure Title & Stats (Only on Menu) */}
+          {view === 'menu' && (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 my-0.5">
+              <h1 className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow-md truncate">
+                Galactic Adventure
+              </h1>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className={`font-black uppercase text-[8px] sm:text-[9px] px-2.5 py-0.5 sm:py-1 rounded-full bg-slate-900 border border-white/10 shadow-lg ${currentRank.color}`}>
+                  {currentRank.title}
+                </div>
+                <div className="bg-indigo-600/30 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-indigo-500/30 flex items-center gap-1">
+                  <Zap size={11} className="text-yellow-400 fill-yellow-400" />
+                  <span className="text-[9px] sm:text-[10px] font-black text-yellow-200">{totalScore}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Right: Acciones y Navegación */}
+          <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+            {(view === 'game' || view === 'composer') && (
+              <div className="flex items-center bg-black/30 rounded-xl p-1 border border-white/10 animate-in slide-in-from-right-2">
+                <button
+                  onClick={() => {
+                    initAudio();
+                    setIsDrumEnabled(!isDrumEnabled);
+                  }}
+                  className={`p-1.5 sm:p-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${isDrumEnabled ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' : 'bg-white/5 text-white/40'}`}
+                  title="Acompañamiento Rítmico"
+                >
+                  <Drum size={15} className={isDrumEnabled ? 'animate-bounce' : ''} />
+                </button>
+
+                {isDrumEnabled && (
+                  <div className="flex items-center gap-1 ml-1 pr-1">
+                    {['pop', 'rock', 'clasico', 'marcha'].map(r => (
+                      <button
+                        key={r}
+                        onClick={() => {
+                          initAudio();
+                          if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
+                          setCurrentRhythm(r);
+                        }}
+                        className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-tighter transition-all cursor-pointer ${(view === 'game' ? currentSong?.rhythm : currentRhythm) === r ? 'bg-white/20 text-white ring-1 ring-white/20' : 'text-white/30 hover:text-white/60'}`}
+                      >
+                        {r === 'marcha' ? 'MARCH' : r === 'clasico' ? 'CLÁSICO' : r}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              onClick={toggleMic}
+              className={`p-1.5 sm:p-2 sm:px-3 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isListening ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-white/10 hover:bg-white/20 text-white/60'}`}
+              title="Escuchar Piano Real"
+            >
+              {isListening ? <Mic size={16} /> : <MicOff size={16} />}
+            </button>
+
+            {view === 'menu' && (
+              <button
+                onClick={() => setIsMicSettingsOpen(true)}
+                className="p-1.5 sm:p-2 text-white/50 hover:text-white transition-all bg-white/5 hover:bg-white/20 rounded-xl cursor-pointer"
+                title="Configurar Micrófono"
+              >
+                <Settings size={16} />
+              </button>
+            )}
+
+            {view === 'menu' && (
               <button
                 onClick={() => {
-                  initAudio();
-                  setIsDrumEnabled(!isDrumEnabled);
+                  setParentMath({ v1: Math.floor(Math.random() * 50) + 20, v2: Math.floor(Math.random() * 40) + 10, result: '' });
+                  setView('parent_gate');
                 }}
-                className={`p-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer ${isDrumEnabled ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' : 'bg-white/5 text-white/40'}`}
-                title="Acompañamiento Rítmico"
+                className="p-1.5 sm:p-2 bg-white/5 hover:bg-indigo-600/30 text-white/50 hover:text-indigo-200 transition-all rounded-xl cursor-pointer"
+                title="Panel de Control de Profesor / Padres"
               >
-                <Drum size={16} className={isDrumEnabled ? 'animate-bounce' : ''} />
+                <Settings size={16} />
               </button>
-
-              {isDrumEnabled && (
-                <div className="flex items-center gap-1 ml-1 pr-1">
-                  {['pop', 'rock', 'clasico', 'marcha'].map(r => (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        initAudio();
-                        if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
-                        setCurrentRhythm(r);
-                      }}
-                      className={`px-2 py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-tighter transition-all cursor-pointer ${(view === 'game' ? currentSong?.rhythm : currentRhythm) === r ? 'bg-white/20 text-white ring-1 ring-white/20' : 'text-white/20 hover:text-white/40'}`}
-                    >
-                      {r === 'marcha' ? 'MARCH' : r === 'clasico' ? 'CLÁSICO' : r}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <button
-            onClick={toggleMic}
-            className={`p-2 sm:px-3 sm:py-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer ${isListening ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-white/10 hover:bg-white/20 text-white/60'}`}
-            title="Escuchar Piano Real"
-          >
-            {isListening ? <Mic size={18} /> : <MicOff size={18} />}
-          </button>
-
-          {view === 'menu' && (
-            <button
-              onClick={() => setIsMicSettingsOpen(true)}
-              className="p-2 text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/20 rounded-xl cursor-pointer"
-              title="Configurar Micrófono"
-            >
-              <Settings size={18} />
-            </button>
-          )}
-
-          {view === 'menu' && (
-            <button
-              onClick={() => {
-                setParentMath({ v1: Math.floor(Math.random() * 50) + 20, v2: Math.floor(Math.random() * 40) + 10, result: '' });
-                setView('parent_gate');
-              }}
-              className="p-2 bg-white/5 hover:bg-indigo-600/30 text-white/40 hover:text-indigo-200 transition-all rounded-xl cursor-pointer"
-              title="Panel de Control de Profesor / Padres"
-            >
-              <Settings size={18} />
-            </button>
-          )}
-          {view === 'menu' && (
-            <button
-              onClick={() => {
-                if (onExit) onExit();
-              }}
-              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold uppercase transition-all shadow-md cursor-pointer"
-            >
-              Cerrar Piano
-            </button>
-          )}
-          <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl cursor-pointer" title="Ir al Menú"><Home size={18} /></button>
+            )}
+            {view === 'menu' && (
+              <button
+                onClick={() => {
+                  if (onExit) onExit();
+                }}
+                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[10px] sm:text-xs font-bold uppercase transition-all shadow-md cursor-pointer"
+              >
+                Cerrar Piano
+              </button>
+            )}
+            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-1.5 sm:p-2 bg-white/10 hover:bg-white/20 rounded-xl cursor-pointer" title="Ir al Menú"><Home size={16} /></button>
+          </div>
         </div>
       </div>
 
@@ -1157,19 +1179,8 @@ export default function PianoMagico({ userId, onExit }) {
               ))}
             </div>
 
-            {/* Header Content */}
-            <div className="text-center mt-10 mb-8 z-20 sticky top-0 py-4 bg-[#020617]/40 backdrop-blur-sm w-full border-b border-white/5">
-              <h1 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow-lg" style={{ WebkitTextStroke: "1px rgba(0,0,0,0.5)" }}>Galactic Adventure</h1>
-              <div className="flex items-center justify-center gap-4 mt-2">
-                <div className={`font-black uppercase text-[9px] px-4 py-1.5 rounded-full bg-slate-900 border border-white/10 shadow-xl ${currentRank.color}`}>{currentRank.title}</div>
-                <div className="bg-indigo-600/20 px-3 py-1 rounded-full border border-indigo-500/30 flex items-center gap-2">
-                  <Zap size={12} className="text-yellow-400" />
-                  <span className="text-[10px] font-black">{totalScore}</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="w-full max-w-sm px-4 z-20 mb-8">
+            <div className="w-full max-w-sm px-4 z-20 mt-6 mb-8">
               <button
                 onClick={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 p-4 rounded-2xl shadow-[0_0_20px_rgba(79,70,229,0.4)] border-b-4 border-indigo-800 flex items-center justify-center gap-3 active:scale-95 transition-all hover:scale-[1.02]"
