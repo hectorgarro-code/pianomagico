@@ -1211,7 +1211,7 @@ export default function PianoMagico({ userId, onExit }) {
 
               return (
                 <div
-                  className="relative w-full max-w-md mx-auto flex flex-col items-center justify-start mt-4 px-4"
+                  className="relative w-full max-w-md sm:max-w-xl lg:max-w-3xl mx-auto flex flex-col items-center justify-start mt-4 px-4"
                   style={{ height: `${totalItems * 160 + 300}px` }}
                   onClick={() => setActivePopover(null)}
                 >
@@ -1265,14 +1265,6 @@ export default function PianoMagico({ userId, onExit }) {
                       </div>
                     </div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-green-400/20 rounded-full blur-xl border border-green-400/30 -z-10" />
-                  </div>
-
-                  {/* Mountain Silhouettes at the bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-[300px] pointer-events-none z-0">
-                    <svg className="w-full h-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
-                      <path fill="#020617" d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,224C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-                      <path fill="#0f172a" opacity="0.5" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-                    </svg>
                   </div>
 
                   {mapSongs.map((song, idx) => {
