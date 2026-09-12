@@ -270,7 +270,7 @@ export default function PianoMagico({ userId, onExit }) {
   }, []);
 
   const [rawSequenceText, setRawSequenceText] = useState('');
-  const [isDrumEnabled, setIsDrumEnabled] = useState(true);
+  const [isDrumEnabled, setIsDrumEnabled] = useState(false);
   const [currentRhythm, setCurrentRhythm] = useState('pop');
   const [sessionErrors, setSessionErrors] = useState(0);
   const mapSongs = songs.filter(s => !s.isUserCreated);
