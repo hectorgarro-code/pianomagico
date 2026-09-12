@@ -307,6 +307,37 @@ export default function PianoMagico({ userId, onExit }) {
     }
   };
 
+  // --- TECLADO Y OCTAVAS ADAPTATIVAS POR LECCIÓN ---
+  const visibleNaturalNotes = useMemo(() => {
+    if (view !== 'game' || !currentSong?.sequence || currentSong.sequence.length === 0) {
+      return OCTAVE_NATURAL_NOTES;
+    }
+
+    const octaves = new Set();
+    currentSong.sequence.forEach(noteStr => {
+      const parts = noteStr.split(':')[0];
+      const match = parts.match(/\d+/);
+      if (match) {
+        octaves.add(parseInt(match[0], 10));
+      }
+    });
+
+    if (octaves.size === 0) return OCTAVE_NATURAL_NOTES;
+
+    const minOct = Math.min(...Array.from(octaves));
+    const maxOct = Math.max(...Array.from(octaves));
+
+    const result = [];
+    const baseNaturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    for (let oct = minOct; oct <= maxOct; oct++) {
+      baseNaturalNotes.forEach(pitchClass => {
+        result.push(`${pitchClass}${oct}`);
+      });
+    }
+
+    return result.length > 0 ? result : OCTAVE_NATURAL_NOTES;
+  }, [currentSong, view]);
+
   const getNotePositionPercent = (pitchStr) => {
     if (!pitchStr || pitchStr === 'R') return 43.5;
 
@@ -314,15 +345,16 @@ export default function PianoMagico({ userId, onExit }) {
     const isSharp = pitch.includes('#');
     const basePitch = pitch.replace('#', '');
 
-    const baseIndex = OCTAVE_NATURAL_NOTES.indexOf(basePitch);
-    const keyWidthPercent = 100 / 14;
+    const totalKeys = visibleNaturalNotes.length || 14;
+    const keyWidthPercent = 100 / totalKeys;
+    const baseIndex = visibleNaturalNotes.indexOf(basePitch);
 
     if (baseIndex === -1) {
       const pitchClass = pitch.replace(/\d+/g, '').replace('#', '');
       const naturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
       const idx = naturalNotes.indexOf(pitchClass);
       if (idx === -1) return 0;
-      return (idx * (100 / 7)) + 0.64;
+      return (idx * (100 / Math.min(totalKeys, 7))) + 0.64;
     }
 
     if (!isSharp) {
@@ -2259,7 +2291,8 @@ export default function PianoMagico({ userId, onExit }) {
                     const parsed = parseNote(n);
                     const noteColor = isCalmMode ? `${NOTE_COLORS[parsed.pitch]}AA` : NOTE_COLORS[parsed.pitch];
                     const isSharp = parsed.pitch.includes('#');
-                    const noteWidthPercent = isSharp ? 4.8 : 6.5;
+                    const totalKeysCount = visibleNaturalNotes.length || 14;
+                    const noteWidthPercent = isSharp ? (100 / totalKeysCount) * 0.65 : (100 / totalKeysCount) * 0.88;
                     const noteLeftPercent = getNotePositionPercent(parsed.pitch);
                     const noteHeight = Math.max(32, Math.round(parsed.duration * 75));
 
@@ -2898,7 +2931,7 @@ export default function PianoMagico({ userId, onExit }) {
       {
         !['auth', 'id_card', 'parent_gate', 'admin'].includes(view) && (
           <div className={`w-full max-w-7xl h-[85px] sm:h-[120px] lg:h-[140px] shrink-0 bg-white p-2 flex gap-1 sm:gap-2 border-t-4 border-slate-200 relative z-30 transition-all rounded-t-3xl shadow-[0_-8px_20px_rgba(0,0,0,0.06)]`}>
-            {OCTAVE_NATURAL_NOTES.map((naturalNote) => {
+            {visibleNaturalNotes.map((naturalNote) => {
               const pitchClass = naturalNote.replace(/\d+/g, '');
               const octave = naturalNote.replace(/\D+/g, '');
               const sharpNote = `${pitchClass}#${octave}`;
