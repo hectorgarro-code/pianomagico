@@ -62,7 +62,7 @@ export const usePianoMic = (onNoteDetected) => {
                             lastNoteTimeRef.current = now;
 
                             if (onNoteDetectedRef.current) {
-                                onNoteDetectedRef.current(note);
+                                onNoteDetectedRef.current(note, rms);
                             }
                         }
                     }
