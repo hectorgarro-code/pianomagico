@@ -121,6 +121,20 @@ const parseTextToSequence = (rawText) => {
   return result;
 };
 
+const getSequenceArray = (seq) => {
+  if (!seq) return [];
+  if (Array.isArray(seq)) return seq;
+  if (typeof seq === 'string') {
+    try {
+      const parsed = JSON.parse(seq);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      return parseTextToSequence(seq);
+    }
+  }
+  return [];
+};
+
 const getNoteFrequency = (noteStr) => {
   if (!noteStr || noteStr === 'R') return 0;
   const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
@@ -309,16 +323,22 @@ export default function PianoMagico({ userId, onExit }) {
 
   // --- TECLADO Y OCTAVAS ADAPTATIVAS POR LECCIÓN ---
   const visibleNaturalNotes = useMemo(() => {
-    if (view !== 'game' || !currentSong?.sequence || currentSong.sequence.length === 0) {
+    if (view !== 'game' || !currentSong) {
       return OCTAVE_NATURAL_NOTES;
     }
 
+    const seqArr = getSequenceArray(currentSong.sequence);
+    if (seqArr.length === 0) return OCTAVE_NATURAL_NOTES;
+
     const octaves = new Set();
-    currentSong.sequence.forEach(noteStr => {
-      const parts = noteStr.split(':')[0];
+    seqArr.forEach(noteStr => {
+      if (!noteStr) return;
+      const parts = String(noteStr).split(':')[0];
       const match = parts.match(/\d+/);
       if (match) {
         octaves.add(parseInt(match[0], 10));
+      } else if (parts !== 'R' && parts !== 'SILENCIO' && parts !== 'SIL') {
+        octaves.add(4); // Default to octave 4 if omitted
       }
     });
 
@@ -341,7 +361,17 @@ export default function PianoMagico({ userId, onExit }) {
   const getNotePositionPercent = (pitchStr) => {
     if (!pitchStr || pitchStr === 'R') return 43.5;
 
-    const pitch = (!/\d/.test(pitchStr) && pitchStr !== 'R') ? `${pitchStr}4` : pitchStr;
+    let pitch = String(pitchStr).split(':')[0].trim();
+    const match = pitch.match(/^([A-Z]+#?|DO#?|RE#?|MI#?|FA#?|SOL#?|LA#?|SI#?|DOB|REB|MIB|FAB|SOLB|LAB|SIB)(\d+)?$/i);
+    if (match) {
+      const name = match[1].toUpperCase();
+      const octave = match[2] || '4';
+      const englishPitch = SOLFEGE_MAP[name] || name;
+      pitch = englishPitch === 'R' ? 'R' : `${englishPitch}${octave}`;
+    }
+
+    if (pitch === 'R') return 43.5;
+
     const isSharp = pitch.includes('#');
     const basePitch = pitch.replace('#', '');
 
@@ -354,11 +384,11 @@ export default function PianoMagico({ userId, onExit }) {
       const naturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
       const idx = naturalNotes.indexOf(pitchClass);
       if (idx === -1) return 0;
-      return (idx * (100 / Math.min(totalKeys, 7))) + 0.64;
+      return (idx * keyWidthPercent) + (keyWidthPercent * 0.05);
     }
 
     if (!isSharp) {
-      return (baseIndex * keyWidthPercent) + (keyWidthPercent * 0.1);
+      return (baseIndex * keyWidthPercent) + (keyWidthPercent * 0.05);
     } else {
       return ((baseIndex + 1) * keyWidthPercent) - (keyWidthPercent * 0.35);
     }
@@ -383,9 +413,10 @@ export default function PianoMagico({ userId, onExit }) {
 
   // Calculate cumulative positions for proportional rhythm jumps
   const cumulativePositions = useMemo(() => {
-    if (!currentSong?.sequence) return [];
+    const seqArr = getSequenceArray(currentSong?.sequence);
+    if (seqArr.length === 0) return [];
     let pos = 0;
-    return currentSong.sequence.map(n => {
+    return seqArr.map(n => {
       const currentPos = pos;
       pos += parseNote(n).duration;
       return currentPos;
@@ -1219,7 +1250,9 @@ export default function PianoMagico({ userId, onExit }) {
 
   const startLevel = (song, m) => {
     stopDemoPlayback();
-    setCurrentSong(song); setMode(m); setStep(0); stepRef.current = 0;
+    const parsedSequence = getSequenceArray(song?.sequence);
+    const songWithParsedSeq = { ...song, sequence: parsedSequence };
+    setCurrentSong(songWithParsedSeq); setMode(m); setStep(0); stepRef.current = 0;
     setSimonStep(1); setUserSimonIndex(0); setEnergy(0);
     setFailureCount(0); setSessionErrors(0); setIsCalmMode(false); // Reset ADHD features
     setTempoFactor(1); // Reset speed multiplier to 1x (Original creation BPM)
@@ -2298,8 +2331,8 @@ export default function PianoMagico({ userId, onExit }) {
                   )}
                 </div>
               ) : mode !== 'oído' ? (
-                <div className="absolute inset-0 ease-out transition-transform" style={{ transform: `translateY(${cumulativePositions[step] * 100}px)`, transitionDuration: `${(getIntervalMs(currentSong?.speed) / tempoFactor) * (currentSong?.sequence[step] ? parseNote(currentSong.sequence[step]).duration : 1)}ms` }}>
-                  {currentSong.sequence.map((n, i) => {
+                <div className="absolute inset-0 ease-out transition-transform" style={{ transform: `translateY(${cumulativePositions[step] * 100}px)`, transitionDuration: `${(getIntervalMs(currentSong?.speed) / tempoFactor) * (getSequenceArray(currentSong?.sequence)[step] ? parseNote(getSequenceArray(currentSong?.sequence)[step]).duration : 1)}ms` }}>
+                  {getSequenceArray(currentSong?.sequence).map((n, i) => {
                     if (i < step - 1 || i > step + 12) return null;
                     let op = "opacity-90"; let sc = "scale-95";
                     if (i < step) op = "opacity-0 scale-50";
