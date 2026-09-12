@@ -2242,6 +2242,18 @@ export default function PianoMagico({ userId, onExit }) {
                 <span className="text-[10px] font-black uppercase italic text-indigo-100 tracking-widest">Modo Calma Activo</span>
               </div>
             )}
+
+            {/* BADGE CON NOMBRE DE LA NOTA A TOCAR EN PANTALLA */}
+            {mode !== 'oído' && mode !== 'detective' && currentSong && getSequenceArray(currentSong?.sequence)[step] && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 pointer-events-none transition-all duration-300">
+                <div className="px-3.5 py-1 sm:px-5 sm:py-1.5 bg-slate-900/85 backdrop-blur-md rounded-full border-2 border-indigo-400/50 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex items-center gap-2">
+                  <span className="text-[9px] sm:text-xs font-black uppercase text-indigo-300 tracking-wider">Nota:</span>
+                  <span className="text-base sm:text-xl font-black text-yellow-300 tracking-wide drop-shadow-[0_0_10px_rgba(253,224,71,0.6)]">
+                    {NOTE_NAMES[parseNote(getSequenceArray(currentSong.sequence)[step]).pitch]}
+                  </span>
+                </div>
+              </div>
+            )}
             {mode !== 'oído' && (
               <div className={`absolute bottom-0 w-full ${isLandscape ? 'h-[65px] sm:h-[80px]' : 'h-[120px]'} bg-gradient-to-t from-white/10 to-transparent border-t-2 z-10 transition-all duration-500 ${noteReady ? 'border-green-500/50 shadow-lg' : 'border-red-500/20 opacity-30'}`}>
                 <div className="flex justify-center pt-2 sm:pt-4"><ChevronDown className={`transition-all duration-300 ${noteReady ? 'text-green-400 animate-bounce scale-125' : 'text-red-500/20'}`} size={24} /></div>
