@@ -906,6 +906,7 @@ export default function PianoMagico({ userId, onExit }) {
     setCurrentSong(song); setMode(m); setStep(0); stepRef.current = 0;
     setSimonStep(1); setUserSimonIndex(0); setEnergy(0);
     setFailureCount(0); setSessionErrors(0); setIsCalmMode(false); // Reset ADHD features
+    setTempoFactor(1); // Reset speed multiplier to 1x (Original creation BPM)
 
     // Neurodiversity states reset
     setDetectiveAttempts(0);
@@ -1027,6 +1028,21 @@ export default function PianoMagico({ userId, onExit }) {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {view === 'game' && (
+              <div className="flex items-center bg-black/30 rounded-xl p-1 border border-white/10 shrink-0">
+                {[0.5, 0.75, 1, 1.25, 1.5].map(factor => (
+                  <button
+                    key={factor}
+                    onClick={() => setTempoFactor(factor)}
+                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-tighter transition-all cursor-pointer ${tempoFactor === factor ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400' : 'text-white/30 hover:text-white/60'}`}
+                    title={`Velocidad ${factor}x (${Math.round((currentSong?.speed || 100) * factor)} BPM)`}
+                  >
+                    {factor === 1 ? '1x' : `${factor}x`}
+                  </button>
+                ))}
               </div>
             )}
 
