@@ -208,6 +208,19 @@ export default function PianoMagico({ userId, onExit }) {
   const [seqHistoryIndex, setSeqHistoryIndex] = useState(-1);
   const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
   const [showNomenclatureHelp, setShowNomenclatureHelp] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(() => typeof window !== 'undefined' && window.innerWidth > window.innerHeight && window.innerHeight < 600);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight && window.innerHeight < 600);
+    };
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
 
   // --- REPRODUCCIÓN DEMOSTRACIÓN (PLAY / PAUSE / STOP) ---
   const [isDemoPlaying, setIsDemoPlaying] = useState(false);
@@ -1454,7 +1467,7 @@ export default function PianoMagico({ userId, onExit }) {
       </div>
 
       {/* ÁREA CENTRAL */}
-      <div className="flex-1 min-h-0 w-full max-w-7xl pt-12 sm:pt-14 relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4">
+      <div className={`flex-1 min-h-0 w-full max-w-7xl ${isLandscape ? 'pt-8 sm:pt-9' : 'pt-12 sm:pt-14'} relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4`}>
 
         {/* AUTH / SELECCIÓN DE USUARIO */}
         {view === 'auth' && (
@@ -2230,8 +2243,8 @@ export default function PianoMagico({ userId, onExit }) {
               </div>
             )}
             {mode !== 'oído' && (
-              <div className={`absolute bottom-0 w-full h-[120px] bg-gradient-to-t from-white/10 to-transparent border-t-2 z-10 transition-all duration-500 ${noteReady ? 'border-green-500/50 shadow-lg' : 'border-red-500/20 opacity-30'}`}>
-                <div className="flex justify-center pt-4"><ChevronDown className={`transition-all duration-300 ${noteReady ? 'text-green-400 animate-bounce scale-125' : 'text-red-500/20'}`} size={28} /></div>
+              <div className={`absolute bottom-0 w-full ${isLandscape ? 'h-[65px] sm:h-[80px]' : 'h-[120px]'} bg-gradient-to-t from-white/10 to-transparent border-t-2 z-10 transition-all duration-500 ${noteReady ? 'border-green-500/50 shadow-lg' : 'border-red-500/20 opacity-30'}`}>
+                <div className="flex justify-center pt-2 sm:pt-4"><ChevronDown className={`transition-all duration-300 ${noteReady ? 'text-green-400 animate-bounce scale-125' : 'text-red-500/20'}`} size={24} /></div>
               </div>
             )}
 
@@ -2331,9 +2344,10 @@ export default function PianoMagico({ userId, onExit }) {
                   )}
                 </div>
               ) : mode !== 'oído' ? (
-                <div className="absolute inset-0 ease-out transition-transform" style={{ transform: `translateY(${cumulativePositions[step] * 100}px)`, transitionDuration: `${(getIntervalMs(currentSong?.speed) / tempoFactor) * (getSequenceArray(currentSong?.sequence)[step] ? parseNote(getSequenceArray(currentSong?.sequence)[step]).duration : 1)}ms` }}>
+                <div className="absolute inset-0 ease-out transition-transform" style={{ transform: `translateY(${cumulativePositions[step] * (isLandscape ? 45 : 100)}px)`, transitionDuration: `${(getIntervalMs(currentSong?.speed) / tempoFactor) * (getSequenceArray(currentSong?.sequence)[step] ? parseNote(getSequenceArray(currentSong?.sequence)[step]).duration : 1)}ms` }}>
                   {getSequenceArray(currentSong?.sequence).map((n, i) => {
-                    if (i < step - 1 || i > step + 12) return null;
+                    const maxLookAhead = isLandscape ? 24 : 12;
+                    if (i < step - 1 || i > step + maxLookAhead) return null;
                     let op = "opacity-90"; let sc = "scale-95";
                     if (i < step) op = "opacity-0 scale-50";
                     else if (i === step) { op = noteReady ? "opacity-100 ring-4 ring-white shadow-2xl" : "opacity-60 blur-[1px]"; sc = noteReady ? "scale-110" : "scale-100"; }
@@ -2346,11 +2360,12 @@ export default function PianoMagico({ userId, onExit }) {
                     const totalKeysCount = visibleNaturalNotes.length || 14;
                     const noteWidthPercent = isSharp ? (100 / totalKeysCount) * 0.65 : (100 / totalKeysCount) * 0.88;
                     const noteLeftPercent = getNotePositionPercent(parsed.pitch);
-                    const noteHeight = Math.max(32, Math.round(parsed.duration * 75));
+                    const noteStepPx = isLandscape ? 45 : 100;
+                    const noteHeight = Math.max(isLandscape ? 22 : 32, Math.round(parsed.duration * (isLandscape ? 38 : 75)));
 
                     return (
-                      <div key={i} className={`absolute rounded-2xl flex flex-col items-center justify-center border-2 border-white/60 border-b-[4px] border-b-black/30 transition-all duration-500 shadow-md ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, width: `${noteWidthPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px`, height: `${noteHeight}px` }}>
-                        <span className={`${noteHeight < 45 ? 'text-[8px] sm:text-xs font-black' : 'text-xs sm:text-lg font-black'} text-white drop-shadow-md text-center leading-none`}>{NOTE_NAMES[parsed.pitch]}</span>
+                      <div key={i} className={`absolute rounded-2xl flex flex-col items-center justify-center border-2 border-white/60 border-b-[4px] border-b-black/30 transition-all duration-500 shadow-md ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, width: `${noteWidthPercent}%`, bottom: `${cumulativePositions[i] * noteStepPx + 10}px`, height: `${noteHeight}px` }}>
+                        <span className={`${noteHeight < 40 ? 'text-[8px] font-black' : noteHeight < 55 ? 'text-[9px] sm:text-xs font-black' : 'text-xs sm:text-lg font-black'} text-white drop-shadow-md text-center leading-none`}>{NOTE_NAMES[parsed.pitch]}</span>
                         {parsed.duration !== 1 && (
                           <span className="absolute -bottom-2 text-[8px] font-black uppercase text-white bg-black/60 px-1 py-0.2 rounded-full border border-white/20 shadow-sm">{parsed.duration}x</span>
                         )}
@@ -2982,7 +2997,7 @@ export default function PianoMagico({ userId, onExit }) {
       {/* TECLADO 3D FISICO ESTILO DUOLINGO */}
       {
         !['auth', 'id_card', 'parent_gate', 'admin'].includes(view) && (
-          <div className={`w-full max-w-7xl h-[85px] sm:h-[120px] lg:h-[140px] shrink-0 bg-white p-2 flex gap-1 sm:gap-2 border-t-4 border-slate-200 relative z-30 transition-all rounded-t-3xl shadow-[0_-8px_20px_rgba(0,0,0,0.06)]`}>
+          <div className={`w-full max-w-7xl ${isLandscape ? 'h-[55px] sm:h-[65px]' : 'h-[85px] sm:h-[120px] lg:h-[140px]'} shrink-0 bg-white p-1.5 sm:p-2 flex gap-1 sm:gap-2 border-t-4 border-slate-200 relative z-30 transition-all rounded-t-3xl shadow-[0_-8px_20px_rgba(0,0,0,0.06)]`}>
             {visibleNaturalNotes.map((naturalNote) => {
               const pitchClass = naturalNote.replace(/\d+/g, '');
               const octave = naturalNote.replace(/\D+/g, '');
