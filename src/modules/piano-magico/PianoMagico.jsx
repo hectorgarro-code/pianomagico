@@ -1915,12 +1915,13 @@ export default function PianoMagico({ userId, onExit }) {
                     const isSharp = parsed.pitch.includes('#');
                     const noteWidthClass = isSharp ? "w-[10%]" : "w-[13%]";
                     const noteLeftPercent = getNotePositionPercent(parsed.pitch);
+                    const noteHeight = Math.max(26, Math.round(parsed.duration * 80));
 
                     return (
-                      <div key={i} className={`absolute ${noteWidthClass} h-[80px] rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-white/40 transition-all duration-500 ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px` }}>
-                        <span className="text-xl sm:text-2xl font-black text-white drop-shadow-md">{NOTE_NAMES[parsed.pitch]}</span>
+                      <div key={i} className={`absolute ${noteWidthClass} rounded-[1.2rem] flex flex-col items-center justify-center border-2 border-white/40 transition-all duration-500 ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px`, height: `${noteHeight}px` }}>
+                        <span className={`${noteHeight < 45 ? 'text-xs font-black' : 'text-xl sm:text-2xl font-black'} text-white drop-shadow-md`}>{NOTE_NAMES[parsed.pitch]}</span>
                         {parsed.duration !== 1 && (
-                          <span className="absolute -bottom-3 text-[10px] font-black uppercase text-white/50 bg-black/40 px-2 rounded-full border border-white/10">{parsed.duration}x</span>
+                          <span className="absolute -bottom-2 text-[9px] font-black uppercase text-white/80 bg-black/60 px-1.5 py-0.2 rounded-full border border-white/20 shadow-sm">{parsed.duration}x</span>
                         )}
                       </div>
                     );
