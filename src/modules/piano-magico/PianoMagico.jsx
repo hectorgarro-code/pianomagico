@@ -1976,15 +1976,15 @@ export default function PianoMagico({ userId, onExit }) {
                     const parsed = parseNote(n);
                     const noteColor = isCalmMode ? `${NOTE_COLORS[parsed.pitch]}AA` : NOTE_COLORS[parsed.pitch];
                     const isSharp = parsed.pitch.includes('#');
-                    const noteWidthClass = isSharp ? "w-[10%]" : "w-[13%]";
+                    const noteWidthPercent = isSharp ? 4.8 : 6.5;
                     const noteLeftPercent = getNotePositionPercent(parsed.pitch);
-                    const noteHeight = Math.max(26, Math.round(parsed.duration * 80));
+                    const noteHeight = Math.max(32, Math.round(parsed.duration * 75));
 
                     return (
-                      <div key={i} className={`absolute ${noteWidthClass} rounded-2xl flex flex-col items-center justify-center border-2 border-white/60 border-b-[4px] border-b-black/30 transition-all duration-500 shadow-md ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px`, height: `${noteHeight}px` }}>
-                        <span className={`${noteHeight < 45 ? 'text-xs font-black' : 'text-xl sm:text-2xl font-black'} text-white drop-shadow-md`}>{NOTE_NAMES[parsed.pitch]}</span>
+                      <div key={i} className={`absolute rounded-2xl flex flex-col items-center justify-center border-2 border-white/60 border-b-[4px] border-b-black/30 transition-all duration-500 shadow-md ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, width: `${noteWidthPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px`, height: `${noteHeight}px` }}>
+                        <span className={`${noteHeight < 45 ? 'text-[8px] sm:text-xs font-black' : 'text-xs sm:text-lg font-black'} text-white drop-shadow-md text-center leading-none`}>{NOTE_NAMES[parsed.pitch]}</span>
                         {parsed.duration !== 1 && (
-                          <span className="absolute -bottom-2 text-[9px] font-black uppercase text-white bg-black/60 px-1.5 py-0.2 rounded-full border border-white/20 shadow-sm">{parsed.duration}x</span>
+                          <span className="absolute -bottom-2 text-[8px] font-black uppercase text-white bg-black/60 px-1 py-0.2 rounded-full border border-white/20 shadow-sm">{parsed.duration}x</span>
                         )}
                       </div>
                     );
