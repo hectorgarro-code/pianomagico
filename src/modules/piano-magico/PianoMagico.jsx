@@ -4,7 +4,7 @@ import {
   Wind, BookOpen, Trophy, Zap, Users, Music2, Drum, Radio, Volume2,
   ChevronDown, VolumeX, Sparkles, Settings, Plus, Trash2, Save, X,
   Pencil, Mic2, RefreshCw, Gauge, Brain, Share2, Download, Medal, Flame, Ear, Crown, Target, LogOut, Lock,
-  ChevronLeft, ChevronRight, Search, Bird, Feather, Mountain, ArrowUp, ArrowDown, Square, Undo, Redo
+  ChevronLeft, ChevronRight, Search, Bird, Feather, Mountain, ArrowUp, ArrowDown, Square, Undo, Redo, HelpCircle, Info
 } from 'lucide-react';
 
 import { usePianoMic } from '../../hooks/usePianoMic';
@@ -185,6 +185,7 @@ export default function PianoMagico({ userId, onExit }) {
   const [seqHistory, setSeqHistory] = useState([]);
   const [seqHistoryIndex, setSeqHistoryIndex] = useState(-1);
   const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
+  const [showNomenclatureHelp, setShowNomenclatureHelp] = useState(false);
 
   // Helper to commit new sequence edits with history tracking
   const commitSequenceHistory = useCallback((newSeq) => {
@@ -2510,7 +2511,16 @@ export default function PianoMagico({ userId, onExit }) {
                 <div className="lg:col-span-7 flex flex-col gap-6">
                   {/* Secuencia Manual (Texto) */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-4">Importar Secuencia de Texto</label>
+                    <div className="flex items-center justify-between ml-4 pr-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Importar Secuencia de Texto</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowNomenclatureHelp(true)}
+                        className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-full text-xs font-bold transition-all border border-indigo-500/30 cursor-pointer"
+                      >
+                        <HelpCircle size={14} /> Guía de Nomenclatura
+                      </button>
+                    </div>
                     <div className="flex flex-col gap-2 bg-white/5 p-4 rounded-[2rem] border border-white/10">
                       <textarea
                         value={rawSequenceText}
@@ -2781,6 +2791,115 @@ export default function PianoMagico({ userId, onExit }) {
           <div className="pointer-events-none fixed inset-0 z-[100] bg-gradient-to-t from-yellow-500/20 via-orange-500/10 to-transparent mix-blend-overlay animate-pulse" />
         )
       }
+
+      {/* MODAL GUÍA DE NOMENCLATURA */}
+      {showNomenclatureHelp && (
+        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-indigo-500/40 rounded-[2.5rem] p-6 sm:p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col gap-6 text-white scrollbar-hide">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-600/30 border border-indigo-500/40 rounded-2xl">
+                  <BookOpen className="text-indigo-400" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-white uppercase tracking-wide">Guía de Nomenclatura</h3>
+                  <p className="text-xs text-white/50 font-medium">Formato para importar partituras en texto</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowNomenclatureHelp(false)}
+                className="p-2 bg-white/5 hover:bg-white/15 rounded-full text-white/70 hover:text-white transition-all cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Contenido de la guía */}
+            <div className="flex flex-col gap-5 text-sm">
+              
+              {/* Notación General */}
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col gap-1.5">
+                <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">Formato General</span>
+                <p className="text-xs text-white/80">Cada elemento tiene el formato <code className="bg-indigo-950 px-2 py-0.5 rounded text-indigo-300 font-mono font-bold">NOTA[OCTAVA][:DURACIÓN]</code></p>
+                <p className="text-[11px] text-white/50">Si se omite la duración, por defecto se asigna <code className="text-indigo-300 font-mono">1</code> (negra).</p>
+              </div>
+
+              {/* Nombres de Notas */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">1. Nombres de Notas y Alteraciones</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                    <span className="font-bold text-yellow-400 block mb-1">Español</span>
+                    <p className="text-white/70">DO, RE, MI, FA, SOL, LA, SI</p>
+                    <p className="text-white/50 text-[11px] mt-1">Sostenidos: <code className="text-white font-mono">DO#</code>, <code className="text-white font-mono">RE#</code>, <code className="text-white font-mono">FA#</code>...</p>
+                    <p className="text-white/50 text-[11px]">Bemoles: <code className="text-white font-mono">REB</code>, <code className="text-white font-mono">MIB</code>, <code className="text-white font-mono">SOLB</code>...</p>
+                  </div>
+                  <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                    <span className="font-bold text-cyan-400 block mb-1">Cifrado Inglés</span>
+                    <p className="text-white/70">C, D, E, F, G, A, B</p>
+                    <p className="text-white/50 text-[11px] mt-1">Sostenidos: <code className="text-white font-mono">C#</code>, <code className="text-white font-mono">D#</code>, <code className="text-white font-mono">F#</code>...</p>
+                    <p className="text-white/50 text-[11px]">Octavas: <code className="text-white font-mono">3</code> a <code className="text-white font-mono">6</code> (ej: <code className="text-white font-mono">MI5</code>, <code className="text-white font-mono">C4</code>)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Silencios */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">2. Silencios</span>
+                <div className="bg-black/30 p-3 rounded-xl border border-white/5 text-xs flex flex-col gap-1">
+                  <p className="text-white/80">Puedes usar cualquier palabra clave: <code className="text-pink-400 font-mono font-bold">SIL</code>, <code className="text-pink-400 font-mono font-bold">SILENCIO</code>, <code className="text-pink-400 font-mono font-bold">R</code> o <code className="text-pink-400 font-mono font-bold">REST</code>.</p>
+                  <p className="text-white/50 text-[11px]">Ejemplos: <code className="text-white font-mono">SIL:0.5</code> (Silencio corchea), <code className="text-white font-mono">SILENCIO:1</code> (Silencio negra), <code className="text-white font-mono">R:2</code> (Silencio blanca).</p>
+                </div>
+              </div>
+
+              {/* Duraciones */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">3. Valores de Duración</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/5">
+                    <span className="font-mono font-bold text-indigo-300 text-sm block">0.25</span>
+                    <span className="text-[11px] text-white/60">Semicorchea</span>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/5">
+                    <span className="font-mono font-bold text-indigo-300 text-sm block">0.5</span>
+                    <span className="text-[11px] text-white/60">Corchea</span>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/5">
+                    <span className="font-mono font-bold text-indigo-300 text-sm block">1</span>
+                    <span className="text-[11px] text-white/60">Negra</span>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/5">
+                    <span className="font-mono font-bold text-indigo-300 text-sm block">2 / 4</span>
+                    <span className="text-[11px] text-white/60">Blanca / Redonda</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ejemplo Completo */}
+              <div className="bg-gradient-to-r from-indigo-950/60 to-purple-950/60 p-4 rounded-2xl border border-indigo-500/30 flex flex-col gap-2">
+                <span className="text-xs font-black uppercase text-yellow-400 tracking-wider">Ejemplo Completo:</span>
+                <div className="bg-black/50 p-3 rounded-xl border border-white/10 text-xs font-mono text-indigo-200 select-all leading-relaxed break-all">
+                  MI5:0.5 RE#5:0.5 MI5:0.5 RE#5:0.5 MI5:0.5 SI4:0.5 RE5:0.5 DO5:0.5 LA4:1 SIL:0.5
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowNomenclatureHelp(false)}
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg"
+              >
+                Entendido
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* MODAL CONFIGURACIÓN DE MICRÓFONO */}
       <MicSettingsModal isOpen={isMicSettingsOpen} onClose={() => setIsMicSettingsOpen(false)} />
