@@ -1218,7 +1218,7 @@ export default function PianoMagico({ userId, onExit }) {
 
         {/* MENU GALÁCTICO (STAR MAP) */}
         {view === 'menu' && (
-          <div className="flex-1 flex flex-col items-center h-full animate-in fade-in overflow-y-auto pb-40 w-full relative bg-[#020617] scrollbar-hide">
+          <div className="flex-1 min-h-0 flex flex-col items-center animate-in fade-in overflow-y-auto pb-40 w-full relative bg-[#020617] scrollbar-hide">
 
             {/* Background Layers */}
             <div className="fixed inset-0 pointer-events-none z-0">
@@ -1270,8 +1270,8 @@ export default function PianoMagico({ userId, onExit }) {
 
               return (
                 <div
-                  className="relative w-full max-w-md sm:max-w-xl lg:max-w-3xl mx-auto flex flex-col items-center justify-start mt-4 px-4"
-                  style={{ height: `${totalItems * 160 + 300}px` }}
+                  className="relative w-full max-w-md sm:max-w-xl lg:max-w-3xl mx-auto flex flex-col items-center justify-start mt-4 px-4 shrink-0"
+                  style={{ height: `${totalItems * 160 + 300}px`, minHeight: `${totalItems * 160 + 300}px` }}
                   onClick={() => setActivePopover(null)}
                 >
 

@@ -23,7 +23,7 @@ export default function InstrumentSelection({ profile, onSelectApp, onLogout }) 
     const avatar = STICKERS_BASE[profile?.avatarId] || STICKERS_BASE[1];
 
     return (
-        <div className="min-h-screen bg-[#060b19] font-sans flex flex-col items-center justify-center p-4 relative overflow-hidden text-white">
+        <div className="min-h-screen bg-[#060b19] font-sans flex flex-col items-center p-4 pt-4 md:pt-8 relative overflow-y-auto text-white">
             {/* Background FX */}
             <div className="absolute inset-0 z-0 pointer-events-none opacity-50">
                 <div className="absolute top-[10%] right-[10%] w-[30rem] h-[30rem] bg-indigo-600/20 rounded-full blur-[100px] mix-blend-screen" />
@@ -34,13 +34,13 @@ export default function InstrumentSelection({ profile, onSelectApp, onLogout }) 
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] [mask-image:radial-gradient(ellipse_at_center,white,transparent)] pointer-events-none z-0"></div>
 
             {/* Header Profile */}
-            <div className="absolute top-6 w-full max-w-6xl px-6 flex justify-between items-center z-20">
-                <div className="flex items-center gap-4 bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-2 pr-6 rounded-full shadow-lg">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-inner ${avatar.color}`}>
+            <div className="relative w-full max-w-5xl px-2 flex justify-between items-center z-20 mb-6 shrink-0">
+                <div className="flex items-center gap-3 md:gap-4 bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-2 pr-5 rounded-full shadow-lg">
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xl md:text-2xl shadow-inner ${avatar.color}`}>
                         {avatar.emoji}
                     </div>
                     <div>
-                        <h2 className="font-black uppercase tracking-wider text-sm text-slate-200">Hola, {profile?.name || 'Músico'}</h2>
+                        <h2 className="font-black uppercase tracking-wider text-xs md:text-sm text-slate-200">Hola, {profile?.name || 'Músico'}</h2>
                         <div className="flex items-center gap-1 text-xs text-yellow-400 font-bold">
                             <Star size={12} fill="currentColor" /> {profile?.totalScore || 0} pts
                         </div>
@@ -49,13 +49,13 @@ export default function InstrumentSelection({ profile, onSelectApp, onLogout }) 
 
                 <button
                     onClick={onLogout}
-                    className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all shadow-lg group"
+                    className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-2.5 md:p-3 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all shadow-lg group"
                 >
-                    <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
                 </button>
             </div>
 
-            <div className="z-10 flex flex-col items-center w-full max-w-5xl">
+            <div className="z-10 flex flex-col items-center w-full max-w-5xl my-auto">
                 <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-purple-300 drop-shadow-[0_0_15px_rgba(165,180,252,0.4)] tracking-tighter uppercase italic mb-2 text-center">
                     Elige tu Instrumento
                 </h1>
