@@ -420,24 +420,10 @@ export default function PianoMagico({ userId, onExit }) {
   // --- GAMIFICATION: SUPERNOVA & BOSSES ---
   const [consecutiveHits, setConsecutiveHits] = useState(0);
   const [isSupernova, setIsSupernova] = useState(false);
-  const lastMicHitInfoRef = useRef({ pitch: null, time: 0, step: -1 });
-  const hasSeenSilenceOrChangeRef = useRef(true);
-  const micSilenceTimerRef = useRef(null);
+  const lastMicHitTimeRef = useRef(0);
 
   const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note) => {
-    if (note) {
-      if (micSilenceTimerRef.current) clearTimeout(micSilenceTimerRef.current);
-
-      if (lastMicHitInfoRef.current.pitch && !isNoteMatch(note, lastMicHitInfoRef.current.pitch)) {
-        hasSeenSilenceOrChangeRef.current = true;
-      }
-
-      micSilenceTimerRef.current = setTimeout(() => {
-        hasSeenSilenceOrChangeRef.current = true;
-      }, 150);
-
-      handleAction(note, 'mic');
-    }
+    handleAction(note, 'mic');
   });
 
   // Calculate cumulative positions for proportional rhythm jumps
@@ -1053,11 +1039,9 @@ export default function PianoMagico({ userId, onExit }) {
       if (prevStepNode) {
         const prevPitch = parseNote(prevStepNode).pitch;
         if (isNoteMatch(target, prevPitch)) {
-          const timeSinceLastHit = Date.now() - lastMicHitInfoRef.current.time;
-          const isConsecutiveStep = lastMicHitInfoRef.current.step === stepRef.current - 1;
-
-          if (isConsecutiveStep && !hasSeenSilenceOrChangeRef.current && timeSinceLastHit < 700) {
-            // Sustained sound of previous note - ignore to require a fresh key stroke!
+          const timeSinceLastHit = Date.now() - lastMicHitTimeRef.current;
+          if (timeSinceLastHit < 300) {
+            // Sustained vibration from previous identical note - ignore to allow fresh re-strike
             return;
           }
         }
@@ -1081,8 +1065,7 @@ export default function PianoMagico({ userId, onExit }) {
     if (isNoteMatch(note, target)) {
       lockRef.current = true;
       if (source === 'mic') {
-        lastMicHitInfoRef.current = { pitch: note, time: Date.now(), step: stepRef.current };
-        hasSeenSilenceOrChangeRef.current = false;
+        lastMicHitTimeRef.current = Date.now();
       }
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
