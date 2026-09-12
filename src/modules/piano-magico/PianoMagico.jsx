@@ -55,6 +55,16 @@ const ALL_PITCH_OPTIONS = [
   'R'
 ];
 
+const DEFAULT_RHYTHM_BPMS = {
+  pop: 100,
+  rock: 120,
+  clasico: 136,
+  bubble: 75,
+  robot: 140,
+  march: 110,
+  marcha: 110
+};
+
 const getNoteFrequency = (noteStr) => {
   if (!noteStr || noteStr === 'R') return 0;
   const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
@@ -2300,16 +2310,17 @@ export default function PianoMagico({ userId, onExit }) {
                         value={editingSong.rhythm}
                         onChange={e => {
                           const rhythmVal = e.target.value;
-                          const speedVal = rhythmVal === 'clasico' ? 136 : editingSong.speed;
-                          setEditingSong({ ...editingSong, rhythm: rhythmVal, speed: speedVal });
+                          const defaultBpm = DEFAULT_RHYTHM_BPMS[rhythmVal] || 100;
+                          setEditingSong({ ...editingSong, rhythm: rhythmVal, speed: defaultBpm });
                         }}
                         className="bg-white/5 border border-white/10 p-4 rounded-2xl font-bold text-sm text-white outline-none focus:border-indigo-500 transition-all"
                       >
-                        <option value="pop" className="bg-slate-900">POP (4/4)</option>
-                        <option value="rock" className="bg-slate-900">ROCK (Fuerte)</option>
+                        <option value="pop" className="bg-slate-900">POP (4/4 - 100 BPM)</option>
+                        <option value="rock" className="bg-slate-900">ROCK (Fuerte - 120 BPM)</option>
                         <option value="clasico" className="bg-slate-900">CLÁSICO (Elegante - 136 BPM)</option>
-                        <option value="bubble" className="bg-slate-900">BUBBLE (Balada)</option>
-                        <option value="robot" className="bg-slate-900">ROBOT (Rápido)</option>
+                        <option value="bubble" className="bg-slate-900">BUBBLE (Balada - 75 BPM)</option>
+                        <option value="robot" className="bg-slate-900">ROBOT (Rápido - 140 BPM)</option>
+                        <option value="marcha" className="bg-slate-900">MARCHA (Militar - 110 BPM)</option>
                       </select>
                     </div>
                     <div className="flex flex-col gap-2">
