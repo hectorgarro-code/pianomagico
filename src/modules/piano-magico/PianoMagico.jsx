@@ -1400,10 +1400,10 @@ export default function PianoMagico({ userId, onExit }) {
                     initAudio();
                     setIsDrumEnabled(!isDrumEnabled);
                   }}
-                  className={`p-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-[#58CC02] text-white border-b-2 border-[#46A302]' : 'bg-slate-200 text-slate-400'}`}
+                  className={`p-3 sm:p-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-[#58CC02] text-white border-b-2 border-[#46A302]' : 'bg-slate-200 text-slate-400'}`}
                   title="Acompañamiento Rítmico"
                 >
-                  <Drum size={15} className={isDrumEnabled ? 'animate-bounce' : ''} />
+                  <Drum size={24} className={`sm:w-[15px] sm:h-[15px] ${isDrumEnabled ? 'animate-bounce' : ''}`} />
                 </button>
 
                 {isDrumEnabled && (
@@ -1415,7 +1415,7 @@ export default function PianoMagico({ userId, onExit }) {
                       if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
                       setCurrentRhythm(r);
                     }}
-                    className="ml-1 bg-white text-slate-700 text-xs font-black uppercase rounded-xl px-2 py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
+                    className="ml-1 bg-white text-slate-700 text-sm sm:text-xs font-black uppercase rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
                   >
                     <option value="pop">POP</option>
                     <option value="rock">ROCK</option>
@@ -1431,7 +1431,7 @@ export default function PianoMagico({ userId, onExit }) {
                 <select
                   value={tempoFactor}
                   onChange={(e) => setTempoFactor(Number(e.target.value))}
-                  className="bg-white text-slate-700 text-xs font-black rounded-xl px-2 py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
+                  className="bg-white text-slate-700 text-sm sm:text-xs font-black rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
                   title={`Velocidad (${Math.round((currentSong?.speed || 100) * tempoFactor)} BPM)`}
                 >
                   <option value={0.5}>0.5x</option>
@@ -1455,19 +1455,19 @@ export default function PianoMagico({ userId, onExit }) {
                   stopMic();
                 }
               }}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-[#FF4B4B] text-white border-b-2 border-[#EA2B2B] animate-pulse' : 'bg-slate-100 border-2 border-slate-200 text-slate-500 hover:bg-slate-200'}`}
+              className={`p-3 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-[#FF4B4B] text-white border-b-2 border-[#EA2B2B] animate-pulse' : 'bg-slate-100 border-2 border-slate-200 text-slate-500 hover:bg-slate-200'}`}
               title="Escuchar Piano Real (Micrófono)"
             >
-              {isListening ? <Mic size={15} /> : <MicOff size={15} />}
+              {isListening ? <Mic size={24} className="sm:w-[15px] sm:h-[15px]" /> : <MicOff size={24} className="sm:w-[15px] sm:h-[15px]" />}
             </button>
 
             {view === 'menu' && (
               <button
                 onClick={() => setIsMicSettingsOpen(true)}
-                className="p-1.5 text-slate-500 hover:text-slate-700 transition-all bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 rounded-2xl cursor-pointer shadow-sm"
+                className="p-3 sm:p-1.5 text-slate-500 hover:text-slate-700 transition-all bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 rounded-2xl cursor-pointer shadow-sm"
                 title="Configurar Micrófono"
               >
-                <Settings size={15} />
+                <Settings size={24} className="sm:w-[15px] sm:h-[15px]" />
               </button>
             )}
 
@@ -1477,10 +1477,10 @@ export default function PianoMagico({ userId, onExit }) {
                   setParentMath({ v1: Math.floor(Math.random() * 50) + 20, v2: Math.floor(Math.random() * 40) + 10, result: '' });
                   setView('parent_gate');
                 }}
-                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 border-2 border-slate-200 transition-all rounded-2xl cursor-pointer shadow-sm"
+                className="p-3 sm:p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 border-2 border-slate-200 transition-all rounded-2xl cursor-pointer shadow-sm"
                 title="Panel de Profesor"
               >
-                <Settings size={15} />
+                <Settings size={24} className="sm:w-[15px] sm:h-[15px]" />
               </button>
             )}
             {view === 'menu' && (
@@ -1488,12 +1488,12 @@ export default function PianoMagico({ userId, onExit }) {
                 onClick={() => {
                   if (onExit) onExit();
                 }}
-                className="px-2 sm:px-3 py-1.5 bg-[#FF4B4B] border-b-4 border-[#EA2B2B] hover:brightness-105 rounded-2xl text-[9px] sm:text-xs font-black uppercase transition-all text-white shadow-sm cursor-pointer active:translate-y-0.5 active:border-b-0"
+                className="px-3 sm:px-3 py-2 sm:py-1.5 bg-[#FF4B4B] border-b-4 border-[#EA2B2B] hover:brightness-105 rounded-2xl text-xs sm:text-xs font-black uppercase transition-all text-white shadow-sm cursor-pointer active:translate-y-0.5 active:border-b-0"
               >
                 Salir
               </button>
             )}
-            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title="Ir al Menú"><Home size={15} /></button>
+            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-3 sm:p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title="Ir al Menú"><Home size={24} className="sm:w-[15px] sm:h-[15px]" /></button>
           </div>
         </div>
       </div>
@@ -2206,13 +2206,13 @@ export default function PianoMagico({ userId, onExit }) {
               <div className="flex flex-col gap-3 w-full max-w-sm">
 
                 {/* ROW 1: Next Lesson & Retry */}
-                <div className="flex gap-3 w-full">
+                <div className="flex items-center gap-3 w-full justify-center">
                   {nextSong && !isFailed ? (
                     <button
                       onClick={() => startLevel(nextSong, 'solo')}
-                      className="flex-1 p-5 bg-green-500 text-white rounded-3xl font-black text-lg shadow-[0_8px_0_#166534] hover:bg-green-400 active:translate-y-2 active:shadow-[0_0px_0_#166534] transition-all uppercase flex items-center justify-center gap-3 drop-shadow-xl"
+                      className="flex-1 p-6 sm:p-5 bg-green-500 text-white rounded-3xl font-black text-xl sm:text-lg shadow-[0_8px_0_#166534] hover:bg-green-400 active:translate-y-2 active:shadow-[0_0px_0_#166534] transition-all uppercase flex items-center justify-center gap-3 drop-shadow-xl"
                     >
-                      <Play size={24} fill="white" /> Siguiente Lección
+                      <Play size={32} className="sm:w-6 sm:h-6" fill="white" /> Siguiente Lección
                     </button>
                   ) : (
                     <div className="flex-1" />
@@ -2220,10 +2220,10 @@ export default function PianoMagico({ userId, onExit }) {
 
                   <button
                     onClick={() => startLevel(currentSong, mode, true)}
-                    className="w-16 h-16 shrink-0 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-[0_6px_0_#3730a3] hover:bg-indigo-500 active:translate-y-1.5 active:shadow-[0_0px_0_#3730a3] transition-all self-center"
+                    className="w-24 h-24 sm:w-16 sm:h-16 shrink-0 bg-indigo-600 text-white rounded-3xl flex items-center justify-center shadow-[0_8px_0_#3730a3] hover:bg-indigo-500 active:translate-y-2 active:shadow-[0_0px_0_#3730a3] transition-all self-center"
                     title="Repetir Lección"
                   >
-                    <RotateCcw size={24} />
+                    <RotateCcw size={36} className="sm:w-6 sm:h-6" />
                   </button>
                 </div>
 
@@ -2231,9 +2231,9 @@ export default function PianoMagico({ userId, onExit }) {
                 {performanceLog.length > 0 && mode !== 'oído' && (
                   <button
                     onClick={startPlayback}
-                    className="w-full mt-2 p-5 bg-orange-500 text-white rounded-3xl font-black text-md shadow-[0_6px_0_#9a3412] hover:bg-orange-400 active:translate-y-1.5 active:shadow-[0_0px_0_#9a3412] transition-all uppercase flex items-center justify-center gap-3"
+                    className="w-full mt-3 p-6 sm:p-5 bg-orange-500 text-white rounded-3xl font-black text-xl sm:text-md shadow-[0_8px_0_#9a3412] hover:bg-orange-400 active:translate-y-2 active:shadow-[0_0px_0_#9a3412] transition-all uppercase flex items-center justify-center gap-3"
                   >
-                    <Volume2 size={20} /> OÍR MI CONCIERTO
+                    <Volume2 size={32} className="sm:w-5 sm:h-5" /> OÍR MI CONCIERTO
                   </button>
                 )}
 
@@ -2246,10 +2246,10 @@ export default function PianoMagico({ userId, onExit }) {
                     setDetectedNote(null);
                     setView('menu');
                   }}
-                  className="mt-6 w-14 h-14 mx-auto bg-white/10 text-white rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 active:scale-95 transition-all shadow-lg cursor-pointer"
+                  className="mt-6 w-20 h-20 sm:w-14 sm:h-14 mx-auto bg-white/10 text-white rounded-full flex items-center justify-center border-2 border-white/20 hover:bg-white/20 active:scale-95 transition-all shadow-lg cursor-pointer"
                   title="Menú Principal"
                 >
-                  <Home size={20} className="opacity-80 drop-shadow-md" />
+                  <Home size={32} className="sm:w-5 sm:h-5 opacity-80 drop-shadow-md" />
                 </button>
 
               </div>
