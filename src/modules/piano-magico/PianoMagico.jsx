@@ -417,11 +417,24 @@ export default function PianoMagico({ userId, onExit }) {
   const [highlightTarget, setHighlightTarget] = useState(false);
 
   // --- GAMIFICATION: SUPERNOVA & BOSSES ---
-  const [consecutiveHits, setConsecutiveHits] = useState(0);
-  const [isSupernova, setIsSupernova] = useState(false);
+  const lastMicHitInfoRef = useRef({ pitch: null, time: 0, step: -1 });
+  const hasSeenSilenceOrChangeRef = useRef(true);
+  const micSilenceTimerRef = useRef(null);
 
   const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note) => {
-    handleAction(note, 'mic');
+    if (note) {
+      if (micSilenceTimerRef.current) clearTimeout(micSilenceTimerRef.current);
+
+      if (lastMicHitInfoRef.current.pitch && !isNoteMatch(note, lastMicHitInfoRef.current.pitch)) {
+        hasSeenSilenceOrChangeRef.current = true;
+      }
+
+      micSilenceTimerRef.current = setTimeout(() => {
+        hasSeenSilenceOrChangeRef.current = true;
+      }, 150);
+
+      handleAction(note, 'mic');
+    }
   });
 
   // Calculate cumulative positions for proportional rhythm jumps
@@ -1032,6 +1045,22 @@ export default function PianoMagico({ userId, onExit }) {
 
     if (target === 'R') return; // Ignore mic events during rests
 
+    if (source === 'mic') {
+      const prevStepNode = stepRef.current > 0 ? currentSong.sequence[stepRef.current - 1] : null;
+      if (prevStepNode) {
+        const prevPitch = parseNote(prevStepNode).pitch;
+        if (isNoteMatch(target, prevPitch)) {
+          const timeSinceLastHit = Date.now() - lastMicHitInfoRef.current.time;
+          const isConsecutiveStep = lastMicHitInfoRef.current.step === stepRef.current - 1;
+
+          if (isConsecutiveStep && !hasSeenSilenceOrChangeRef.current && timeSinceLastHit < 700) {
+            // Sustained sound of previous note - ignore to require a fresh key stroke!
+            return;
+          }
+        }
+      }
+    }
+
     // In Boss Hybrid Mode: Even steps are Visual (Solo), Odd steps are Auditory (Oído)
     if (mode === 'boss' && stepRef.current % 2 !== 0) {
       // It's the oído phase of the boss battle
@@ -1048,6 +1077,10 @@ export default function PianoMagico({ userId, onExit }) {
 
     if (isNoteMatch(note, target)) {
       lockRef.current = true;
+      if (source === 'mic') {
+        lastMicHitInfoRef.current = { pitch: note, time: Date.now(), step: stepRef.current };
+        hasSeenSilenceOrChangeRef.current = false;
+      }
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
       if (isRecordingPerformance) setPerformanceLog(prev => [...prev, { note, time: timeOffset }]);
