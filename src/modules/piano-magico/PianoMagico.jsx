@@ -942,18 +942,18 @@ export default function PianoMagico({ userId, onExit }) {
   const progressPercent = Math.min(100, (totalScore / (RANKS.find(r => r.min > totalScore)?.min || totalScore)) * 100);
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-white font-sans flex flex-col items-center overflow-hidden select-none relative">
+    <div className="h-[100dvh] w-full bg-[#F7F7F7] text-slate-800 font-sans flex flex-col items-center overflow-hidden select-none relative">
 
-      {/* HUD SUPERIOR FIXED PERSISTENTE */}
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-slate-950/95 backdrop-blur-2xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
+      {/* HUD SUPERIOR FIXED PERSISTENTE (DUOLINGO STYLE) */}
+      <div className="fixed top-0 left-0 right-0 z-[100] bg-white border-b-2 border-slate-200 flex justify-center shadow-sm transition-all">
         <div className="w-full max-w-7xl px-2 sm:px-6 py-2 flex justify-between items-center gap-1 sm:gap-2">
           {/* Left: Perfil */}
           <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
-            <button onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-indigo-600/30 p-1 pr-2.5 rounded-full border border-indigo-500/40 active:scale-95 transition-all hover:bg-indigo-600/50 cursor-pointer shadow-md">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-50 rounded-full flex items-center justify-center text-sm sm:text-lg shadow-inner">
+            <button onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-slate-100 p-1 pr-3 rounded-full border-2 border-slate-200 active:translate-y-0.5 transition-all hover:bg-slate-200/60 cursor-pointer shadow-sm">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1CB0F6] rounded-full flex items-center justify-center text-sm sm:text-lg shadow-inner text-white">
                 {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
               </div>
-              <span className="text-[9px] sm:text-xs font-black uppercase truncate max-w-[65px] sm:max-w-[120px] tracking-wider text-indigo-100">{profile.name}</span>
+              <span className="text-[9px] sm:text-xs font-black uppercase truncate max-w-[65px] sm:max-w-[120px] tracking-wider text-slate-700">{profile.name}</span>
             </button>
           </div>
 
@@ -962,24 +962,24 @@ export default function PianoMagico({ userId, onExit }) {
             <>
               {/* Desktop / Tablet Center View */}
               <div className="hidden md:flex flex-col lg:flex-row items-center justify-center gap-1 sm:gap-3 my-0.5">
-                <h1 className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow-md truncate">
-                  Galactic Adventure
+                <h1 className="text-sm sm:text-lg font-black uppercase tracking-tight text-[#58CC02] drop-shadow-sm truncate">
+                  Piano Mágico
                 </h1>
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className={`font-black uppercase text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full bg-slate-900 border border-white/10 shadow-lg ${currentRank.color}`}>
+                  <div className={`font-black uppercase text-[8px] sm:text-[9px] px-2.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-slate-600 shadow-sm ${currentRank.color}`}>
                     {currentRank.title}
                   </div>
-                  <div className="bg-indigo-600/30 px-2 py-0.5 rounded-full border border-indigo-500/30 flex items-center gap-1">
-                    <Zap size={11} className="text-yellow-400 fill-yellow-400" />
-                    <span className="text-[9px] sm:text-[10px] font-black text-yellow-200">{totalScore}</span>
+                  <div className="bg-[#FFC800]/15 px-3 py-1 rounded-full border-2 border-[#FFC800] flex items-center gap-1">
+                    <Zap size={13} className="text-[#FFC800] fill-[#FFC800]" />
+                    <span className="text-[10px] sm:text-xs font-black text-[#E5A500]">{totalScore}</span>
                   </div>
                 </div>
               </div>
 
               {/* Mobile Compact Score Badge */}
-              <div className="flex md:hidden items-center gap-1 bg-indigo-600/30 px-2 py-1 rounded-full border border-indigo-500/30 shrink-0">
-                <Zap size={11} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-[9px] font-black text-yellow-200">{totalScore}</span>
+              <div className="flex md:hidden items-center gap-1 bg-[#FFC800]/15 px-2.5 py-1 rounded-full border-2 border-[#FFC800] shrink-0">
+                <Zap size={12} className="text-[#FFC800] fill-[#FFC800]" />
+                <span className="text-[10px] font-black text-[#E5A500]">{totalScore}</span>
               </div>
             </>
           )}
@@ -989,23 +989,22 @@ export default function PianoMagico({ userId, onExit }) {
             {view === 'menu' && (
               <button
                 onClick={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
-                className="px-2 sm:px-2.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-[9px] sm:text-xs font-bold uppercase transition-all shadow-md flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
+                className="px-2.5 sm:px-3 py-1.5 bg-[#CE82FF] border-b-4 border-[#A558D8] text-white rounded-2xl text-[9px] sm:text-xs font-black uppercase transition-all shadow-sm flex items-center gap-1 cursor-pointer active:translate-y-0.5 active:border-b-0 shrink-0 hover:brightness-105"
                 title="Abrir Estudio Mágico"
               >
                 <Plus size={13} />
-                <span className="hidden sm:inline">Composer Studio</span>
-                <span className="sm:hidden">Studio</span>
+                <span className="hidden sm:inline">Studio</span>
               </button>
             )}
 
             {(view === 'game' || view === 'composer') && (
-              <div className="flex items-center bg-slate-900/80 rounded-xl p-1 border border-white/10 shrink-0">
+              <div className="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shrink-0 shadow-sm">
                 <button
                   onClick={() => {
                     initAudio();
                     setIsDrumEnabled(!isDrumEnabled);
                   }}
-                  className={`p-1.5 sm:p-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' : 'bg-white/5 text-white/40'}`}
+                  className={`p-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-[#58CC02] text-white border-b-2 border-[#46A302]' : 'bg-slate-200 text-slate-400'}`}
                   title="Acompañamiento Rítmico"
                 >
                   <Drum size={15} className={isDrumEnabled ? 'animate-bounce' : ''} />
@@ -1020,7 +1019,7 @@ export default function PianoMagico({ userId, onExit }) {
                       if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
                       setCurrentRhythm(r);
                     }}
-                    className="ml-1 bg-slate-950 text-indigo-200 text-xs font-black uppercase rounded-lg px-1.5 py-1 border border-white/10 outline-none cursor-pointer hover:border-indigo-400/50 transition-all"
+                    className="ml-1 bg-white text-slate-700 text-xs font-black uppercase rounded-xl px-2 py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
                   >
                     <option value="pop">POP</option>
                     <option value="rock">ROCK</option>
@@ -1032,11 +1031,11 @@ export default function PianoMagico({ userId, onExit }) {
             )}
 
             {view === 'game' && (
-              <div className="flex items-center bg-slate-900/80 rounded-xl p-1 border border-white/10 shrink-0">
+              <div className="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shrink-0 shadow-sm">
                 <select
                   value={tempoFactor}
                   onChange={(e) => setTempoFactor(Number(e.target.value))}
-                  className="bg-slate-950 text-indigo-200 text-xs font-black rounded-lg px-2 py-1 border border-white/10 outline-none cursor-pointer hover:border-indigo-400/50 transition-all"
+                  className="bg-white text-slate-700 text-xs font-black rounded-xl px-2 py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
                   title={`Velocidad (${Math.round((currentSong?.speed || 100) * tempoFactor)} BPM)`}
                 >
                   <option value={0.5}>0.5x</option>
@@ -1050,7 +1049,7 @@ export default function PianoMagico({ userId, onExit }) {
 
             <button
               onClick={toggleMic}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-white/10 hover:bg-white/20 text-white/60'}`}
+              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-[#FF4B4B] text-white border-b-2 border-[#EA2B2B] animate-pulse' : 'bg-slate-100 border-2 border-slate-200 text-slate-500 hover:bg-slate-200'}`}
               title="Escuchar Piano Real"
             >
               {isListening ? <Mic size={15} /> : <MicOff size={15} />}
@@ -1059,7 +1058,7 @@ export default function PianoMagico({ userId, onExit }) {
             {view === 'menu' && (
               <button
                 onClick={() => setIsMicSettingsOpen(true)}
-                className="p-1.5 text-white/50 hover:text-white transition-all bg-white/5 hover:bg-white/20 rounded-xl cursor-pointer"
+                className="p-1.5 text-slate-500 hover:text-slate-700 transition-all bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 rounded-2xl cursor-pointer shadow-sm"
                 title="Configurar Micrófono"
               >
                 <Settings size={15} />
@@ -1072,8 +1071,8 @@ export default function PianoMagico({ userId, onExit }) {
                   setParentMath({ v1: Math.floor(Math.random() * 50) + 20, v2: Math.floor(Math.random() * 40) + 10, result: '' });
                   setView('parent_gate');
                 }}
-                className="p-1.5 bg-white/5 hover:bg-indigo-600/30 text-white/50 hover:text-indigo-200 transition-all rounded-xl cursor-pointer"
-                title="Panel de Control de Profesor / Padres"
+                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 border-2 border-slate-200 transition-all rounded-2xl cursor-pointer shadow-sm"
+                title="Panel de Profesor"
               >
                 <Settings size={15} />
               </button>
@@ -1083,12 +1082,12 @@ export default function PianoMagico({ userId, onExit }) {
                 onClick={() => {
                   if (onExit) onExit();
                 }}
-                className="px-2 sm:px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[9px] sm:text-xs font-bold uppercase transition-all shadow-md cursor-pointer"
+                className="px-2 sm:px-3 py-1.5 bg-[#FF4B4B] border-b-4 border-[#EA2B2B] hover:brightness-105 rounded-2xl text-[9px] sm:text-xs font-black uppercase transition-all text-white shadow-sm cursor-pointer active:translate-y-0.5 active:border-b-0"
               >
-                Cerrar Piano
+                Salir
               </button>
             )}
-            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-xl cursor-pointer" title="Ir al Menú"><Home size={15} /></button>
+            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title="Ir al Menú"><Home size={15} /></button>
           </div>
         </div>
       </div>
@@ -1216,27 +1215,9 @@ export default function PianoMagico({ userId, onExit }) {
           </div>
         )}
 
-        {/* MENU GALÁCTICO (STAR MAP) */}
+        {/* RUTA DE APRENDIZAJE (DUOLINGO THE PATH) */}
         {view === 'menu' && (
-          <div className="flex-1 min-h-0 flex flex-col items-center animate-in fade-in overflow-y-auto pb-40 w-full relative bg-[#020617] scrollbar-hide">
-
-            {/* Background Layers */}
-            <div className="fixed inset-0 pointer-events-none z-0">
-              <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#312e81] opacity-50" />
-              {/* Stars Parallax (Static for now but styled) */}
-              {Array.from({ length: 50 }).map((_, i) => (
-                <div key={i} className="absolute rounded-full bg-white animate-twinkle" style={{
-                  width: Math.random() * 3 + 1 + 'px',
-                  height: Math.random() * 3 + 1 + 'px',
-                  left: Math.random() * 100 + '%',
-                  top: Math.random() * 100 + '%',
-                  animationDelay: `${Math.random() * 5}s`,
-                  opacity: Math.random() * 0.7 + 0.3
-                }} />
-              ))}
-            </div>
-
-
+          <div className="flex-1 min-h-0 flex flex-col items-center animate-in fade-in overflow-y-auto pb-40 w-full relative bg-[#F7F7F7] scrollbar-hide">
 
             {/* STAR MAP CONTAINER */}
             {(() => {
@@ -1244,12 +1225,10 @@ export default function PianoMagico({ userId, onExit }) {
 
               const getX = (i) => {
                 const pos = i % 4;
-                if (pos === 0) return 20;
-                if (pos === 2) return 80;
+                if (pos === 0) return 25;
+                if (pos === 2) return 75;
                 return 50;
               };
-
-              const getLevelIndex = (songId) => mapSongs.findIndex(s => s.id === songId);
 
               // Calculate current progress for rocket position
               const completedSongIds = new Set(userPerformances.map(p => p.song_id));
@@ -1270,21 +1249,13 @@ export default function PianoMagico({ userId, onExit }) {
 
               return (
                 <div
-                  className="relative w-full max-w-md sm:max-w-xl lg:max-w-3xl mx-auto flex flex-col items-center justify-start mt-4 px-4 shrink-0"
-                  style={{ height: `${totalItems * 160 + 300}px`, minHeight: `${totalItems * 160 + 300}px` }}
+                  className="relative w-full max-w-md sm:max-w-xl lg:max-w-3xl mx-auto flex flex-col items-center justify-start mt-6 px-4 shrink-0"
+                  style={{ height: `${totalItems * 150 + 250}px`, minHeight: `${totalItems * 150 + 250}px` }}
                   onClick={() => setActivePopover(null)}
                 >
 
-                  {/* Dotted Path Connector */}
+                  {/* Duolingo Solid Path Line */}
                   <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 1 }}>
-                    <defs>
-                      <filter id="glow">
-                        <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-                        <feMerge>
-                          <feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" />
-                        </feMerge>
-                      </filter>
-                    </defs>
                     {mapSongs.map((song, idx) => {
                       if (idx === 0) return null;
                       const pRatio = (idx - 1) / (totalItems - 1);
@@ -1296,10 +1267,8 @@ export default function PianoMagico({ userId, onExit }) {
                         <path
                           key={`path-${idx}`}
                           d={`M ${getX(idx - 1)} ${pY} C ${getX(idx - 1)} ${midY}, ${getX(idx)} ${midY}, ${getX(idx)} ${cY}`}
-                          stroke="rgba(255,255,255,0.6)"
-                          strokeWidth="3"
-                          strokeDasharray="8 8"
-                          filter="url(#glow)"
+                          stroke="#E5E5E5"
+                          strokeWidth="8"
                           vectorEffect="non-scaling-stroke"
                           fill="none"
                           strokeLinecap="round"
@@ -1308,44 +1277,37 @@ export default function PianoMagico({ userId, onExit }) {
                     })}
                   </svg>
 
-                  {/* ROCKET AVATAR */}
+                  {/* ACTIVE LEVEL BADGE (CHARACTER / ROCKET) */}
                   <div
                     ref={rocketRef}
-                    className="absolute z-30 transition-all duration-1000 ease-in-out pointer-events-none drop-shadow-[0_15px_35px_rgba(79,70,229,0.5)]"
+                    className="absolute z-30 transition-all duration-1000 ease-in-out pointer-events-none drop-shadow-md"
                     style={{
                       left: rocketLeft,
-                      top: `calc(${rocketTop}% - 50px)`,
+                      top: `calc(${rocketTop}% - 65px)`,
                       transform: 'translateX(-50%)'
                     }}
                   >
-                    <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center border-4 border-green-300 shadow-[0_0_20px_rgba(34,197,94,0.8)] animate-pulse">
-                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-                        <span className="text-xl">{STICKERS_BASE[profile.avatarId]?.emoji || '🚀'}</span>
-                      </div>
+                    <div className="bg-[#58CC02] border-b-4 border-[#46A302] px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-md animate-bounce">
+                      <span className="text-xl">{STICKERS_BASE[profile.avatarId]?.emoji || '🚀'}</span>
+                      <span className="text-[10px] font-black uppercase text-white tracking-wide">¡AQUÍ!</span>
                     </div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-green-400/20 rounded-full blur-xl border border-green-400/30 -z-10" />
                   </div>
 
                   {mapSongs.map((song, idx) => {
                     const isUnlocked = idx === 0 || completedSongIds.has(mapSongs[idx - 1]?.id || -1) || memoryMedals.includes(mapSongs[idx - 1]?.id || -1);
                     const isPerfect = memoryMedals.includes(song.id);
                     const isCompleted = completedSongIds.has(song.id);
+                    const isCurrent = idx === highestUnlockedIndex;
                     const isBoss = (idx + 1) % 10 === 0;
 
                     const leftPercent = getX(idx);
                     const cRatio = idx / (totalItems > 1 ? totalItems - 1 : 1);
                     const topPercent = 95 - (cRatio * 90);
 
-                    const getPlanetColor = () => {
-                      if (!isUnlocked) return '#1e293b';
-                      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899'];
-                      return colors[idx % colors.length];
-                    };
-
                     return (
                       <div
                         key={song.id}
-                        className={`absolute flex flex-col items-center group ${!isUnlocked ? 'opacity-90' : 'hover:scale-110'} transition-all ${activePopover === song.id ? 'z-[300]' : 'z-10'}`}
+                        className={`absolute flex flex-col items-center group transition-all ${activePopover === song.id ? 'z-[300]' : 'z-10'}`}
                         style={{ left: `${leftPercent}%`, top: `${topPercent}%`, transform: 'translate(-50%, -50%)' }}
                         onMouseEnter={() => {
                           if (isUnlocked && activePopover === null) setActivePopover(song.id);
@@ -1361,20 +1323,19 @@ export default function PianoMagico({ userId, onExit }) {
                         }}
                       >
 
-                        {/* Interaction Popover */}
-                        <div className={`absolute bottom-full mb-8 left-1/2 -translate-x-1/2 w-64 bg-slate-900/95 backdrop-blur-md border border-white/10 p-4 rounded-[2rem] shadow-2xl transition-all scale-75 z-50 ${activePopover === song.id ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                        {/* Duolingo Floating Card Popover */}
+                        <div className={`absolute bottom-full mb-6 left-1/2 -translate-x-1/2 w-64 sm:w-72 bg-white border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-5 rounded-[2rem] shadow-xl transition-all scale-75 z-50 ${activePopover === song.id ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
 
-                          {/* Invisible bridge to catch mouse and prevent closing when moving towards popover */}
-                          <div className="absolute top-full left-0 right-0 h-10 pointer-events-auto" />
-
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">{isBoss ? 'BOSS BATTLE' : `NIVEL ${idx + 1}`}</span>
-                            <div className="flex gap-1.5">
-                              {[1, 2, 3].map(s => <Star key={s} size={12} className={isPerfect ? 'fill-yellow-400 text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]' : isCompleted ? 'fill-slate-400 text-slate-500' : 'text-white/10'} />)}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[11px] font-black uppercase text-[#1CB0F6] tracking-wider">{isBoss ? '👾 DESAFÍO JEFE' : `NIVEL ${idx + 1}`}</span>
+                            <div className="flex gap-1">
+                              {[1, 2, 3].map(s => (
+                                <Star key={s} size={14} className={isPerfect ? 'fill-[#FFC800] text-[#FFC800]' : isCompleted ? 'fill-slate-300 text-slate-300' : 'text-slate-200'} />
+                              ))}
                             </div>
                           </div>
 
-                          <h3 className="text-white font-black uppercase text-base mb-4 truncate leading-tight tracking-tight">{song.title}</h3>
+                          <h3 className="text-slate-800 font-black uppercase text-base sm:text-lg mb-4 truncate tracking-tight">{song.title}</h3>
 
                           <div className="flex flex-col gap-2 relative z-[100]">
                             {isUnlocked ? (
@@ -1382,70 +1343,69 @@ export default function PianoMagico({ userId, onExit }) {
                                 <div className="grid grid-cols-2 gap-2">
                                   <button
                                     onClick={(e) => { e.stopPropagation(); startLevel(song, 'solo'); }}
-                                    className="w-full bg-indigo-600 p-3 rounded-2xl text-[10px] font-black uppercase hover:bg-indigo-500 shadow-md border-b-4 border-indigo-800 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 text-white pointer-events-auto"
+                                    className="w-full btn-duo-green p-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 pointer-events-auto"
                                   >
-                                    <Play size={12} fill="white" /> SOLO
+                                    <Play size={14} fill="white" /> SOLO
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); startLevel(song, 'oído'); }}
-                                    className="bg-purple-600 p-3 rounded-2xl text-[10px] font-black uppercase hover:bg-purple-500 shadow-md border-b-4 border-purple-800 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 text-white pointer-events-auto"
+                                    className="btn-duo-purple p-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 pointer-events-auto"
                                   >
-                                    <Music2 size={12} /> OÍDO
+                                    <Music2 size={14} /> OÍDO
                                   </button>
                                 </div>
 
                                 {isBoss && (
                                   <button
                                     onClick={(e) => { e.stopPropagation(); startLevel(song, 'boss'); }}
-                                    className="w-full bg-rose-600 p-4 rounded-2xl text-[11px] font-black uppercase hover:bg-rose-500 shadow-[0_0_20px_rgba(225,29,72,0.4)] border-b-4 border-rose-800 active:translate-y-1 transition-all animate-pulse mt-1 flex items-center justify-center gap-3 text-white pointer-events-auto"
+                                    className="w-full btn-duo-red p-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 pointer-events-auto mt-1"
                                   >
                                     <Zap size={16} fill="white" className="animate-bounce" /> ¡ENFRENTAR JEFE!
                                   </button>
                                 )}
                               </>
                             ) : (
-                              <div className="w-full text-center p-4 bg-black/40 rounded-2xl text-xs font-black text-white/20 border border-white/5 flex items-center justify-center gap-2">
+                              <div className="w-full text-center p-3 bg-slate-100 rounded-2xl text-xs font-black text-slate-400 border border-slate-200 flex items-center justify-center gap-2">
                                 <Lock size={14} /> NIVEL BLOQUEADO
                               </div>
                             )}
                           </div>
                         </div>
 
-                        {/* Planet Node */}
+                        {/* Duolingo 3D Chunky Level Node Button */}
                         <div className={`relative flex items-center justify-center transition-all ${isBoss ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-20 h-20 sm:w-24 sm:h-24'}`}>
-
-                          {/* Aura / Orbit */}
-                          <div className={`absolute inset-[-12px] rounded-full border border-white/5 border-dashed animate-spin-slow opacity-30`} />
-
-                          {/* Planet Circle */}
-                          <div
-                            className={`w-full h-full rounded-full flex items-center justify-center relative overflow-hidden shadow-2xl transition-all duration-300 ${isUnlocked ? 'planet-texture cursor-pointer active:scale-95' : 'bg-slate-800'} ${isUnlocked ? 'shadow-[0_0_40px_rgba(255,255,255,0.1)]' : ''}`}
-                            style={isUnlocked ? { backgroundColor: getPlanetColor(), boxShadow: `inset -10px -10px 25px rgba(0,0,0,0.6), inset 6px 6px 15px rgba(255,255,255,0.3), 0 0 30px ${getPlanetColor()}66` } : {}}
+                          <button
+                            className={`w-full h-full rounded-full flex flex-col items-center justify-center relative overflow-hidden transition-all duration-150 cursor-pointer shadow-md ${
+                              !isUnlocked
+                                ? 'bg-[#E5E5E5] border-b-[6px] border-[#CECECE] text-[#AFAFAF]'
+                                : isCurrent
+                                  ? 'bg-[#58CC02] border-b-[6px] border-[#46A302] text-white ring-4 ring-[#58CC02]/40 active:translate-y-1 active:border-b-0'
+                                  : isCompleted
+                                    ? 'bg-[#FFC800] border-b-[6px] border-[#E5A500] text-white active:translate-y-1 active:border-b-0'
+                                    : 'bg-[#1CB0F6] border-b-[6px] border-[#1899D6] text-white active:translate-y-1 active:border-b-0'
+                            }`}
                           >
                             {!isUnlocked ? (
-                              <div className="w-14 h-14 bg-slate-700 rounded-full border-4 border-slate-600 flex items-center justify-center shadow-inner">
-                                <Lock className="text-white/20" size={24} />
-                              </div>
+                              <Lock className="text-[#AFAFAF]" size={28} />
                             ) : (
-                              <>
-                                <div className="planet-spots" />
-                                <span className={`${isBoss ? 'text-5xl sm:text-6xl drop-shadow-md' : 'text-3xl sm:text-4xl drop-shadow-sm'} z-10 animate-float`}>
-                                  {isBoss ? '👾' : (STICKERS_BASE[song.stickerId]?.emoji || '🪐')}
-                                </span>
-                              </>
+                              <span className={`${isBoss ? 'text-4xl sm:text-5xl' : 'text-3xl sm:text-4xl'} drop-shadow-md`}>
+                                {isBoss ? '👾' : (STICKERS_BASE[song.stickerId]?.emoji || '🎵')}
+                              </span>
                             )}
-                          </div>
+                          </button>
 
-                          {/* Level Badge Pill - Duolingo style */}
-                          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-                            <div className={`relative min-w-[70px] h-8 rounded-full flex items-center justify-between px-3 gap-2 border-2 ${isUnlocked ? 'bg-indigo-600 border-indigo-400 shadow-[0_4px_0_#1e1b4b]' : 'bg-slate-700 border-slate-500 shadow-[0_4px_0_#0f172a]'} transition-transform group-hover:scale-110`}>
-                              <span className="text-[11px] font-black text-white">{idx + 1}</span>
+                          {/* Level Number & Star Indicator */}
+                          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
+                            <div className={`min-w-[65px] px-2.5 py-0.5 rounded-full flex items-center justify-center gap-1 border-2 ${
+                              isUnlocked ? 'bg-white border-slate-200 shadow-sm text-slate-700' : 'bg-slate-200 border-slate-300 text-slate-400'
+                            }`}>
+                              <span className="text-[10px] font-black">{idx + 1}</span>
                               <div className="flex gap-0.5">
                                 {[1, 2, 3].map(star => (
-                                  <Star size={10} key={star} className={
-                                    isPerfect ? 'fill-yellow-400 text-yellow-500' :
-                                      isCompleted ? 'fill-white/80 text-white' :
-                                        'text-white/20'
+                                  <Star size={9} key={star} className={
+                                    isPerfect ? 'fill-[#FFC800] text-[#FFC800]' :
+                                      isCompleted ? 'fill-slate-400 text-slate-400' :
+                                        'text-slate-300'
                                   } />
                                 ))}
                               </div>
@@ -1453,10 +1413,12 @@ export default function PianoMagico({ userId, onExit }) {
                           </div>
                         </div>
 
-                        {/* Visible Lesson Title Badge next to bubble */}
+                        {/* Visible Lesson Title Pill */}
                         <div className={`absolute top-1/2 -translate-y-1/2 ${leftPercent > 50 ? 'right-full mr-3 text-right' : 'left-full ml-3 text-left'} pointer-events-none z-20 whitespace-nowrap`}>
-                          <div className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border backdrop-blur-md shadow-lg flex flex-col ${isUnlocked ? 'bg-slate-900/90 border-white/15 text-indigo-100' : 'bg-slate-950/60 border-white/5 text-white/30'}`}>
-                            <span className="text-[9px] sm:text-xs font-black uppercase tracking-tight max-w-[110px] sm:max-w-[160px] truncate">
+                          <div className={`px-3 py-1 rounded-xl border-2 shadow-sm flex flex-col ${
+                            isUnlocked ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-100 border-slate-200 text-slate-400'
+                          }`}>
+                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight max-w-[110px] sm:max-w-[150px] truncate">
                               {song.title}
                             </span>
                           </div>
@@ -1952,10 +1914,10 @@ export default function PianoMagico({ userId, onExit }) {
                     const noteHeight = Math.max(26, Math.round(parsed.duration * 80));
 
                     return (
-                      <div key={i} className={`absolute ${noteWidthClass} rounded-[1.2rem] flex flex-col items-center justify-center border-2 border-white/40 transition-all duration-500 ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px`, height: `${noteHeight}px` }}>
+                      <div key={i} className={`absolute ${noteWidthClass} rounded-2xl flex flex-col items-center justify-center border-2 border-white/60 border-b-[4px] border-b-black/30 transition-all duration-500 shadow-md ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px`, height: `${noteHeight}px` }}>
                         <span className={`${noteHeight < 45 ? 'text-xs font-black' : 'text-xl sm:text-2xl font-black'} text-white drop-shadow-md`}>{NOTE_NAMES[parsed.pitch]}</span>
                         {parsed.duration !== 1 && (
-                          <span className="absolute -bottom-2 text-[9px] font-black uppercase text-white/80 bg-black/60 px-1.5 py-0.2 rounded-full border border-white/20 shadow-sm">{parsed.duration}x</span>
+                          <span className="absolute -bottom-2 text-[9px] font-black uppercase text-white bg-black/60 px-1.5 py-0.2 rounded-full border border-white/20 shadow-sm">{parsed.duration}x</span>
                         )}
                       </div>
                     );
@@ -1967,14 +1929,14 @@ export default function PianoMagico({ userId, onExit }) {
                     {isPreviewing ? <Volume2 size={100} className="text-indigo-400" /> : <Ear size={100} className="text-green-400 animate-bounce" />}
                   </div>
                   <div className="text-center">
-                    <h2 className="text-5xl font-black italic uppercase text-center tracking-tighter mb-4">
+                    <h2 className="text-5xl font-black italic uppercase text-center tracking-tighter mb-4 text-slate-800">
                       {isPreviewing ? "¡ESCUCHA!" : "¡TU TURNO!"}
                     </h2>
                     <div className="flex justify-center gap-2">
                       {currentSong.sequence.map((_, i) => {
                         if (i >= simonStep) return null;
                         return (
-                          <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${i < userSimonIndex ? 'bg-green-500 scale-125' : 'bg-white/20'}`} />
+                          <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${i < userSimonIndex ? 'bg-[#58CC02] scale-125' : 'bg-slate-300'}`} />
                         );
                       })}
                     </div>
@@ -1987,12 +1949,13 @@ export default function PianoMagico({ userId, onExit }) {
 
         {/* PARENT GATE */}
         {view === 'parent_gate' && (
-          <div className="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4">
-            <div className="bg-white/5 p-10 rounded-[3rem] border-4 border-indigo-500 shadow-2xl w-full max-w-sm text-center">
-              <Settings className="mx-auto text-indigo-400 mb-4" size={40} />
-              <h2 className="text-xl font-black mb-6 uppercase tracking-tighter text-indigo-200">Entrada</h2>
-              <div className="text-4xl font-black text-white mb-6 bg-black/40 py-6 rounded-3xl border border-white/5">{parentMath.v1} + {parentMath.v2}</div>
-              <input type="number" value={parentMath.result} onChange={(e) => setParentMath({ ...parentMath, result: e.target.value })} className="w-full bg-white/10 border-4 border-indigo-500/30 p-5 rounded-2xl text-center text-3xl font-black outline-none mb-6 focus:border-indigo-400" autoFocus />
+          <div className="absolute inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+            <div className="bg-white border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
+              <Settings className="mx-auto text-[#1CB0F6] mb-3" size={40} />
+              <h2 className="text-xl font-black mb-4 uppercase tracking-wide text-slate-700">Verificación</h2>
+              <p className="text-xs font-bold text-slate-400 uppercase mb-4">Resuelve la suma para entrar al panel:</p>
+              <div className="text-4xl font-black text-slate-800 mb-6 bg-slate-100 py-4 rounded-2xl border-2 border-slate-200">{parentMath.v1} + {parentMath.v2}</div>
+              <input type="number" value={parentMath.result} onChange={(e) => setParentMath({ ...parentMath, result: e.target.value })} className="w-full bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl text-center text-3xl font-black outline-none mb-6 focus:border-[#1CB0F6]" autoFocus />
               <button onClick={async () => {
                 if (parseInt(parentMath.result) === parentMath.v1 + parentMath.v2) {
                   // Refresh users to have latest data in admin panel
@@ -2550,10 +2513,10 @@ export default function PianoMagico({ userId, onExit }) {
         )}
       </div>
 
-      {/* TECLADO */}
+      {/* TECLADO 3D FISICO ESTILO DUOLINGO */}
       {
         !['auth', 'id_card', 'parent_gate', 'admin'].includes(view) && (
-          <div className={`w-full max-w-7xl h-[85px] sm:h-[120px] lg:h-[140px] shrink-0 bg-slate-950/90 backdrop-blur-xl p-1.5 flex gap-1 sm:gap-2 border-t-2 border-white/10 relative z-30 transition-all rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.8)]`}>
+          <div className={`w-full max-w-7xl h-[85px] sm:h-[120px] lg:h-[140px] shrink-0 bg-white p-2 flex gap-1 sm:gap-2 border-t-4 border-slate-200 relative z-30 transition-all rounded-t-3xl shadow-[0_-8px_20px_rgba(0,0,0,0.06)]`}>
             {Object.keys(NOTE_NAMES).filter(n => !n.includes('#') && n !== 'R').map((naturalNote) => {
               const sharpNote = naturalNote + '#';
               const hasSharp = ['C', 'D', 'F', 'G', 'A'].includes(naturalNote);
@@ -2577,21 +2540,19 @@ export default function PianoMagico({ userId, onExit }) {
                     onTouchStart={(e) => { if (e.cancelable) e.preventDefault(); handleAction(note); }}
                     onTouchEnd={(e) => { if (e.cancelable) e.preventDefault(); handleActionUp(note); }}
                     className={`
-                      touch-none select-none rounded-xl transition-all duration-75 flex flex-col items-center justify-end pb-2 border-b-4 border-black/40 
-                      ${isSharp ? 'absolute z-40 top-0 -right-[2px] translate-x-1/2 w-[65%] h-[60%] shadow-[0_5px_15px_rgba(0,0,0,0.5)]' : 'w-full h-full z-30 relative'}
-                      ${!isPreviewing ? 'active:border-b-0 active:translate-y-1' : ''}
-                      ${detectedNote === note && !isPreviewing ? 'brightness-150 scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.4)] z-[60]' : ''}
-                      ${isSimonPlayingOtherNote ? 'opacity-50 grayscale blur-[1px]' : ''}
-                      ${isSimonPlayingThisNote ? 'brightness-125 saturate-150 scale-105 shadow-[0_0_30px_rgba(255,255,255,0.7)] z-[60]' : ''}
-                      ${isTargetGlow ? 'animate-golden-glow saturate-150 ring-4 ring-yellow-400 z-[60]' : ''}
+                      touch-none select-none transition-all duration-75 flex flex-col items-center justify-end pb-2 cursor-pointer
+                      ${isSharp ? 'absolute z-40 top-0 -right-[2px] translate-x-1/2 w-[65%] h-[60%] bg-slate-800 border-2 border-slate-900 border-b-[5px] border-b-black text-white rounded-b-xl active:border-b-2 active:translate-y-1' : 'w-full h-full z-30 relative rounded-b-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 active:border-b-2 active:translate-y-1.5'}
+                      ${detectedNote === note && !isPreviewing ? 'brightness-125 scale-[0.98] z-[60]' : ''}
+                      ${isSimonPlayingOtherNote ? 'opacity-40 grayscale' : ''}
+                      ${isSimonPlayingThisNote ? 'brightness-125 scale-105 z-[60]' : ''}
+                      ${isTargetGlow ? 'ring-4 ring-[#FFC800] z-[60] animate-bounce' : ''}
                     `}
                     style={{
                       backgroundColor: NOTE_COLORS[note],
-                      boxShadow: detectedNote === note ? `0 0 ${isPreviewing ? '40px' : '25px'} ${NOTE_COLORS[note]}CC` : (isSupernova ? `0 0 15px ${NOTE_COLORS[note]}88` : (isSharp ? '0 5px 15px rgba(0,0,0,0.5)' : 'none')),
-                      filter: isSupernova ? 'saturate(1.5) contrast(1.2)' : 'none'
+                      boxShadow: detectedNote === note ? `0 0 20px ${NOTE_COLORS[note]}AA` : 'none'
                     }}
                   >
-                    <div className="bg-white/30 px-1 sm:px-3 py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-inner pointer-events-none mb-1">
+                    <div className="bg-white/40 px-1 sm:px-3 py-0.5 rounded-lg backdrop-blur-sm border border-white/20 shadow-inner pointer-events-none mb-1">
                       <span className={`text-[8px] sm:text-xs font-black text-white drop-shadow-sm transition-opacity duration-300 ${isLabelHidden ? 'opacity-0' : 'opacity-100'}`}>{NOTE_NAMES[note]}</span>
                     </div>
                   </button>
