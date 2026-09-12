@@ -937,48 +937,57 @@ export default function PianoMagico({ userId, onExit }) {
   const progressPercent = Math.min(100, (totalScore / (RANKS.find(r => r.min > totalScore)?.min || totalScore)) * 100);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col items-center overflow-x-hidden overflow-y-auto select-none">
+    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col items-center overflow-x-hidden select-none relative">
 
-      {/* HUD SUPERIOR STICKY */}
-      <div className="sticky top-0 z-[100] w-full bg-slate-950/95 backdrop-blur-2xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
-        <div className="w-full max-w-7xl px-3 sm:px-6 py-2.5 flex justify-between items-center gap-2">
+      {/* HUD SUPERIOR FIXED PERSISTENTE */}
+      <div className="fixed top-0 left-0 right-0 z-[100] bg-slate-950/95 backdrop-blur-2xl border-b border-white/10 flex justify-center shadow-2xl transition-all">
+        <div className="w-full max-w-7xl px-2 sm:px-6 py-2 flex justify-between items-center gap-1 sm:gap-2">
           {/* Left: Perfil */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <button onClick={() => setView('id_card')} className="flex items-center gap-2 bg-indigo-600/30 p-1 pr-3 rounded-full border border-indigo-500/40 active:scale-95 transition-all hover:bg-indigo-600/50 cursor-pointer shadow-md">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-50 rounded-full flex items-center justify-center text-base sm:text-lg shadow-inner">
+          <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+            <button onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-indigo-600/30 p-1 pr-2.5 rounded-full border border-indigo-500/40 active:scale-95 transition-all hover:bg-indigo-600/50 cursor-pointer shadow-md">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-50 rounded-full flex items-center justify-center text-sm sm:text-lg shadow-inner">
                 {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
               </div>
-              <span className="text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-[130px] tracking-wider text-indigo-100">{profile.name}</span>
+              <span className="text-[9px] sm:text-xs font-black uppercase truncate max-w-[65px] sm:max-w-[120px] tracking-wider text-indigo-100">{profile.name}</span>
             </button>
           </div>
 
           {/* Center: Galactic Adventure Title & Stats (Only on Menu) */}
           {view === 'menu' && (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 my-0.5">
-              <h1 className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow-md truncate">
-                Galactic Adventure
-              </h1>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className={`font-black uppercase text-[8px] sm:text-[9px] px-2.5 py-0.5 sm:py-1 rounded-full bg-slate-900 border border-white/10 shadow-lg ${currentRank.color}`}>
-                  {currentRank.title}
-                </div>
-                <div className="bg-indigo-600/30 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-indigo-500/30 flex items-center gap-1">
-                  <Zap size={11} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-[9px] sm:text-[10px] font-black text-yellow-200">{totalScore}</span>
+            <>
+              {/* Desktop / Tablet Center View */}
+              <div className="hidden md:flex flex-col lg:flex-row items-center justify-center gap-1 sm:gap-3 my-0.5">
+                <h1 className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow-md truncate">
+                  Galactic Adventure
+                </h1>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className={`font-black uppercase text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full bg-slate-900 border border-white/10 shadow-lg ${currentRank.color}`}>
+                    {currentRank.title}
+                  </div>
+                  <div className="bg-indigo-600/30 px-2 py-0.5 rounded-full border border-indigo-500/30 flex items-center gap-1">
+                    <Zap size={11} className="text-yellow-400 fill-yellow-400" />
+                    <span className="text-[9px] sm:text-[10px] font-black text-yellow-200">{totalScore}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              {/* Mobile Compact Score Badge */}
+              <div className="flex md:hidden items-center gap-1 bg-indigo-600/30 px-2 py-1 rounded-full border border-indigo-500/30 shrink-0">
+                <Zap size={11} className="text-yellow-400 fill-yellow-400" />
+                <span className="text-[9px] font-black text-yellow-200">{totalScore}</span>
+              </div>
+            </>
           )}
 
           {/* Right: Acciones y Navegación */}
-          <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+          <div className="flex gap-1 sm:gap-1.5 items-center shrink-0">
             {view === 'menu' && (
               <button
                 onClick={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
-                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-[10px] sm:text-xs font-bold uppercase transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+                className="px-2 sm:px-2.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-[9px] sm:text-xs font-bold uppercase transition-all shadow-md flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
                 title="Abrir Estudio Mágico"
               >
-                <Plus size={14} />
+                <Plus size={13} />
                 <span className="hidden sm:inline">Composer Studio</span>
                 <span className="sm:hidden">Studio</span>
               </button>
@@ -1019,19 +1028,19 @@ export default function PianoMagico({ userId, onExit }) {
 
             <button
               onClick={toggleMic}
-              className={`p-1.5 sm:p-2 sm:px-3 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isListening ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-white/10 hover:bg-white/20 text-white/60'}`}
+              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-white/10 hover:bg-white/20 text-white/60'}`}
               title="Escuchar Piano Real"
             >
-              {isListening ? <Mic size={16} /> : <MicOff size={16} />}
+              {isListening ? <Mic size={15} /> : <MicOff size={15} />}
             </button>
 
             {view === 'menu' && (
               <button
                 onClick={() => setIsMicSettingsOpen(true)}
-                className="p-1.5 sm:p-2 text-white/50 hover:text-white transition-all bg-white/5 hover:bg-white/20 rounded-xl cursor-pointer"
+                className="p-1.5 text-white/50 hover:text-white transition-all bg-white/5 hover:bg-white/20 rounded-xl cursor-pointer"
                 title="Configurar Micrófono"
               >
-                <Settings size={16} />
+                <Settings size={15} />
               </button>
             )}
 
@@ -1041,10 +1050,10 @@ export default function PianoMagico({ userId, onExit }) {
                   setParentMath({ v1: Math.floor(Math.random() * 50) + 20, v2: Math.floor(Math.random() * 40) + 10, result: '' });
                   setView('parent_gate');
                 }}
-                className="p-1.5 sm:p-2 bg-white/5 hover:bg-indigo-600/30 text-white/50 hover:text-indigo-200 transition-all rounded-xl cursor-pointer"
+                className="p-1.5 bg-white/5 hover:bg-indigo-600/30 text-white/50 hover:text-indigo-200 transition-all rounded-xl cursor-pointer"
                 title="Panel de Control de Profesor / Padres"
               >
-                <Settings size={16} />
+                <Settings size={15} />
               </button>
             )}
             {view === 'menu' && (
@@ -1052,18 +1061,18 @@ export default function PianoMagico({ userId, onExit }) {
                 onClick={() => {
                   if (onExit) onExit();
                 }}
-                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[10px] sm:text-xs font-bold uppercase transition-all shadow-md cursor-pointer"
+                className="px-2 sm:px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[9px] sm:text-xs font-bold uppercase transition-all shadow-md cursor-pointer"
               >
                 Cerrar Piano
               </button>
             )}
-            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-1.5 sm:p-2 bg-white/10 hover:bg-white/20 rounded-xl cursor-pointer" title="Ir al Menú"><Home size={16} /></button>
+            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-xl cursor-pointer" title="Ir al Menú"><Home size={15} /></button>
           </div>
         </div>
       </div>
 
       {/* ÁREA CENTRAL */}
-      <div className="flex-1 w-full max-w-7xl relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4">
+      <div className="flex-1 w-full max-w-7xl pt-12 sm:pt-14 relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4">
 
         {/* AUTH / SELECCIÓN DE USUARIO */}
         {view === 'auth' && (
