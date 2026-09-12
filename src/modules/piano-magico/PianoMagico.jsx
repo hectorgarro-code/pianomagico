@@ -123,6 +123,23 @@ export default function PianoMagico({ userId, onExit }) {
     }
   };
 
+  const getNotePositionPercent = (pitch) => {
+    const naturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    if (pitch === 'R') return 43.5;
+
+    const isSharp = pitch.includes('#');
+    const basePitch = pitch.replace('#', '');
+    const baseIndex = naturalNotes.indexOf(basePitch);
+
+    if (baseIndex === -1) return 0;
+
+    if (!isSharp) {
+      return (baseIndex * (100 / 7)) + 0.64;
+    } else {
+      return ((baseIndex + 1) * (100 / 7)) - 5.0;
+    }
+  };
+
   // --- ADHD FEATURES STATE ---
   const [failureCount, setFailureCount] = useState(0);
   const [isCalmMode, setIsCalmMode] = useState(false);
@@ -1892,10 +1909,13 @@ export default function PianoMagico({ userId, onExit }) {
                     // Desaturación en modo calma
                     const parsed = parseNote(n);
                     const noteColor = isCalmMode ? `${NOTE_COLORS[parsed.pitch]}AA` : NOTE_COLORS[parsed.pitch];
+                    const isSharp = parsed.pitch.includes('#');
+                    const noteWidthClass = isSharp ? "w-[10%]" : "w-[13%]";
+                    const noteLeftPercent = getNotePositionPercent(parsed.pitch);
 
                     return (
-                      <div key={i} className={`absolute w-[13%] h-[80px] rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-white/40 transition-all duration-500 ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${(Object.keys(NOTE_NAMES).indexOf(parsed.pitch) * (100 / 7)) + 1}%`, bottom: `${cumulativePositions[i] * 100 + 10}px` }}>
-                        <span className="text-2xl font-black text-white drop-shadow-md">{NOTE_NAMES[parsed.pitch]}</span>
+                      <div key={i} className={`absolute ${noteWidthClass} h-[80px] rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-white/40 transition-all duration-500 ${op} ${sc}`} style={{ backgroundColor: noteColor, left: `${noteLeftPercent}%`, bottom: `${cumulativePositions[i] * 100 + 10}px` }}>
+                        <span className="text-xl sm:text-2xl font-black text-white drop-shadow-md">{NOTE_NAMES[parsed.pitch]}</span>
                         {parsed.duration !== 1 && (
                           <span className="absolute -bottom-3 text-[10px] font-black uppercase text-white/50 bg-black/40 px-2 rounded-full border border-white/10">{parsed.duration}x</span>
                         )}
