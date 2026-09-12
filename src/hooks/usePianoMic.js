@@ -25,9 +25,13 @@ export const usePianoMic = (onNoteDetected) => {
         try {
             audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
 
-            // Load the worklet from the public folder (or root relative)
-            // Vite serves files from the public folder at the root path '/'
-            await audioCtxRef.current.audioWorklet.addModule('/src/audio/pitch-worklet.js');
+            // Load the worklet from public/audio/ (production) with fallback to /src/audio/
+            try {
+                await audioCtxRef.current.audioWorklet.addModule('/audio/pitch-worklet.js');
+            } catch (workletErr) {
+                console.warn('Failed loading /audio/pitch-worklet.js, trying fallback:', workletErr);
+                await audioCtxRef.current.audioWorklet.addModule('/src/audio/pitch-worklet.js');
+            }
 
             streamRef.current = await navigator.mediaDevices.getUserMedia({
                 audio: {

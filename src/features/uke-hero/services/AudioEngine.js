@@ -25,8 +25,13 @@ class AudioEngine {
         try {
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-            // Cargar el AudioWorklet
-            await this.audioCtx.audioWorklet.addModule('/src/audio/pitch-worklet.js');
+            // Cargar el AudioWorklet (producción / public)
+            try {
+                await this.audioCtx.audioWorklet.addModule('/audio/pitch-worklet.js');
+            } catch (workletErr) {
+                console.warn('Failed loading /audio/pitch-worklet.js in AudioEngine, trying fallback:', workletErr);
+                await this.audioCtx.audioWorklet.addModule('/src/audio/pitch-worklet.js');
+            }
 
             this.stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
