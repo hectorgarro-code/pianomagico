@@ -2043,72 +2043,72 @@ export default function PianoMagico({ userId, onExit }) {
 
         {/* ADMINISTRACIÓN */}
         {view === 'admin' && (
-          <div className="fixed inset-0 z-[80] bg-slate-950/95 backdrop-blur-2xl p-4 sm:p-8 overflow-y-auto flex justify-center items-start">
-            <div className="w-full max-w-6xl my-auto bg-slate-900 border-2 border-indigo-500/50 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl animate-in zoom-in fade-in">
-              <div className="flex justify-between items-center mb-8 bg-white/5 p-4 sm:p-6 rounded-3xl border border-white/10 backdrop-blur-md">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 sm:p-4 bg-indigo-600 rounded-2xl shadow-lg ring-4 ring-indigo-500/20">
-                    <Settings size={28} className="text-white" />
+          <div className="fixed inset-0 z-[80] bg-slate-950/95 backdrop-blur-2xl p-2 sm:p-5 overflow-y-auto flex justify-center items-center">
+            <div className="w-full max-w-7xl h-[92vh] max-h-[92vh] bg-slate-900 border-2 border-indigo-500/50 rounded-[2rem] p-4 sm:p-5 shadow-2xl flex flex-col animate-in zoom-in fade-in">
+              
+              {/* COMPACT COMBINED HEADER & TABS BAR */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-white/10 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-600 rounded-xl shadow-md ring-2 ring-indigo-500/20">
+                    <Settings size={20} className="text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-black italic uppercase text-white tracking-tighter leading-tight">Panel de Control</h2>
-                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest opacity-70">Gestión de la Academia Galáctica - Edición de Lecciones y Alumnos</p>
+                    <h2 className="text-lg sm:text-xl font-black italic uppercase text-white tracking-tight leading-none">Panel de Control</h2>
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider opacity-70">Edición de Lecciones y Músicos</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setView('menu')}
-                  className="p-3 bg-white/5 hover:bg-white/15 rounded-2xl border border-white/10 transition-all text-white/60 hover:text-white cursor-pointer"
-                  title="Cerrar Panel"
-                >
-                  <X size={24} />
-                </button>
+
+                {/* TABS NAVIGATION */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAdminTab('lessons')}
+                    className={`px-4 py-2 rounded-xl font-black uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${adminTab === 'lessons' ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-400' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                  >
+                    <Music size={16} />
+                    Lecciones ({adminSongs.length})
+                  </button>
+                  <button
+                    onClick={() => setAdminTab('musicians')}
+                    className={`px-4 py-2 rounded-xl font-black uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${adminTab === 'musicians' ? 'bg-purple-600 text-white shadow-md ring-2 ring-purple-400' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                  >
+                    <Users size={16} />
+                    Músicos ({users.length})
+                  </button>
+                  <button
+                    onClick={() => setView('menu')}
+                    className="p-2 bg-white/5 hover:bg-white/15 rounded-xl border border-white/10 transition-all text-white/60 hover:text-white cursor-pointer ml-1"
+                    title="Cerrar Panel"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
-              {/* TABS NAVIGATION */}
-              <div className="flex gap-4 mb-8">
-                <button
-                  onClick={() => setAdminTab('lessons')}
-                  className={`flex-1 p-4 sm:p-5 rounded-3xl font-black uppercase text-xs sm:text-sm tracking-widest transition-all flex items-center justify-center gap-3 cursor-pointer ${adminTab === 'lessons' ? 'bg-indigo-600 text-white shadow-[0_0_30px_rgba(79,70,229,0.4)] ring-2 ring-indigo-400' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
-                >
-                  <Music size={22} />
-                  Gestión de Lecciones
-                </button>
-                <button
-                  onClick={() => setAdminTab('musicians')}
-                  className={`flex-1 p-4 sm:p-5 rounded-3xl font-black uppercase text-xs sm:text-sm tracking-widest transition-all flex items-center justify-center gap-3 cursor-pointer ${adminTab === 'musicians' ? 'bg-purple-600 text-white shadow-[0_0_30px_rgba(147,51,234,0.4)] ring-2 ring-purple-400' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
-                >
-                  <Users size={22} />
-                  Gestión de Músicos
-                </button>
-              </div>
-
-              <div className="w-full">
+              {/* MAIN CONTENT AREA */}
+              <div className="flex-1 min-h-0 flex flex-col">
                 {/* SECCIÓN MÚSICOS */}
                 {adminTab === 'musicians' && (
-                  <div className="bg-white/5 rounded-[2.5rem] border border-white/10 p-6 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Users className="text-purple-400" size={24} />
-                      <h3 className="font-black uppercase text-lg tracking-widest text-white/80">Músicos Registrados ({users.length})</h3>
+                  <div className="flex-1 min-h-0 flex flex-col bg-white/5 rounded-2xl border border-white/10 p-4 shadow-xl backdrop-blur-sm animate-in fade-in">
+                    <div className="flex items-center gap-2 mb-3 shrink-0">
+                      <Users className="text-purple-400" size={20} />
+                      <h3 className="font-black uppercase text-sm tracking-widest text-white/80">Músicos Registrados ({users.length})</h3>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
                       {users.map(u => (
-                        <div key={u.id} className="bg-black/40 border border-white/5 p-4 rounded-3xl flex items-center justify-between group hover:border-indigo-500/30 transition-all">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                        <div key={u.id} className="bg-black/40 border border-white/5 p-3 rounded-2xl flex items-center justify-between group hover:border-indigo-500/30 transition-all">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl shadow-inner">
                               {STICKERS_BASE[u.avatar_id]?.emoji || '👤'}
                             </div>
                             <div>
-                              <div className="font-black text-sm uppercase tracking-tight text-white mb-0.5">{u.name}</div>
-                              <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                                <span className="text-[10px] font-bold text-white/30 uppercase">ID: {u.id}</span>
-                              </div>
+                              <div className="font-black text-xs uppercase tracking-tight text-white">{u.name}</div>
+                              <span className="text-[9px] font-bold text-white/30 uppercase">ID: {u.id}</span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-black text-indigo-400">{u.total_score || 0}</div>
-                            <div className="text-[8px] font-bold text-white/30 uppercase tracking-tighter">PUNTOS</div>
+                            <div className="text-xs font-black text-indigo-400">{u.total_score || 0}</div>
+                            <div className="text-[7px] font-bold text-white/30 uppercase">PTS</div>
                           </div>
                         </div>
                       ))}
@@ -2116,75 +2116,75 @@ export default function PianoMagico({ userId, onExit }) {
                   </div>
                 )}
 
-                {/* SECCIÓN LECCIONES GLOBALES */}
+                {/* SECCIÓN LECCIONES GLOBALES (2 COLUMNAS EN PC) */}
                 {adminTab === 'lessons' && (
-                  <div className="bg-white/5 rounded-[2.5rem] border border-white/10 p-6 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4">
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center gap-3">
-                        <Music className="text-indigo-400" size={24} />
-                        <h3 className="font-black uppercase text-lg tracking-widest text-white/80">Lecciones ({adminSongs.length})</h3>
+                  <div className="flex-1 min-h-0 flex flex-col bg-white/5 rounded-2xl border border-white/10 p-4 shadow-xl backdrop-blur-sm animate-in fade-in">
+                    <div className="flex items-center justify-between mb-3 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Music className="text-indigo-400" size={20} />
+                        <h3 className="font-black uppercase text-sm tracking-widest text-white/80">Lecciones Regulares ({adminSongs.length})</h3>
                       </div>
                       <button
                         onClick={() => {
-                          setEditingSong({ title: 'NUEVA LECCIÓN', sequence: ['C:1'], stickerId: 1, speed: 100, rhythm: 'pop', targetOrder: adminSongs.length + 1 });
+                          setEditingSong({ title: 'NUEVA LECCIÓN', sequence: ['C4:1'], stickerId: 1, speed: 100, rhythm: 'pop', targetOrder: adminSongs.length + 1 });
                           setIsEditingSong(true);
                         }}
-                        className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-white shadow-lg active:scale-95 transition-all flex items-center gap-2 font-black text-xs uppercase cursor-pointer"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white shadow-lg active:scale-95 transition-all flex items-center gap-2 font-black text-xs uppercase cursor-pointer"
                       >
-                        <Plus size={18} /> <span>Nueva Lección</span>
+                        <Plus size={16} /> <span>Nueva Lección</span>
                       </button>
                     </div>
 
-                    <div className="flex flex-col gap-4 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
                       {adminSongs.map((song, idx) => (
-                        <div key={song.id} className="bg-black/40 border border-white/5 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between group hover:border-indigo-500/40 transition-all gap-4">
+                        <div key={song.id} className="bg-black/40 border border-white/5 p-3 sm:p-4 rounded-2xl flex items-center justify-between group hover:border-indigo-500/40 transition-all gap-3">
 
-                          {/* Left: Move Controls + Avatar + Info */}
-                          <div className="flex items-center gap-4 w-full sm:w-auto">
-                            <div className="flex flex-col gap-1 items-center justify-center shrink-0">
+                          {/* Left: Reorder + Icon + Info */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="flex flex-col gap-0.5 items-center justify-center shrink-0">
                               <button
                                 onClick={() => handleReorder(idx, -1)}
                                 disabled={idx === 0}
-                                className={`p-1.5 bg-white/5 rounded-lg hover:bg-white/20 transition-all cursor-pointer ${idx === 0 ? 'opacity-20 cursor-not-allowed' : 'text-indigo-300'}`}
+                                className={`p-1 bg-white/5 rounded hover:bg-white/20 transition-all cursor-pointer ${idx === 0 ? 'opacity-20 cursor-not-allowed' : 'text-indigo-300'}`}
                               >
-                                <ArrowUp size={14} />
+                                <ArrowUp size={12} />
                               </button>
-                              <span className="text-[10px] font-black text-white/40">#{idx + 1}</span>
+                              <span className="text-[9px] font-black text-white/40">#{idx + 1}</span>
                               <button
                                 onClick={() => handleReorder(idx, 1)}
                                 disabled={idx === adminSongs.length - 1}
-                                className={`p-1.5 bg-white/5 rounded-lg hover:bg-white/20 transition-all cursor-pointer ${idx === adminSongs.length - 1 ? 'opacity-20 cursor-not-allowed' : 'text-indigo-300'}`}
+                                className={`p-1 bg-white/5 rounded hover:bg-white/20 transition-all cursor-pointer ${idx === adminSongs.length - 1 ? 'opacity-20 cursor-not-allowed' : 'text-indigo-300'}`}
                               >
-                                <ArrowDown size={14} />
+                                <ArrowDown size={12} />
                               </button>
                             </div>
 
-                            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-3xl shadow-inner shrink-0">
+                            <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center text-2xl shadow-inner shrink-0">
                               {STICKERS_BASE[song.stickerId]?.emoji || '🎵'}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="font-black text-base uppercase tracking-tight text-white mb-1 truncate">{song.title}</div>
-                              <div className="flex flex-wrap items-center gap-2 mb-1">
-                                <span className="px-2.5 py-0.5 bg-purple-500/20 rounded-full text-[9px] font-black text-purple-300 uppercase tracking-widest">{song.rhythm}</span>
-                                <span className="text-[10px] font-bold text-white/40 uppercase">{song.sequence?.length || 0} NOTAS</span>
+                              <div className="font-black text-xs uppercase tracking-tight text-white truncate">{song.title}</div>
+                              <div className="flex items-center gap-2 my-0.5">
+                                <span className="px-2 py-0.2 bg-purple-500/20 rounded-full text-[8px] font-black text-purple-300 uppercase tracking-widest">{song.rhythm}</span>
+                                <span className="text-[9px] font-bold text-white/40 uppercase">{song.sequence?.length || 0} NOTAS</span>
                               </div>
-                              <div className="text-xs font-mono text-white/30 truncate max-w-xs sm:max-w-md" title={song.sequence?.join(' - ')}>
+                              <div className="text-[10px] font-mono text-white/30 truncate" title={song.sequence?.join(' - ')}>
                                 {song.sequence?.join(' - ')}
                               </div>
                             </div>
                           </div>
 
-                          {/* Right: Actions */}
-                          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          {/* Right: Action Buttons */}
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               onClick={() => {
                                 setEditingSong({ ...song, targetOrder: idx + 1 });
                                 setIsEditingSong(true);
                               }}
-                              className="px-3 py-2 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 rounded-xl text-indigo-300 transition-all flex items-center gap-1.5 text-xs font-bold uppercase cursor-pointer"
-                              title="Editar"
+                              className="p-2 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 rounded-xl text-indigo-300 transition-all cursor-pointer"
+                              title="Editar Lección"
                             >
-                              <Pencil size={14} /> <span>Editar</span>
+                              <Pencil size={14} />
                             </button>
                             <button
                               onClick={async () => {
@@ -2195,10 +2195,10 @@ export default function PianoMagico({ userId, onExit }) {
                                 });
                                 await fetchAdminSongs();
                               }}
-                              className="px-3 py-2 bg-green-500/20 hover:bg-green-500/40 border border-green-500/30 rounded-xl text-green-300 transition-all flex items-center gap-1.5 text-xs font-bold uppercase cursor-pointer"
-                              title="Duplicar"
+                              className="p-2 bg-green-500/20 hover:bg-green-500/40 border border-green-500/30 rounded-xl text-green-300 transition-all cursor-pointer"
+                              title="Duplicar Lección"
                             >
-                              <Save size={14} /> <span>Duplicar</span>
+                              <Save size={14} />
                             </button>
                             <button
                               onClick={async () => {
@@ -2210,9 +2210,9 @@ export default function PianoMagico({ userId, onExit }) {
                                 await fetchAdminSongs();
                               }}
                               className="p-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 rounded-xl text-red-300 transition-all cursor-pointer"
-                              title="Borrar"
+                              title="Borrar Lección"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </div>
@@ -2220,25 +2220,10 @@ export default function PianoMagico({ userId, onExit }) {
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="mt-8 bg-indigo-600/10 border border-indigo-500/20 p-4 sm:p-6 rounded-[2.5rem] flex items-center justify-between backdrop-blur-md">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg">
-                    <Crown size={20} className="text-white" />
-                  </div>
-                  <div className="font-black text-xs uppercase tracking-widest text-indigo-200">Total de Músicos: {users.length}</div>
-                </div>
-                <button
-                  onClick={() => setView('menu')}
-                  className="px-8 py-4 bg-white text-indigo-950 rounded-2xl font-black text-sm uppercase shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                >
-                  Volver al Menú
-                </button>
-              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* MODAL EDITOR DE LECCIONES */}
         {isEditingSong && editingSong && (
