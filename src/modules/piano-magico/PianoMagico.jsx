@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
-  Star, Play, Home, Award, Music, Mic, MicOff, CheckCircle2, RotateCcw,
+  Star, Play, Pause, Home, Award, Music, Mic, MicOff, CheckCircle2, RotateCcw,
   Wind, BookOpen, Trophy, Zap, Users, Music2, Drum, Radio, Volume2,
   ChevronDown, VolumeX, Sparkles, Settings, Plus, Trash2, Save, X,
   Pencil, Mic2, RefreshCw, Gauge, Brain, Share2, Download, Medal, Flame, Ear, Crown, Target, LogOut, Lock,
@@ -186,6 +186,12 @@ export default function PianoMagico({ userId, onExit }) {
   const [seqHistoryIndex, setSeqHistoryIndex] = useState(-1);
   const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
   const [showNomenclatureHelp, setShowNomenclatureHelp] = useState(false);
+
+  // --- REPRODUCCIÓN DEMOSTRACIÓN (PLAY / PAUSE / STOP) ---
+  const [isDemoPlaying, setIsDemoPlaying] = useState(false);
+  const [isDemoPaused, setIsDemoPaused] = useState(false);
+  const demoTimersRef = useRef([]);
+  const demoCurrentIndexRef = useRef(0);
 
   // Helper to commit new sequence edits with history tracking
   const commitSequenceHistory = useCallback((newSeq) => {
@@ -659,12 +665,89 @@ export default function PianoMagico({ userId, onExit }) {
     return () => stopDrumLoop();
   }, [view, currentSong, tempoFactor, isPreviewing, isDrumEnabled, composerRecording, currentRhythm, mode]);
 
+  // --- LÓGICA DE REPRODUCCIÓN DEMO (DEMOSTRACIÓN) ---
+  const stopDemoPlayback = useCallback(() => {
+    demoTimersRef.current.forEach(t => clearTimeout(t));
+    demoTimersRef.current = [];
+    setIsDemoPlaying(false);
+    setIsDemoPaused(false);
+    demoCurrentIndexRef.current = 0;
+    stepRef.current = 0;
+    setStep(0);
+    setDetectedNote(null);
+  }, []);
+
+  const playDemoFromIndex = useCallback((startIndex) => {
+    if (!currentSong?.sequence) return;
+    demoTimersRef.current.forEach(t => clearTimeout(t));
+    demoTimersRef.current = [];
+
+    const sequence = currentSong.sequence;
+    const baseSpeedMs = getIntervalMs(currentSong.speed) / tempoFactor;
+
+    let accumulatedMs = 0;
+    for (let i = startIndex; i < sequence.length; i++) {
+      const idx = i;
+      const noteStr = sequence[idx];
+      const parsed = parseNote(noteStr);
+      const noteDurationMs = baseSpeedMs * (parsed.duration || 1);
+
+      const t = setTimeout(() => {
+        demoCurrentIndexRef.current = idx;
+        stepRef.current = idx;
+        setStep(idx);
+
+        if (parsed.pitch !== 'R') {
+          playSynth(FREQUENCIES[parsed.pitch], 'triangle', 0.3, (noteDurationMs / 1000) * 0.9);
+          setDetectedNote(parsed.pitch);
+          const tOff = setTimeout(() => setDetectedNote(null), noteDurationMs * 0.8);
+          demoTimersRef.current.push(tOff);
+        } else {
+          setDetectedNote(null);
+        }
+
+        if (idx === sequence.length - 1) {
+          const tEnd = setTimeout(() => {
+            stopDemoPlayback();
+          }, noteDurationMs);
+          demoTimersRef.current.push(tEnd);
+        }
+      }, accumulatedMs);
+
+      accumulatedMs += noteDurationMs;
+      demoTimersRef.current.push(t);
+    }
+  }, [currentSong, tempoFactor, stopDemoPlayback]);
+
+  const startDemoPlayback = useCallback(() => {
+    setIsDemoPlaying(true);
+    setIsDemoPaused(false);
+    demoCurrentIndexRef.current = 0;
+    stepRef.current = 0;
+    setStep(0);
+    playDemoFromIndex(0);
+  }, [playDemoFromIndex]);
+
+  const pauseDemoPlayback = useCallback(() => {
+    demoTimersRef.current.forEach(t => clearTimeout(t));
+    demoTimersRef.current = [];
+    setIsDemoPaused(true);
+    setDetectedNote(null);
+  }, []);
+
+  const resumeDemoPlayback = useCallback(() => {
+    setIsDemoPaused(false);
+    const nextIndex = demoCurrentIndexRef.current < (currentSong?.sequence?.length || 0) - 1 ? demoCurrentIndexRef.current + 1 : demoCurrentIndexRef.current;
+    playDemoFromIndex(nextIndex);
+  }, [currentSong, playDemoFromIndex]);
+
   // --- LÓGICA DE SIMON ---
   const stopAllPreviews = useCallback(() => {
+    stopDemoPlayback();
     previewTimers.current.forEach(t => clearTimeout(t));
     previewTimers.current = [];
     setIsPreviewing(false);
-  }, []);
+  }, [stopDemoPlayback]);
 
   const runSimonSequence = useCallback((currentSequenceLength) => {
     if (!currentSong) return;
@@ -787,7 +870,7 @@ export default function PianoMagico({ userId, onExit }) {
     lastInteractionRef.current = Date.now();
     setHighlightTarget(false);
 
-    if (isPreviewing || lockRef.current) {
+    if (isDemoPlaying || isPreviewing || lockRef.current) {
       if (view === 'composer' && composerRecording) {
         playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
         setDetectedNote(note); setTimeout(() => setDetectedNote(null), 150);
@@ -1012,7 +1095,7 @@ export default function PianoMagico({ userId, onExit }) {
 
   // --- EFECTOS ---
   useEffect(() => {
-    if (view === 'game' && currentSong && mode !== 'oído') {
+    if (view === 'game' && currentSong && mode !== 'oído' && !isDemoPlaying) {
       setNoteReady(false);
 
       const currentNoteStr = currentSong.sequence[stepRef.current];
@@ -1081,6 +1164,7 @@ export default function PianoMagico({ userId, onExit }) {
   }, [view, isPreviewing, mode, currentSong]);
 
   const startLevel = (song, m) => {
+    stopDemoPlayback();
     setCurrentSong(song); setMode(m); setStep(0); stepRef.current = 0;
     setSimonStep(1); setUserSimonIndex(0); setEnergy(0);
     setFailureCount(0); setSessionErrors(0); setIsCalmMode(false); // Reset ADHD features
@@ -1386,10 +1470,53 @@ export default function PianoMagico({ userId, onExit }) {
         )}
 
         {/* SIDEBAR MINI */}
-        {view === 'game' && mode !== 'oído' && !isPreviewing && (
+        {view === 'game' && mode !== 'oído' && !isPreviewing && !isDemoPlaying && (
           <div className="absolute right-0 top-16 sm:top-20 z-40 flex flex-col gap-3 items-center bg-white/5 p-2 rounded-l-2xl border-l border-y border-white/10 backdrop-blur-md animate-in slide-in-from-right">
-            <button onClick={() => { if (stepRef.current > 0) setMemoryIntegrity(false); setMemoryMode(!memoryMode); }} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${memoryMode ? 'bg-purple-600 text-white shadow-lg' : 'bg-black/40 text-white/40 hover:text-white'}`} title="Modo Memoria"><Brain size={20} /></button>
+            <button onClick={() => { if (stepRef.current > 0) setMemoryIntegrity(false); setMemoryMode(!memoryMode); }} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${memoryMode ? 'bg-purple-600 text-white shadow-lg' : 'bg-black/40 text-white/40 hover:text-white'}`} title="Modo Memoria (Ocultar Notas)"><Brain size={20} /></button>
+            <button onClick={startDemoPlayback} className="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-95" title="Reproducir Lección Completa (Escuchar)"><Play size={18} fill="white" className="ml-0.5" /></button>
             <button onClick={() => setLoopEnabled(!loopEnabled)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${loopEnabled ? 'bg-indigo-600 text-white shadow-lg' : 'bg-black/40 text-white/40 hover:text-white'}`} title="Repetir Lección (Bucle)"><RefreshCw size={20} className={loopEnabled ? 'animate-spin-slow' : ''} /></button>
+          </div>
+        )}
+
+        {/* CONTROLES REPRODUCCIÓN DEMO (PLAY / PAUSE / STOP) */}
+        {view === 'game' && isDemoPlaying && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/90 border-2 border-indigo-500/50 backdrop-blur-xl px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-4 animate-in fade-in zoom-in">
+            <div className="flex items-center gap-2">
+              <div className={`w-2.5 h-2.5 rounded-full ${isDemoPaused ? 'bg-amber-400' : 'bg-green-400 animate-pulse'}`} />
+              <span className="text-xs font-black uppercase tracking-wider text-white">
+                {isDemoPaused ? 'DEMO PAUSADA' : 'REPRODUCIENDO DEMO'}
+              </span>
+            </div>
+
+            <div className="h-4 w-px bg-white/20" />
+
+            <div className="flex items-center gap-2">
+              {isDemoPaused ? (
+                <button
+                  onClick={resumeDemoPlayback}
+                  className="p-2 bg-green-500 hover:bg-green-400 text-white rounded-full transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center"
+                  title="Reanudar"
+                >
+                  <Play size={16} fill="white" />
+                </button>
+              ) : (
+                <button
+                  onClick={pauseDemoPlayback}
+                  className="p-2 bg-amber-500 hover:bg-amber-400 text-white rounded-full transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center"
+                  title="Pausar"
+                >
+                  <Pause size={16} fill="white" />
+                </button>
+              )}
+
+              <button
+                onClick={stopDemoPlayback}
+                className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center"
+                title="Detener (Volver al Juego)"
+              >
+                <Square size={16} fill="white" />
+              </button>
+            </div>
           </div>
         )}
 
