@@ -417,6 +417,8 @@ export default function PianoMagico({ userId, onExit }) {
   const [highlightTarget, setHighlightTarget] = useState(false);
 
   // --- GAMIFICATION: SUPERNOVA & BOSSES ---
+  const [consecutiveHits, setConsecutiveHits] = useState(0);
+  const [isSupernova, setIsSupernova] = useState(false);
   const lastMicHitInfoRef = useRef({ pitch: null, time: 0, step: -1 });
   const hasSeenSilenceOrChangeRef = useRef(true);
   const micSilenceTimerRef = useRef(null);
