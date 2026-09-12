@@ -65,6 +65,62 @@ const DEFAULT_RHYTHM_BPMS = {
   marcha: 110
 };
 
+const SOLFEGE_MAP = {
+  'DO': 'C', 'DO#': 'C#', 'DOB': 'B',
+  'RE': 'D', 'RE#': 'D#', 'REB': 'C#',
+  'MI': 'E', 'MI#': 'F', 'MIB': 'D#',
+  'FA': 'F', 'FA#': 'F#', 'FAB': 'E',
+  'SOL': 'G', 'SOL#': 'G#', 'SOLB': 'F#',
+  'LA': 'A', 'LA#': 'A#', 'LAB': 'G#',
+  'SI': 'B', 'SI#': 'C', 'SIB': 'A#',
+  'SILENCIO': 'R', 'SIL': 'R', 'REST': 'R',
+  'C': 'C', 'C#': 'C#',
+  'D': 'D', 'D#': 'D#',
+  'E': 'E', 'E#': 'F',
+  'F': 'F', 'F#': 'F#',
+  'G': 'G', 'G#': 'G#',
+  'A': 'A', 'A#': 'A#',
+  'B': 'B',
+  'R': 'R'
+};
+
+const parseTextToSequence = (rawText) => {
+  if (!rawText || !rawText.trim()) return [];
+  const tokens = rawText.trim().split(/[\s,]+/);
+  const result = [];
+
+  tokens.forEach(token => {
+    if (!token) return;
+    const parts = token.toUpperCase().trim().split(':');
+    const notePart = parts[0];
+    const durPart = parts.length > 1 ? parts[1].replace(/[^0-9.]/g, '') : '1';
+    const duration = parseFloat(durPart) || 1;
+
+    if (notePart === 'R' || notePart === 'SILENCIO' || notePart === 'SIL') {
+      result.push(`R:${duration}`);
+      return;
+    }
+
+    const match = notePart.match(/^([A-Z]+#?|DO#?|RE#?|MI#?|FA#?|SOL#?|LA#?|SI#?|DOB|REB|MIB|FAB|SOLB|LAB|SIB)([3-6])?$/i);
+
+    if (match) {
+      const name = match[1];
+      const octave = match[2] || '4';
+      const englishPitch = SOLFEGE_MAP[name];
+
+      if (englishPitch) {
+        if (englishPitch === 'R') {
+          result.push(`R:${duration}`);
+        } else {
+          result.push(`${englishPitch}${octave}:${duration}`);
+        }
+      }
+    }
+  });
+
+  return result;
+};
+
 const getNoteFrequency = (noteStr) => {
   if (!noteStr || noteStr === 'R') return 0;
   const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
@@ -2417,22 +2473,13 @@ export default function PianoMagico({ userId, onExit }) {
                       <textarea
                         value={rawSequenceText}
                         onChange={e => setRawSequenceText(e.target.value)}
-                        placeholder="Pega las notas separadas por espacios, ej: C C G G A A G C:0.5 R:1"
+                        placeholder="Pega notas en español o inglés. Ej: MI5:0.5 RE#5:0.5 MI5:0.5 RE#5:0.5 SI4:0.5 DO5:0.5 LA4:1"
                         className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-white font-mono text-sm resize-none h-24 outline-none focus:border-indigo-500 transition-all placeholder:text-white/20"
                       />
                       <button
                         onClick={() => {
                           if (!rawSequenceText.trim()) return;
-                          const tokens = rawSequenceText.trim().split(/\s+/);
-                          const newSeq = [];
-                          tokens.forEach(t => {
-                            const parts = t.toUpperCase().split(':');
-                            const cleanPitch = parts[0].replace(/[^A-Z#]/g, '');
-                            if (NOTE_NAMES.hasOwnProperty(cleanPitch)) {
-                              const dur = parts.length > 1 ? parts[1].replace(/[^0-9.]/g, '') : '1';
-                              newSeq.push(`${cleanPitch}:${dur}`);
-                            }
-                          });
+                          const newSeq = parseTextToSequence(rawSequenceText);
                           if (newSeq.length > 0) {
                             setEditingSong({ ...editingSong, sequence: newSeq });
                           }
