@@ -208,6 +208,7 @@ export default function PianoMagico({ userId, onExit }) {
   const [seqHistoryIndex, setSeqHistoryIndex] = useState(-1);
   const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
   const [showNomenclatureHelp, setShowNomenclatureHelp] = useState(false);
+  const [showListenFirstModal, setShowListenFirstModal] = useState(false);
   const [isLandscape, setIsLandscape] = useState(() => typeof window !== 'undefined' && window.innerWidth > window.innerHeight && window.innerHeight < 600);
 
   useEffect(() => {
@@ -1313,6 +1314,12 @@ export default function PianoMagico({ userId, onExit }) {
 
     setPerformanceLog([]); setStartTime(Date.now()); setIsRecordingPerformance(true);
     setView('game'); initAudio(); setMemoryIntegrity(memoryMode);
+
+    if (m === 'solo' || m === 'duo' || m === 'boss') {
+      setShowListenFirstModal(true);
+    } else {
+      setShowListenFirstModal(false);
+    }
 
     if (localStorage.getItem('piano_mic_auto') === 'true' && !isListening) {
       startMic();
@@ -3215,6 +3222,71 @@ export default function PianoMagico({ userId, onExit }) {
                 className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg"
               >
                 Entendido
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PRIMERO ESCUCHA */}
+      {showListenFirstModal && currentSong && (
+        <div className="fixed inset-0 z-[120] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-slate-900 border-4 border-indigo-500 rounded-[2.5rem] p-6 sm:p-8 max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-5 text-white">
+            
+            {/* Header Icon */}
+            <div className="relative">
+              <div className="w-20 h-20 bg-indigo-600/30 border-2 border-indigo-500 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                <Ear size={40} className="text-indigo-300 animate-bounce" />
+              </div>
+              <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-slate-900 text-lg rounded-full p-1 border-2 border-slate-900 shadow">
+                {STICKERS_BASE[currentSong.stickerId]?.emoji || '🎵'}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-black italic uppercase text-white tracking-tight">¡Primero Escucha!</h2>
+              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mt-1">Lección: {currentSong.title}</p>
+            </div>
+
+            <p className="text-xs text-white/70 max-w-xs leading-relaxed">
+              Escucha cómo debe sonar esta lección antes de tocarla en el piano para reconocer el ritmo y las notas.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3 w-full mt-2">
+              {!isDemoPlaying ? (
+                <button
+                  onClick={() => startDemoPlayback()}
+                  className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 border border-white/20 cursor-pointer"
+                >
+                  <Volume2 size={20} fill="white" />
+                  <span>Escuchar Lección</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (isDemoPaused) resumeDemoPlayback();
+                    else pauseDemoPlayback();
+                  }}
+                  className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
+                >
+                  {isDemoPaused ? <Play size={20} fill="white" /> : <Pause size={20} fill="white" />}
+                  <span>{isDemoPaused ? 'Continuar Escuchando' : 'Pausar Demostración'}</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  stopDemoPlayback();
+                  setShowListenFirstModal(false);
+                  setStep(0);
+                  stepRef.current = 0;
+                }}
+                className="w-full py-3.5 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-2xl font-black text-xs uppercase tracking-wider border border-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>{isDemoPlaying ? '¡Listo, Ir a Tocar!' : 'Saltear e Ir a Tocar'}</span>
+                <ChevronRight size={16} />
               </button>
             </div>
 
