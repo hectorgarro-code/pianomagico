@@ -1208,12 +1208,9 @@ export default function PianoMagico({ userId, onExit }) {
 
         {/* SIDEBAR MINI */}
         {view === 'game' && mode !== 'oído' && !isPreviewing && (
-          <div className="absolute right-0 top-4 z-50 flex flex-col gap-3 items-center bg-white/5 p-2 rounded-l-2xl border-l border-y border-white/10 backdrop-blur-md animate-in slide-in-from-right">
-            <button onClick={() => { if (stepRef.current > 0) setMemoryIntegrity(false); setMemoryMode(!memoryMode); }} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${memoryMode ? 'bg-purple-600 text-white shadow-lg' : 'bg-black/40 text-white/20'}`}><Brain size={20} /></button>
-            <button onClick={() => setLoopEnabled(!loopEnabled)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${loopEnabled ? 'bg-indigo-600 text-white shadow-lg' : 'bg-black/40 text-white/20'}`}><RefreshCw size={20} className={loopEnabled ? 'animate-spin-slow' : ''} /></button>
-            <button onClick={() => setTempoFactor(p => p === 1 ? 1.5 : p === 1.5 ? 2 : p === 2 ? 0.25 : p === 0.25 ? 0.5 : 1)} className="w-10 h-10 rounded-full flex items-center justify-center bg-black/60 border border-white/20">
-              <span className="text-[10px] font-black italic">{tempoFactor}x</span>
-            </button>
+          <div className="absolute right-0 top-16 sm:top-20 z-40 flex flex-col gap-3 items-center bg-white/5 p-2 rounded-l-2xl border-l border-y border-white/10 backdrop-blur-md animate-in slide-in-from-right">
+            <button onClick={() => { if (stepRef.current > 0) setMemoryIntegrity(false); setMemoryMode(!memoryMode); }} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${memoryMode ? 'bg-purple-600 text-white shadow-lg' : 'bg-black/40 text-white/40 hover:text-white'}`} title="Modo Memoria"><Brain size={20} /></button>
+            <button onClick={() => setLoopEnabled(!loopEnabled)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${loopEnabled ? 'bg-indigo-600 text-white shadow-lg' : 'bg-black/40 text-white/40 hover:text-white'}`} title="Repetir Lección (Bucle)"><RefreshCw size={20} className={loopEnabled ? 'animate-spin-slow' : ''} /></button>
           </div>
         )}
 
