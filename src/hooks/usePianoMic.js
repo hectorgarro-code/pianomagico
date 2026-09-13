@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePianoMicStore } from './usePianoMicStore';
 
 export const usePianoMic = (onNoteDetected) => {
@@ -8,12 +8,18 @@ export const usePianoMic = (onNoteDetected) => {
     const toggleMic = usePianoMicStore((state) => state.toggleMic);
     const addListener = usePianoMicStore((state) => state.addListener);
 
+    const cbRef = useRef(onNoteDetected);
+    cbRef.current = onNoteDetected;
+
     useEffect(() => {
-        if (onNoteDetected) {
-            const remove = addListener(onNoteDetected);
-            return () => remove();
-        }
-    }, [onNoteDetected, addListener]);
+        const handler = (note, rms, strikeId) => {
+            if (cbRef.current) {
+                cbRef.current(note, rms, strikeId);
+            }
+        };
+        const remove = addListener(handler);
+        return () => remove();
+    }, [addListener]);
 
     return { isListening, toggleMic, startMic, stopMic };
 };

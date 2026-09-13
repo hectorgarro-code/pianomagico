@@ -421,9 +421,16 @@ export default function PianoMagico({ userId, onExit }) {
   const [consecutiveHits, setConsecutiveHits] = useState(0);
   const [isSupernova, setIsSupernova] = useState(false);
 
-  const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note, rms) => {
+  const awaitingReleaseForPitchRef = useRef(null);
+  const hasReleasedRef = useRef(true);
+  const lastConsumedStrikeIdRef = useRef(0);
+
+  const { isListening, toggleMic, startMic, stopMic } = usePianoMic((note, rms, strikeId) => {
+    if (!note || (rms && rms < 0.015)) {
+      hasReleasedRef.current = true;
+    }
     if (note) {
-      handleAction(note, 'mic', rms);
+      handleAction(note, 'mic', rms, strikeId);
     }
   });
 
@@ -959,7 +966,7 @@ export default function PianoMagico({ userId, onExit }) {
     }
   };
 
-  const handleAction = useCallback((note, source = 'touch', rms = 0) => {
+  const handleAction = useCallback((note, source = 'touch', rms = 0, strikeId = 0) => {
     if (view !== 'game' && view !== 'composer' && view !== 'admin') return;
     // Reset glow behavior
     lastInteractionRef.current = Date.now();
@@ -1042,6 +1049,23 @@ export default function PianoMagico({ userId, onExit }) {
 
     if (target === 'R') return; // Ignore mic events during rests
 
+    const targetPitchClass = String(target).split(':')[0].replace(/\d+/g, '').replace('#', '');
+    const detectedPitchClass = String(note).split(':')[0].replace(/\d+/g, '').replace('#', '');
+
+    if (source === 'mic') {
+      // INVARIANT 1: A physical key strike can only ever satisfy AT MOST ONE note in the sequence
+      if (strikeId && strikeId <= lastConsumedStrikeIdRef.current) {
+        return;
+      }
+
+      // INVARIANT 2: If the current target note has the SAME pitch class as the previous satisfied note,
+      // the key MUST have been released (damper dropped) or a distinct new strike must have occurred!
+      const isSamePitchAsPrevious = awaitingReleaseForPitchRef.current === targetPitchClass;
+      if (isSamePitchAsPrevious && !hasReleasedRef.current) {
+        return;
+      }
+    }
+
     // In Boss Hybrid Mode: Even steps are Visual (Solo), Odd steps are Auditory (Oído)
     if (mode === 'boss' && stepRef.current % 2 !== 0) {
       // It's the oído phase of the boss battle
@@ -1058,6 +1082,13 @@ export default function PianoMagico({ userId, onExit }) {
 
     if (isNoteMatch(note, target)) {
       lockRef.current = true;
+      if (source === 'mic') {
+        lastConsumedStrikeIdRef.current = strikeId || Date.now();
+      } else {
+        lastConsumedStrikeIdRef.current = Date.now();
+      }
+      awaitingReleaseForPitchRef.current = targetPitchClass;
+      hasReleasedRef.current = false;
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
       if (isRecordingPerformance) setPerformanceLog(prev => [...prev, { note, time: timeOffset }]);
@@ -1275,6 +1306,9 @@ export default function PianoMagico({ userId, onExit }) {
     const parsedSequence = getSequenceArray(song?.sequence);
     const songWithParsedSeq = { ...song, sequence: parsedSequence };
     setCurrentSong(songWithParsedSeq); setMode(m); setStep(0); stepRef.current = 0;
+    awaitingReleaseForPitchRef.current = null;
+    hasReleasedRef.current = true;
+    lastConsumedStrikeIdRef.current = 0;
     setSimonStep(1); setUserSimonIndex(0); setEnergy(0);
     setFailureCount(0); setSessionErrors(0); setIsCalmMode(false); // Reset ADHD features
     setTempoFactor(1); // Reset speed multiplier to 1x (Original creation BPM)
