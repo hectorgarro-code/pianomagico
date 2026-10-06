@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './LoginScreen';
 import InstrumentSelection from './InstrumentSelection';
-import PianoMagico from '../piano-magico/PianoMagico'; // Piano Mágico
+import GameApp from '../../game/GameApp'; // Nuevo Orquestador del Videojuego 3D
+import PianoMagico from '../piano-magico/PianoMagico'; // Piano Mágico (Legacy direct)
 import UkeHero from '../uke-hero/UkeHero'; // Ukelele
 import MusicStudio from '../studio/MusicStudio'; // Estudio Grabación
 
@@ -38,7 +39,12 @@ export default function MusicSuite() {
             try {
                 const resProfile = await fetch(`${API_URL}?action=get_profile&user_id=${userId}`);
                 const dataProfile = await resProfile.json();
-                if (dataProfile) setProfile({ name: dataProfile.name, avatarId: dataProfile.avatar_id, totalScore: dataProfile.total_score });
+                const savedAvatar = localStorage.getItem(`user_avatar_${userId}`);
+                if (dataProfile) setProfile({ 
+                    name: dataProfile.name, 
+                    avatarId: savedAvatar ? Number(savedAvatar) : dataProfile.avatar_id, 
+                    totalScore: dataProfile.total_score 
+                });
             } catch (e) {
                 console.error("Error fetching profile", e);
             }
@@ -48,7 +54,7 @@ export default function MusicSuite() {
 
     const handleLogin = (id) => {
         setUserId(id);
-        setCurrentApp('menu');
+        setCurrentApp('piano');
     };
 
     const handleLogout = () => {
@@ -65,7 +71,7 @@ export default function MusicSuite() {
     }
 
     if (currentApp === 'piano') {
-        return <PianoMagico userId={userId} onExit={() => setCurrentApp('menu')} />;
+        return <GameApp userId={userId} onExitApp={() => setCurrentApp('menu')} />;
     }
 
     if (currentApp === 'guitar') {

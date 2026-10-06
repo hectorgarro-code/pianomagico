@@ -1,0 +1,92 @@
+/**
+ * progressService.js
+ * Capa de adaptación que conecta el estado del juego con la API existente (backend/api.php).
+ * No modifica ni duplica endpoints; provee métodos limpios y desacoplados.
+ */
+
+const API_BASE = 'backend/api.php';
+
+export const progressService = {
+  /**
+   * Obtiene el perfil del usuario.
+   */
+  async getProfile(userId) {
+    if (!userId) return null;
+    const res = await fetch(`${API_BASE}?action=get_profile&user_id=${userId}`);
+    if (!res.ok) throw new Error('Error al cargar perfil');
+    return await res.json();
+  },
+
+  /**
+   * Actualiza el perfil y XP total.
+   */
+  async updateProfile(userId, name, avatarId, totalScore) {
+    if (!userId) return;
+    const res = await fetch(`${API_BASE}?action=update_profile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, name, avatarId, totalScore })
+    });
+    return await res.json();
+  },
+
+  /**
+   * Obtiene el catálogo de canciones/lecciones para el instrumento.
+   */
+  async getSongs(userId, instrument = 'piano') {
+    const res = await fetch(`${API_BASE}?action=get_songs&user_id=${userId || ''}&instrument=${instrument}`);
+    if (!res.ok) throw new Error('Error al cargar canciones');
+    return await res.json();
+  },
+
+  /**
+   * Obtiene las interpretaciones previas del usuario.
+   */
+  async getUserPerformances(userId) {
+    if (!userId) return [];
+    const res = await fetch(`${API_BASE}?action=get_performances&user_id=${userId}`);
+    if (!res.ok) return [];
+    return await res.json();
+  },
+
+  /**
+   * Obtiene las medallas de memoria obtenidas.
+   */
+  async getMemoryMedals(userId) {
+    if (!userId) return [];
+    const res = await fetch(`${API_BASE}?action=get_medals&user_id=${userId}`);
+    if (!res.ok) return [];
+    return await res.json();
+  },
+
+  /**
+   * Registra una lección completada/performance musical.
+   */
+  async savePerformance(userId, songId, performanceLog, score) {
+    if (!userId || !songId) return;
+    const res = await fetch(`${API_BASE}?action=save_performance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        songId,
+        performanceLog,
+        score
+      })
+    });
+    return await res.json();
+  },
+
+  /**
+   * Registra medalla de memoria al tocar una lección perfecta.
+   */
+  async unlockMedal(userId, songId) {
+    if (!userId || !songId) return;
+    const res = await fetch(`${API_BASE}?action=unlock_medal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, songId })
+    });
+    return await res.json();
+  }
+};

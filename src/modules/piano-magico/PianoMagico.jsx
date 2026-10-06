@@ -9,6 +9,9 @@ import {
 
 import { usePianoMic } from '../../hooks/usePianoMic';
 import MicSettingsModal from '../core/components/MicSettingsModal';
+import Model3DViewer from '../core/components/Model3DViewer';
+import { getCharacterModel, CHARACTER_MODELS } from '../core/utils/characterModels';
+import AdventurePath3D from './components/AdventurePath3D';
 
 // --- CONSTANTES DE RANGO ---
 const RANKS = [
@@ -20,7 +23,7 @@ const RANKS = [
   { min: 50000, title: "Leyenda del Piano", color: "text-red-400", bg: "bg-red-600", next: 100000 }
 ];
 
-const STICKERS_BASE = {
+export const STICKERS_BASE = {
   1: { id: 1, name: "Elefante", emoji: "🐘", color: "bg-blue-400" },
   2: { id: 2, name: "Gato", emoji: "🐱", color: "bg-orange-400" },
   3: { id: 3, name: "Oso", emoji: "🐻", color: "bg-green-400" },
@@ -191,7 +194,14 @@ const NOTE_NAMES = new Proxy({}, { get: (_, prop) => getNoteDisplayName(prop) })
 
 const API_URL = 'backend/api.php';
 
-export default function PianoMagico({ userId, onExit }) {
+export default function PianoMagico({
+  userId,
+  onExit,
+  initialSong = null,
+  initialMode = 'solo',
+  initialView = 'menu',
+  onFinishLesson
+}) {
   // --- PERSISTENCIA STORE ---
   const [users, setUsers] = useState([]);
   const [userPerformances, setUserPerformances] = useState([]);
@@ -278,9 +288,9 @@ export default function PianoMagico({ userId, onExit }) {
   const [activePopover, setActivePopover] = useState(null);
 
   // --- JUEGO & NAVEGACIÓN ---
-  const [view, setView] = useState('menu');
-  const [mode, setMode] = useState('solo');
-  const [currentSong, setCurrentSong] = useState(null);
+  const [view, setView] = useState(initialView);
+  const [mode, setMode] = useState(initialMode);
+  const [currentSong, setCurrentSong] = useState(initialSong);
   const [step, setStep] = useState(0);
   const [score, setScore] = useState(0);
   const [energy, setEnergy] = useState(0);
@@ -1357,168 +1367,147 @@ export default function PianoMagico({ userId, onExit }) {
   const progressPercent = Math.min(100, (totalScore / (RANKS.find(r => r.min > totalScore)?.min || totalScore)) * 100);
 
   return (
-    <div className="h-[100dvh] w-full bg-[#F7F7F7] text-slate-800 font-sans flex flex-col items-center overflow-hidden select-none relative">
+    <div className={`h-[100dvh] w-full ${view === 'menu' ? 'bg-slate-950' : 'bg-[#F7F7F7]'} text-slate-800 font-sans flex flex-col items-center overflow-hidden select-none relative`}>
 
-      {/* HUD SUPERIOR FIXED PERSISTENTE (DUOLINGO STYLE) */}
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-white border-b-2 border-slate-200 flex justify-center shadow-sm transition-all">
-        <div className="w-full max-w-7xl px-2 sm:px-6 py-2 flex justify-between items-center gap-1 sm:gap-2">
-          {/* Left: Perfil */}
-          <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
-            <button onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-slate-100 p-1 pr-3 rounded-full border-2 border-slate-200 active:translate-y-0.5 transition-all hover:bg-slate-200/60 cursor-pointer shadow-sm">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1CB0F6] rounded-full flex items-center justify-center text-sm sm:text-lg shadow-inner text-white">
+      {/* HUD DE VIDEOJUEGO FLOTANTE (Solo en vista de exploración 3D) */}
+      {view === 'menu' ? (
+        <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start">
+          {/* HUD Izquierda: Perfil y Rango */}
+          <div className="pointer-events-auto flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-2xl">
+            <button
+              onClick={() => setView('id_card')}
+              className="flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-sm shadow-md border border-white/20 text-white">
                 {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
               </div>
-              <span className="text-[9px] sm:text-xs font-black uppercase truncate max-w-[65px] sm:max-w-[120px] tracking-wider text-slate-700">{profile.name}</span>
+              <div className="flex flex-col text-left pr-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-white truncate max-w-[90px] sm:max-w-[130px]">
+                  {profile.name}
+                </span>
+                <span className="text-[8px] font-bold text-sky-400 uppercase tracking-widest">
+                  {currentRank.title}
+                </span>
+              </div>
             </button>
           </div>
 
-          {/* Center: Galactic Adventure Title & Stats (Only on Menu) */}
-          {view === 'menu' && (
-            <>
-              {/* Desktop / Tablet Center View */}
-              <div className="hidden md:flex flex-col lg:flex-row items-center justify-center gap-1 sm:gap-3 my-0.5">
-                <h1 className="text-sm sm:text-lg font-black uppercase tracking-tight text-[#58CC02] drop-shadow-sm truncate">
-                  Piano Mágico
-                </h1>
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className={`font-black uppercase text-[8px] sm:text-[9px] px-2.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-slate-600 shadow-sm ${currentRank.color}`}>
-                    {currentRank.title}
-                  </div>
-                  <div className="bg-[#FFC800]/15 px-3 py-1 rounded-full border-2 border-[#FFC800] flex items-center gap-1">
-                    <Zap size={13} className="text-[#FFC800] fill-[#FFC800]" />
-                    <span className="text-[10px] sm:text-xs font-black text-[#E5A500]">{totalScore}</span>
-                  </div>
-                </div>
-              </div>
+          {/* HUD Centro: Misión / Objetivo Actual */}
+          <div className="pointer-events-none hidden md:flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-white/15 px-4 py-1.5 rounded-full shadow-2xl">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300">
+              Explora el Mundo & Desbloquea Cofres
+            </span>
+          </div>
 
-              {/* Mobile Compact Score Badge */}
-              <div className="flex md:hidden items-center gap-1 bg-[#FFC800]/15 px-2.5 py-1 rounded-full border-2 border-[#FFC800] shrink-0">
-                <Zap size={12} className="text-[#FFC800] fill-[#FFC800]" />
-                <span className="text-[10px] font-black text-[#E5A500]">{totalScore}</span>
-              </div>
-            </>
-          )}
-
-          {/* Right: Acciones y Navegación */}
-          <div className="flex gap-1 sm:gap-1.5 items-center shrink-0">
-            {view === 'menu' && (
-              <button
-                onClick={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
-                className="px-2.5 sm:px-3 py-1.5 bg-[#CE82FF] border-b-4 border-[#A558D8] text-white rounded-2xl text-[9px] sm:text-xs font-black uppercase transition-all shadow-sm flex items-center gap-1 cursor-pointer active:translate-y-0.5 active:border-b-0 shrink-0 hover:brightness-105"
-                title="Abrir Estudio Mágico"
-              >
-                <Plus size={13} />
-                <span className="hidden sm:inline">Studio</span>
-              </button>
-            )}
-
-            {(view === 'game' || view === 'composer') && (
-              <div className="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shrink-0 shadow-sm">
-                <button
-                  onClick={() => {
-                    initAudio();
-                    setIsDrumEnabled(!isDrumEnabled);
-                  }}
-                  className={`p-3 sm:p-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-[#58CC02] text-white border-b-2 border-[#46A302]' : 'bg-slate-200 text-slate-400'}`}
-                  title="Acompañamiento Rítmico"
-                >
-                  <Drum size={24} className={`sm:w-[15px] sm:h-[15px] ${isDrumEnabled ? 'animate-bounce' : ''}`} />
-                </button>
-
-                {isDrumEnabled && (
-                  <select
-                    value={(view === 'game' ? currentSong?.rhythm : currentRhythm) || 'pop'}
-                    onChange={(e) => {
-                      const r = e.target.value;
-                      initAudio();
-                      if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
-                      setCurrentRhythm(r);
-                    }}
-                    className="ml-1 bg-white text-slate-700 text-sm sm:text-xs font-black uppercase rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
-                  >
-                    <option value="pop">POP</option>
-                    <option value="rock">ROCK</option>
-                    <option value="clasico">CLÁSICO</option>
-                    <option value="marcha">MARCHA</option>
-                  </select>
-                )}
-              </div>
-            )}
-
-            {view === 'game' && (
-              <div className="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shrink-0 shadow-sm">
-                <select
-                  value={tempoFactor}
-                  onChange={(e) => setTempoFactor(Number(e.target.value))}
-                  className="bg-white text-slate-700 text-sm sm:text-xs font-black rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
-                  title={`Velocidad (${Math.round((currentSong?.speed || 100) * tempoFactor)} BPM)`}
-                >
-                  <option value={0.5}>0.5x</option>
-                  <option value={0.75}>0.75x</option>
-                  <option value={1}>1.0x</option>
-                  <option value={1.25}>1.25x</option>
-                  <option value={1.5}>1.5x</option>
-                  <option value={1.75}>1.75x</option>
-                  <option value={2}>2.0x</option>
-                </select>
-              </div>
-            )}
+          {/* HUD Derecha: Monedas / XP y Salida */}
+          <div className="pointer-events-auto flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md border border-amber-400/30 px-3 py-1.5 rounded-full shadow-2xl">
+              <Zap size={15} className="text-amber-400 fill-amber-400" />
+              <span className="text-xs font-black text-amber-300 tracking-wider">{totalScore} XP</span>
+            </div>
 
             <button
-              onClick={() => {
-                if (!isListening) {
-                  localStorage.setItem('piano_mic_auto', 'true');
-                  startMic();
-                } else {
-                  localStorage.setItem('piano_mic_auto', 'false');
-                  stopMic();
-                }
-              }}
-              className={`p-3 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-[#FF4B4B] text-white border-b-2 border-[#EA2B2B] animate-pulse' : 'bg-slate-100 border-2 border-slate-200 text-slate-500 hover:bg-slate-200'}`}
-              title="Escuchar Piano Real (Micrófono)"
+              onClick={() => { if (onExit) onExit(); }}
+              className="bg-red-600/80 hover:bg-red-600 active:scale-95 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-full border border-red-400/30 backdrop-blur-md shadow-2xl transition-all cursor-pointer"
+              title="Salir del Juego"
             >
-              {isListening ? <Mic size={24} className="sm:w-[15px] sm:h-[15px]" /> : <MicOff size={24} className="sm:w-[15px] sm:h-[15px]" />}
+              Salir
             </button>
-
-            {view === 'menu' && (
-              <button
-                onClick={() => setIsMicSettingsOpen(true)}
-                className="p-3 sm:p-1.5 text-slate-500 hover:text-slate-700 transition-all bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 rounded-2xl cursor-pointer shadow-sm"
-                title="Configurar Micrófono"
-              >
-                <Settings size={24} className="sm:w-[15px] sm:h-[15px]" />
-              </button>
-            )}
-
-            {view === 'menu' && (
-              <button
-                onClick={() => {
-                  setParentMath({ v1: Math.floor(Math.random() * 50) + 20, v2: Math.floor(Math.random() * 40) + 10, result: '' });
-                  setView('parent_gate');
-                }}
-                className="p-3 sm:p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 border-2 border-slate-200 transition-all rounded-2xl cursor-pointer shadow-sm"
-                title="Panel de Profesor"
-              >
-                <Settings size={24} className="sm:w-[15px] sm:h-[15px]" />
-              </button>
-            )}
-            {view === 'menu' && (
-              <button
-                onClick={() => {
-                  if (onExit) onExit();
-                }}
-                className="px-3 sm:px-3 py-2 sm:py-1.5 bg-[#FF4B4B] border-b-4 border-[#EA2B2B] hover:brightness-105 rounded-2xl text-xs sm:text-xs font-black uppercase transition-all text-white shadow-sm cursor-pointer active:translate-y-0.5 active:border-b-0"
-              >
-                Salir
-              </button>
-            )}
-            <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-3 sm:p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title="Ir al Menú"><Home size={24} className="sm:w-[15px] sm:h-[15px]" /></button>
           </div>
         </div>
-      </div>
+      ) : (
+        /* HEADER CLÁSICO DE APLICACIÓN (Para gameplay / lecciones de piano) */
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-white border-b-2 border-slate-200 flex justify-center shadow-sm transition-all">
+          <div className="w-full max-w-7xl px-2 sm:px-6 py-2 flex justify-between items-center gap-1 sm:gap-2">
+            {/* Left: Perfil */}
+            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+              <button onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-slate-100 p-1 pr-3 rounded-full border-2 border-slate-200 active:translate-y-0.5 transition-all hover:bg-slate-200/60 cursor-pointer shadow-sm">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1CB0F6] rounded-full flex items-center justify-center text-sm sm:text-lg shadow-inner text-white">
+                  {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
+                </div>
+                <span className="text-[9px] sm:text-xs font-black uppercase truncate max-w-[65px] sm:max-w-[120px] tracking-wider text-slate-700">{profile.name}</span>
+              </button>
+            </div>
+
+            {/* Right: Acciones y Navegación */}
+            <div className="flex gap-1 sm:gap-1.5 items-center shrink-0">
+              {(view === 'game' || view === 'composer') && (
+                <div className="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shrink-0 shadow-sm">
+                  <button
+                    onClick={() => {
+                      initAudio();
+                      setIsDrumEnabled(!isDrumEnabled);
+                    }}
+                    className={`p-3 sm:p-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isDrumEnabled ? 'bg-[#58CC02] text-white border-b-2 border-[#46A302]' : 'bg-slate-200 text-slate-400'}`}
+                    title="Acompañamiento Rítmico"
+                  >
+                    <Drum size={24} className={`sm:w-[15px] sm:h-[15px] ${isDrumEnabled ? 'animate-bounce' : ''}`} />
+                  </button>
+
+                  {isDrumEnabled && (
+                    <select
+                      value={(view === 'game' ? currentSong?.rhythm : currentRhythm) || 'pop'}
+                      onChange={(e) => {
+                        const r = e.target.value;
+                        initAudio();
+                        if (view === 'game') setCurrentSong(prev => ({ ...prev, rhythm: r }));
+                        setCurrentRhythm(r);
+                      }}
+                      className="ml-1 bg-white text-slate-700 text-sm sm:text-xs font-black uppercase rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
+                    >
+                      <option value="pop">POP</option>
+                      <option value="rock">ROCK</option>
+                      <option value="clasico">CLÁSICO</option>
+                      <option value="marcha">MARCHA</option>
+                    </select>
+                  )}
+                </div>
+              )}
+
+              {view === 'game' && (
+                <div className="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shrink-0 shadow-sm">
+                  <select
+                    value={tempoFactor}
+                    onChange={(e) => setTempoFactor(Number(e.target.value))}
+                    className="bg-white text-slate-700 text-sm sm:text-xs font-black rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
+                    title={`Velocidad (${Math.round((currentSong?.speed || 100) * tempoFactor)} BPM)`}
+                  >
+                    <option value={0.5}>0.5x</option>
+                    <option value={0.75}>0.75x</option>
+                    <option value={1}>1.0x</option>
+                    <option value={1.25}>1.25x</option>
+                    <option value={1.5}>1.5x</option>
+                    <option value={1.75}>1.75x</option>
+                    <option value={2}>2.0x</option>
+                  </select>
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  if (!isListening) {
+                    localStorage.setItem('piano_mic_auto', 'true');
+                    startMic();
+                  } else {
+                    localStorage.setItem('piano_mic_auto', 'false');
+                    stopMic();
+                  }
+                }}
+                className={`p-3 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all flex items-center gap-1 cursor-pointer ${isListening ? 'bg-[#FF4B4B] text-white border-b-2 border-[#EA2B2B] animate-pulse' : 'bg-slate-100 border-2 border-slate-200 text-slate-500 hover:bg-slate-200'}`}
+                title="Escuchar Piano Real (Micrófono)"
+              >
+                {isListening ? <Mic size={24} className="sm:w-[15px] sm:h-[15px]" /> : <MicOff size={24} className="sm:w-[15px] sm:h-[15px]" />}
+              </button>
+
+              <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-3 sm:p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title="Ir al Menú"><Home size={24} className="sm:w-[15px] sm:h-[15px]" /></button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ÁREA CENTRAL */}
-      <div className={`flex-1 min-h-0 w-full max-w-7xl ${isLandscape ? 'pt-8 sm:pt-9' : 'pt-12 sm:pt-14'} relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4`}>
+      <div className={view === 'menu' ? 'fixed inset-0 w-screen h-screen z-0 overflow-hidden' : `flex-1 min-h-0 w-full max-w-7xl ${isLandscape ? 'pt-8 sm:pt-9' : 'pt-12 sm:pt-14'} relative flex flex-col bg-slate-900/10 overflow-hidden px-2 sm:px-4`}>
 
         {/* AUTH / SELECCIÓN DE USUARIO */}
         {view === 'auth' && (
@@ -1683,220 +1672,17 @@ export default function PianoMagico({ userId, onExit }) {
           </div>
         )}
 
-        {/* RUTA DE APRENDIZAJE (DUOLINGO THE PATH) */}
+        {/* RUTA DE APRENDIZAJE 3D (AVENTURA / POSTA 3D CON COFRES Y PERSONAJE KAYKIT) */}
         {view === 'menu' && (
-          <div className="flex-1 min-h-0 flex flex-col items-center animate-in fade-in overflow-y-auto pb-40 w-full relative bg-[#F7F7F7] scrollbar-hide">
-
-            {/* STAR MAP CONTAINER */}
-            {(() => {
-              const totalItems = mapSongs.length;
-
-              const getX = (i) => {
-                const pos = i % 4;
-                if (pos === 0) return 25;
-                if (pos === 2) return 75;
-                return 50;
-              };
-
-              // Calculate current progress for rocket position
-              const completedSongIds = new Set(userPerformances.map(p => p.song_id));
-
-              let highestUnlockedIndex = 0;
-              for (let i = 0; i < totalItems; i++) {
-                const prevId = mapSongs[i - 1]?.id || -1;
-                const isUnlocked = i === 0 || completedSongIds.has(prevId) || memoryMedals.includes(prevId);
-                if (isUnlocked) {
-                  highestUnlockedIndex = i;
-                } else {
-                  break;
-                }
-              }
-
-              const rocketTop = 95 - ((highestUnlockedIndex / (totalItems > 1 ? totalItems - 1 : 1)) * 90);
-              const rocketLeft = getX(highestUnlockedIndex) + '%';
-
-              return (
-                <div
-                  className="relative w-full max-w-md sm:max-w-xl lg:max-w-3xl mx-auto flex flex-col items-center justify-start mt-6 px-4 shrink-0"
-                  style={{ height: `${totalItems * 150 + 250}px`, minHeight: `${totalItems * 150 + 250}px` }}
-                  onClick={() => setActivePopover(null)}
-                >
-
-                  {/* Duolingo Solid Path Line */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 1 }}>
-                    {mapSongs.map((song, idx) => {
-                      if (idx === 0) return null;
-                      const pRatio = (idx - 1) / (totalItems - 1);
-                      const cRatio = idx / (totalItems - 1);
-                      const pY = 95 - (pRatio * 90);
-                      const cY = 95 - (cRatio * 90);
-                      const midY = (pY + cY) / 2;
-                      return (
-                        <path
-                          key={`path-${idx}`}
-                          d={`M ${getX(idx - 1)} ${pY} C ${getX(idx - 1)} ${midY}, ${getX(idx)} ${midY}, ${getX(idx)} ${cY}`}
-                          stroke="#E5E5E5"
-                          strokeWidth="8"
-                          vectorEffect="non-scaling-stroke"
-                          fill="none"
-                          strokeLinecap="round"
-                        />
-                      );
-                    })}
-                  </svg>
-
-                  {/* ACTIVE LEVEL BADGE (CHARACTER / ROCKET) */}
-                  <div
-                    ref={rocketRef}
-                    className="absolute z-30 transition-all duration-1000 ease-in-out pointer-events-none drop-shadow-md"
-                    style={{
-                      left: rocketLeft,
-                      top: `calc(${rocketTop}% - 65px)`,
-                      transform: 'translateX(-50%)'
-                    }}
-                  >
-                    <div className="bg-[#58CC02] border-b-4 border-[#46A302] px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-md animate-bounce">
-                      <span className="text-xl">{STICKERS_BASE[profile.avatarId]?.emoji || '🚀'}</span>
-                      <span className="text-[10px] font-black uppercase text-white tracking-wide">¡AQUÍ!</span>
-                    </div>
-                  </div>
-
-                  {mapSongs.map((song, idx) => {
-                    const isUnlocked = idx === 0 || completedSongIds.has(mapSongs[idx - 1]?.id || -1) || memoryMedals.includes(mapSongs[idx - 1]?.id || -1);
-                    const isPerfect = memoryMedals.includes(song.id);
-                    const isCompleted = completedSongIds.has(song.id);
-                    const isCurrent = idx === highestUnlockedIndex;
-                    const isBoss = (idx + 1) % 10 === 0;
-
-                    const leftPercent = getX(idx);
-                    const cRatio = idx / (totalItems > 1 ? totalItems - 1 : 1);
-                    const topPercent = 95 - (cRatio * 90);
-
-                    return (
-                      <div
-                        key={song.id}
-                        className={`absolute flex flex-col items-center group transition-all ${activePopover === song.id ? 'z-[300]' : 'z-10'}`}
-                        style={{ left: `${leftPercent}%`, top: `${topPercent}%`, transform: 'translate(-50%, -50%)' }}
-                        onMouseEnter={() => {
-                          if (isUnlocked && activePopover === null) setActivePopover(song.id);
-                        }}
-                        onMouseLeave={() => {
-                          if (activePopover === song.id) setActivePopover(null);
-                        }}
-                        onClick={(e) => {
-                          if (isUnlocked) {
-                            e.stopPropagation();
-                            setActivePopover(activePopover === song.id ? null : song.id);
-                          }
-                        }}
-                      >
-
-                        {/* Duolingo Floating Card Popover */}
-                        <div className={`absolute bottom-full mb-6 left-1/2 -translate-x-1/2 w-64 sm:w-72 bg-white border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-5 rounded-[2rem] shadow-xl transition-all scale-75 z-50 ${activePopover === song.id ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-[11px] font-black uppercase text-[#1CB0F6] tracking-wider">{isBoss ? '👾 DESAFÍO JEFE' : `NIVEL ${idx + 1}`}</span>
-                            <div className="flex gap-1">
-                              {[1, 2, 3].map(s => (
-                                <Star key={s} size={14} className={isPerfect ? 'fill-[#FFC800] text-[#FFC800]' : isCompleted ? 'fill-slate-300 text-slate-300' : 'text-slate-200'} />
-                              ))}
-                            </div>
-                          </div>
-
-                          <h3 className="text-slate-800 font-black uppercase text-base sm:text-lg mb-4 truncate tracking-tight">{song.title}</h3>
-
-                          <div className="flex flex-col gap-2 relative z-[100]">
-                            {isUnlocked ? (
-                              <>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); startLevel(song, 'solo'); }}
-                                    className="w-full btn-duo-green p-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 pointer-events-auto"
-                                  >
-                                    <Play size={14} fill="white" /> SOLO
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); startLevel(song, 'oído'); }}
-                                    className="btn-duo-purple p-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 pointer-events-auto"
-                                  >
-                                    <Music2 size={14} /> OÍDO
-                                  </button>
-                                </div>
-
-                                {isBoss && (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); startLevel(song, 'boss'); }}
-                                    className="w-full btn-duo-red p-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 pointer-events-auto mt-1"
-                                  >
-                                    <Zap size={16} fill="white" className="animate-bounce" /> ¡ENFRENTAR JEFE!
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <div className="w-full text-center p-3 bg-slate-100 rounded-2xl text-xs font-black text-slate-400 border border-slate-200 flex items-center justify-center gap-2">
-                                <Lock size={14} /> NIVEL BLOQUEADO
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Duolingo 3D Chunky Level Node Button */}
-                        <div className={`relative flex items-center justify-center transition-all ${isBoss ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-20 h-20 sm:w-24 sm:h-24'}`}>
-                          <button
-                            className={`w-full h-full rounded-full flex flex-col items-center justify-center relative overflow-hidden transition-all duration-150 cursor-pointer shadow-md ${
-                              !isUnlocked
-                                ? 'bg-[#E5E5E5] border-b-[6px] border-[#CECECE] text-[#AFAFAF]'
-                                : isCurrent
-                                  ? 'bg-[#58CC02] border-b-[6px] border-[#46A302] text-white ring-4 ring-[#58CC02]/40 active:translate-y-1 active:border-b-0'
-                                  : isCompleted
-                                    ? 'bg-[#FFC800] border-b-[6px] border-[#E5A500] text-white active:translate-y-1 active:border-b-0'
-                                    : 'bg-[#1CB0F6] border-b-[6px] border-[#1899D6] text-white active:translate-y-1 active:border-b-0'
-                            }`}
-                          >
-                            {!isUnlocked ? (
-                              <Lock className="text-[#AFAFAF]" size={28} />
-                            ) : (
-                              <span className={`${isBoss ? 'text-4xl sm:text-5xl' : 'text-3xl sm:text-4xl'} drop-shadow-md`}>
-                                {isBoss ? '👾' : (STICKERS_BASE[song.stickerId]?.emoji || '🎵')}
-                              </span>
-                            )}
-                          </button>
-
-                          {/* Level Number & Star Indicator */}
-                          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
-                            <div className={`min-w-[65px] px-2.5 py-0.5 rounded-full flex items-center justify-center gap-1 border-2 ${
-                              isUnlocked ? 'bg-white border-slate-200 shadow-sm text-slate-700' : 'bg-slate-200 border-slate-300 text-slate-400'
-                            }`}>
-                              <span className="text-[10px] font-black">{idx + 1}</span>
-                              <div className="flex gap-0.5">
-                                {[1, 2, 3].map(star => (
-                                  <Star size={9} key={star} className={
-                                    isPerfect ? 'fill-[#FFC800] text-[#FFC800]' :
-                                      isCompleted ? 'fill-slate-400 text-slate-400' :
-                                        'text-slate-300'
-                                  } />
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Visible Lesson Title Pill */}
-                        <div className={`absolute top-1/2 -translate-y-1/2 ${leftPercent > 50 ? 'right-full mr-3 text-right' : 'left-full ml-3 text-left'} pointer-events-none z-20 whitespace-nowrap`}>
-                          <div className={`px-3 py-1 rounded-xl border-2 shadow-sm flex flex-col ${
-                            isUnlocked ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-100 border-slate-200 text-slate-400'
-                          }`}>
-                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight max-w-[110px] sm:max-w-[150px] truncate">
-                              {song.title}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
+          <div className="absolute inset-0 w-full h-full overflow-hidden">
+            <AdventurePath3D
+              songs={mapSongs}
+              profile={profile}
+              userPerformances={userPerformances}
+              memoryMedals={memoryMedals}
+              onStartLevel={(song, mode) => startLevel(song, mode)}
+              onOpenComposer={() => { setView('composer'); setComposerSequence([]); setComposerRecording(false); }}
+            />
           </div>
         )}
 
@@ -2263,10 +2049,17 @@ export default function PianoMagico({ userId, onExit }) {
                     stopDemoPlayback();
                     stopAllPreviews();
                     setDetectedNote(null);
-                    setView('menu');
+                    if (onFinishLesson) {
+                      onFinishLesson({ songId: currentSong?.id, score: totalScore });
+                    }
+                    if (onExit) {
+                      onExit();
+                    } else {
+                      setView('menu');
+                    }
                   }}
                   className="mt-6 w-20 h-20 sm:w-14 sm:h-14 mx-auto bg-white/10 text-white rounded-full flex items-center justify-center border-2 border-white/20 hover:bg-white/20 active:scale-95 transition-all shadow-lg cursor-pointer"
-                  title="Menú Principal"
+                  title="Volver al Mundo 3D"
                 >
                   <Home size={32} className="sm:w-5 sm:h-5 opacity-80 drop-shadow-md" />
                 </button>
@@ -3057,9 +2850,9 @@ export default function PianoMagico({ userId, onExit }) {
         )}
       </div>
 
-      {/* TECLADO 3D FISICO ESTILO DUOLINGO */}
+      {/* TECLADO 3D FISICO ESTILO DUOLINGO (SOLO VISIBLE DENTRO DE LA LECCIÓN / JUEGO) */}
       {
-        !['auth', 'id_card', 'parent_gate', 'admin'].includes(view) && (
+        view === 'game' && (
           <div className={`w-full max-w-7xl ${isLandscape ? 'h-[55px] sm:h-[65px]' : 'h-[85px] sm:h-[120px] lg:h-[140px]'} shrink-0 bg-white p-1.5 sm:p-2 flex gap-1 sm:gap-2 border-t-4 border-slate-200 relative z-30 transition-all rounded-t-3xl shadow-[0_-8px_20px_rgba(0,0,0,0.06)]`}>
             {visibleNaturalNotes.map((naturalNote) => {
               const pitchClass = naturalNote.replace(/\d+/g, '');

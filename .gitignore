@@ -23,3 +23,40 @@ deploy.config.json
 *.njsproj
 *.sln
 *.sw?
+
+# Local generated diagnostics
+/build_error.txt
+/build_log.txt
+/scratch/
+
+# Auxiliary KayKit exports; preserve the GLB/GLTF runtime library
+/public/models/**/*.fbx
+/public/models/**/*.obj
+/public/models/**/*.mtl
+/public/models/**/*.url
+/public/models/**/fbx*/
+/public/models/**/obj/
+/public/models/**/Samples/
+/public/models/**/contents.png
+
+# Existing unused texture copies only. Do not ignore entire texture directories.
+# Recheck model dependencies before adding or repurposing any of these files.
+/public/models/characters/Textures/barbarian_texture.png
+/public/models/characters/Textures/knight_texture.png
+/public/models/characters/Textures/mage_texture.png
+/public/models/characters/Textures/ranger_texture.png
+/public/models/characters/Textures/rogue_texture.png
+/public/models/props/Assets/textures/dungeon_texture.png
+/public/models/props/Textures/forest_texture.png
+
+# Existing loose copies next to GLB characters; their textures are embedded.
+/public/models/characters/Characters/gltf/barbarian_texture.png
+/public/models/characters/Characters/gltf/knight_texture.png
+/public/models/characters/Characters/gltf/mage_texture.png
+/public/models/characters/Characters/gltf/ranger_texture.png
+/public/models/characters/Characters/gltf/rogue_texture.png
+/public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/barbarian_texture.png
+/public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/knight_texture.png
+/public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/mage_texture.png
+/public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/ranger_texture.png
+/public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/rogue_texture.png
