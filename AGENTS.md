@@ -18,8 +18,8 @@ No reemplazar sistemas funcionales sin una razon tecnica comprobable. Respetar e
 - `WorldGenerator.js` precarga y clona modelos, construye terreno y camino, y coloca Plaza, Arbol Maestro y transicion corta al bosque. `generateFork` existe pero no se ejecuta actualmente.
 - `worldGenerationRules.js` calcula alturas y define despejes y margenes. Su presencia no garantiza que todas las colocaciones apliquen esas reglas.
 - `worldSeed.js` ofrece PRNG determinista. El generador lo inicializa, pero la composicion actual usa posiciones fijas.
-- `worldBlueprint.js` conserva identidad, intencion y restricciones. `composition/plazaComposition.js` contiene las 35 instancias autoradas de Plaza, su spawn, camara, tramo de camino y zonas. `compositionSchema.js` documenta el contrato serializable y `validateComposition.js` reporta errores sin corregir datos. WorldGenerator materializa ese plano y contrasta sus assets con el blueprint; no convierte el blueprint conceptual en coordenadas automaticamente.
-- La migracion preserva el entorno externo existente sin disenar otras regiones. El camino ribbon es IMPLEMENTACION VISUAL PROVISIONAL, no arte final aprobado. Landmarks referencian instancias; las colecciones vacias no autorizan agregar contenido.
+- `worldBlueprint.js` conserva identidad, intencion y restricciones. `composition/plazaComposition.js` contiene las 61 instancias autoradas de Plaza, su spawn, camara, tramo de camino y zonas. `compositionSchema.js` documenta el contrato serializable y `validateComposition.js` reporta errores sin corregir datos. WorldGenerator materializa ese plano y contrasta sus assets con el blueprint; no convierte el blueprint conceptual en coordenadas automaticamente.
+- Plaza usa el camino integrado al terreno (terrain-blend) aprobado visualmente. El ribbon y el entorno externo legacy siguen disponibles, pero no se ejecutan en la fase 5F. Landmarks referencian instancias; las colecciones vacias no autorizan agregar contenido.
 - `src/game/piano/PianoStageView.jsx` encapsula `src/modules/piano-magico/PianoMagico.jsx`, reutilizando el motor musical existente.
 - `PianoMagico` conserva evaluacion, teclado, canciones, reproduccion, compositor, administracion y mapa anterior `components/AdventurePath3D.jsx`; realiza llamadas propias a la API. No asumir que el mapa anterior esta obsoleto o desconectado.
 - Audio: Web Audio en `PianoMagico`; `src/hooks/usePianoMic.js` suscribe al singleton Zustand `usePianoMicStore.js`, que gestiona captura, sensibilidad y eventos de ataques con strikeId.
@@ -69,7 +69,7 @@ Para cambios en integracion validar mundo -> leccion -> retorno y conservar posi
 
 ## Desarrollo por regiones y detencion
 NO construir multiples regiones simultaneamente. Cada region debe aprobarse visual y funcionalmente antes de continuar con la siguiente.
-Actualmente NO expandir el mundo hasta que el usuario apruebe Plaza de las Notas. La Fase 1 procedural fue visualmente desaprobada; la escena actual es una revision pendiente de aprobacion.
+Plaza fue aprobada visualmente por el usuario el 2026-10-06 y queda congelada; consultar `docs/PLAZA_VISUAL_APPROVED.md`. Solo modificarla para bugs, integracion educativa, rendimiento, continuidad vecina, camara/colisiones o cambios explicitamente aprobados. La Fase 1 procedural sigue desaprobada. Bosque-A esta autorizado solo como propuesta de diseno macro; NO implementarlo hasta recibir aprobacion humana. La aprobacion visual no implica validacion funcional completa ni movil.
 Si la tarea pide una sola region, DETENERSE al terminarla. No anticipar la siguiente ni interpretar el build como permiso para expandir.
 
 ## Git y alcance

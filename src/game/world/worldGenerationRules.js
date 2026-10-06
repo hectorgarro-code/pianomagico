@@ -87,6 +87,20 @@ export function isInClearanceZone(px, pz, customZones = []) {
  * - Inicio del desnivel hacia el río (-X) y montaña (+X) al llegar a la bifurcación.
  */
 export function calculateTerrainElevation(x, z) {
+  if (PLAZA_COMPOSITION.constructionPhase) {
+    const terrain = PLAZA_COMPOSITION.terrain;
+    const t = Math.max(0, Math.min(1, (Math.hypot(x, z) - terrain.flatRadius) / terrain.transitionWidth));
+    const blend = t * t * (3 - 2 * t);
+    // Compact, explicitly authored landforms; no noise or random placement.
+    const falloff = terrain.outerFalloff;
+    const edgeT = falloff ? Math.max(0, Math.min(1, (Math.hypot(x,z)-terrain.reviewExtent)/falloff.width)) : 0;
+    const edgeDrop = falloff ? falloff.depth*edgeT*edgeT*(3-2*edgeT) : 0;
+    return terrain.baseY - edgeDrop + blend * (terrain.rimHeight + terrain.landforms.reduce((height, form) => {
+      const d = Math.hypot((x - form.center[0]) / form.radius[0], (z - form.center[1]) / form.radius[1]);
+      const influence = Math.max(0, 1 - d * d);
+      return height + form.height * influence * influence;
+    }, 0));
+  }
   const distCenter = Math.sqrt(x * x + z * z);
 
   // 1. Plaza de las Notas: planicie perfecta en el radio central

@@ -65,7 +65,8 @@ export default function World3DView({
     targetPitch: PLAZA_COMPOSITION.camera.pitch,
     currentPitch: PLAZA_COMPOSITION.camera.pitch,
     targetDistance: PLAZA_COMPOSITION.camera.distance,
-    currentDistance: PLAZA_COMPOSITION.camera.distance
+    currentDistance: PLAZA_COMPOSITION.camera.distance,
+    fittedDistance: PLAZA_COMPOSITION.camera.distance
   });
   const isDraggingMouseRef = useRef(false);
   const mousePosRef = useRef({ x: 0, y: 0 });
@@ -197,12 +198,32 @@ export default function World3DView({
     // 1. Atmósfera y Cielo Estilizado
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9bd8ff);
-    scene.fog = new THREE.FogExp2(0x9bd8ff, 0.005);
+    const atmosphere = PLAZA_COMPOSITION.constructionPhase && PLAZA_COMPOSITION.atmosphere;
+    scene.fog = atmosphere
+      ? new THREE.Fog(atmosphere.color, atmosphere.near, atmosphere.far)
+      : new THREE.FogExp2(0x9bd8ff, 0.005);
 
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
     const camera = new THREE.PerspectiveCamera(44, width / height, 0.3, 500);
+    const fitCamera = (w, h) => {
+      camera.aspect = w / h;
+      camera.fov = camera.aspect < 1
+        ? Math.min(100, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(22)) / camera.aspect)))
+        : 44;
+      const nextDistance = camera.aspect < 1
+        ? PLAZA_COMPOSITION.camera.portraitDistance || PLAZA_COMPOSITION.camera.distance
+        : PLAZA_COMPOSITION.camera.distance;
+      const angles = cameraAngleRef.current;
+      const baseDistance = PLAZA_COMPOSITION.camera.distance;
+      const ratio = nextDistance / (angles.fittedDistance || baseDistance);
+      angles.targetDistance = (Number.isFinite(angles.targetDistance) ? angles.targetDistance : baseDistance) * ratio;
+      angles.currentDistance = (Number.isFinite(angles.currentDistance) ? angles.currentDistance : baseDistance) * ratio;
+      cameraAngleRef.current.fittedDistance = nextDistance;
+      camera.updateProjectionMatrix();
+    };
+    fitCamera(width, height);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -212,11 +233,11 @@ export default function World3DView({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
 
     // 2. Iluminación Cálida Estilizada
-    const hemiLight = new THREE.HemisphereLight(0xfffdf0, 0x477839, 1.55);
+    const hemiLight = new THREE.HemisphereLight(0xfffdf0, 0x477839, 1.2);
     scene.add(hemiLight);
 
     const sunLight = new THREE.DirectionalLight(0xfffae0, 2.6);
@@ -255,6 +276,8 @@ export default function World3DView({
       setWorldMetrics(stats);
 
       // 5. Estación 01 (En el Claro del Árbol Maestro)
+      // Keep the legacy station outside the staged Plaza-only visual review.
+      if (!composition.constructionPhase) {
       const station1X = 1.8;
       const station1Z = -18.0;
       const station1Y = heightAt(station1X, station1Z);
@@ -288,11 +311,14 @@ export default function World3DView({
         song: song0,
         isCompleted: completedSongIds.has(song0.id)
       });
+      }
 
-      // Plaza currently has no stations. Resolve only explicitly authored
-      // descriptors, without moving or migrating the existing external coffer.
+      // first-song preserves the existing first-lesson binding, independent of
+      // backend-generated song IDs. Other references retain exact ID lookup.
       for (const station of composition.stations) {
-        const song = songs.find(item => String(item.id) === station.lessonRef);
+        const song = station.lessonRef === 'first-song'
+          ? songs[0] || { id: 'leccion_1', title: 'Primera Nota: Do Mayor' }
+          : songs.find(item => String(item.id) === station.lessonRef);
         let instance = null;
         sceneGroup.traverse(obj => { if (obj.userData.compositionId === station.instanceId) instance = obj; });
         if (!song || !instance) {
@@ -346,8 +372,7 @@ export default function World3DView({
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      fitCamera(w, h);
       renderer.setSize(w, h);
     };
     window.addEventListener('resize', handleResize);
@@ -488,7 +513,12 @@ export default function World3DView({
       }
 
       const targetCamPos = new THREE.Vector3(targetCamX, targetCamY, targetCamZ);
-      const targetLookAt = new THREE.Vector3(pX, pY + 1.15, pZ);
+      const lookAhead = PLAZA_COMPOSITION.camera.lookAhead || 0;
+      const targetLookAt = new THREE.Vector3(
+        pX - Math.sin(angles.currentYaw) * lookAhead,
+        pY + 1.15,
+        pZ - Math.cos(angles.currentYaw) * lookAhead
+      );
 
       camera.position.lerp(targetCamPos, Math.min(1.0, 8.5 * delta));
       camera.lookAt(targetLookAt);
@@ -575,13 +605,13 @@ export default function World3DView({
       {/* Métricas Rápidas en modo Debug */}
       {debugMode && worldMetrics && (
         <div className="absolute top-32 right-4 z-40 bg-slate-900/90 border border-amber-400/30 backdrop-blur-md px-3 py-2 rounded-xl text-[11px] text-slate-200 font-mono flex flex-col gap-1 shadow-2xl">
-          <div className="text-amber-300 font-bold border-b border-white/10 pb-1">📐 Valle v1 (Fase 1 Stats)</div>
+          <div className="text-amber-300 font-bold border-b border-white/10 pb-1">Plaza / {PLAZA_COMPOSITION.constructionPhase || 'Legacy'}</div>
           <div>Objetos instanciados: <span className="text-emerald-400 font-bold">{worldMetrics.objectsPlaced}</span></div>
           <div>Árboles colocados: <span className="text-emerald-400">{worldMetrics.treesCount}</span></div>
           <div>Rocas colocadas: <span className="text-emerald-400">{worldMetrics.rocksCount}</span></div>
           <div>Arbustos colocados: <span className="text-emerald-400">{worldMetrics.bushesCount}</span></div>
           <div>Props arquitectónicos: <span className="text-emerald-400">{worldMetrics.propsCount}</span></div>
-          <div className="text-[10px] text-amber-200/80 mt-1">Negative space activo: 9m / 5.5m / 6m</div>
+          <div className="text-[10px] text-amber-200/80 mt-1">Centro: {PLAZA_COMPOSITION.openZones[0].radius} m</div>
         </div>
       )}
 

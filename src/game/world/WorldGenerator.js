@@ -1,8 +1,8 @@
 /**
  * WorldGenerator.js
  * Materializes the authored Plaza composition with cached KayKit assets.
- * Legacy terrain, path ribbon and external environment remain unchanged during
- * migration. Their presence does not imply visual approval or region expansion.
+ * Plaza review materializes the authored terrain and its active composition. The legacy outer
+ * environment remains available but is not built during the staged Plaza review.
  */
 
 import * as THREE from 'three';
@@ -36,7 +36,9 @@ export class WorldGenerator {
    * Carga previa de los modelos KayKit requeridos para la Fase 1
    */
   async preloadModels() {
-    const requiredUrls = [
+    const requiredUrls = PLAZA_COMPOSITION.constructionPhase
+      ? [...new Set(PLAZA_COMPOSITION.instances.map(item => item.assetUrl))]
+      : [
       ...new Set(PLAZA_COMPOSITION.instances.map(item => item.assetUrl)),
 
       // Bosque & Árbol Maestro
@@ -119,23 +121,51 @@ export class WorldGenerator {
    */
   buildTerrain() {
     const size = 110;
-    const segments = 56;
+    const segments = PLAZA_COMPOSITION.constructionPhase ? Math.ceil(size*2) : 56;
     const geo = new THREE.PlaneGeometry(size, size, segments, segments);
     geo.rotateX(-Math.PI / 2);
 
     const pos = geo.attributes.position;
+    const colors = [];
+    const path = PLAZA_COMPOSITION.paths[0];
+    const curve = new THREE.CatmullRomCurve3(path.points.map(point => new THREE.Vector3(...point)));
+    const samples = curve.getSpacedPoints(160);
+    const pathLength = curve.getLength();
+    const grass = new THREE.Color(0x63b75f);
+    const earth = new THREE.Color(path.color);
+    const darkGrass = new THREE.Color(0x36754b);
+    const color = new THREE.Color();
+    const bankColor = new THREE.Color();
     for (let i = 0; i < pos.count; i++) {
       const vx = pos.getX(i);
       const vz = pos.getZ(i);
       pos.setY(i, calculateTerrainElevation(vx, vz));
+      let distance = Infinity;
+      let nearestIndex = 0;
+      for (let j=0;j<samples.length;j++) {
+        const point = samples[j];
+        const candidate = Math.hypot(vx - point.x, vz - point.z);
+        if (candidate < distance) { distance = candidate; nearestIndex = j; }
+      }
+      let weight = path.visualImplementation === 'terrain-blend'
+        ? THREE.MathUtils.smoothstep(distance, path.width / 2, path.width / 2 + path.edgeBlend) : 1;
+      if (path.endFade) {
+        const remaining = pathLength * (1 - nearestIndex / (samples.length-1));
+        weight = 1 - (1-weight) * THREE.MathUtils.smoothstep(remaining, 0, path.endFade);
+      }
+      bankColor.copy(grass).lerp(darkGrass, THREE.MathUtils.smoothstep(Math.hypot(vx, vz), 9, 22) * 0.45);
+      color.copy(earth).lerp(bankColor, weight);
+      colors.push(color.r, color.g, color.b);
     }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     geo.computeVertexNormals();
 
     const mat = new THREE.MeshStandardMaterial({
-      color: 0x63b75f,
+      color: 0xffffff,
+      vertexColors: true,
       roughness: 0.9,
       metalness: 0.02,
-      flatShading: true
+      flatShading: false
     });
 
     const mesh = new THREE.Mesh(geo, mat);
@@ -335,12 +365,19 @@ export class WorldGenerator {
     debugGroup.name = 'World_Debug_Overlay';
 
     // 1. Visualización de zonas de Negative Space (Círculos amarillos translúcidos)
-    GENERATION_RULES.clearanceZones.forEach((z) => {
+    const zones = PLAZA_COMPOSITION.constructionPhase
+      ? [...PLAZA_COMPOSITION.openZones, ...PLAZA_COMPOSITION.clearZones].map(zone => ({x:zone.center[0],z:zone.center[1],radius:zone.radius}))
+      : GENERATION_RULES.clearanceZones;
+    zones.forEach((z) => {
       const geo = new THREE.RingGeometry(z.radius - 0.2, z.radius, 32);
       geo.rotateX(-Math.PI / 2);
       const mat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide });
       const ring = new THREE.Mesh(geo, mat);
-      ring.position.set(z.x, calculateTerrainElevation(z.x, z.z) + 0.15, z.z);
+      const vertices = geo.attributes.position;
+      for (let i = 0; i < vertices.count; i++) {
+        vertices.setY(i, calculateTerrainElevation(z.x + vertices.getX(i), z.z + vertices.getZ(i)) + 0.15);
+      }
+      ring.position.set(z.x, 0, z.z);
       debugGroup.add(ring);
     });
 
@@ -376,7 +413,7 @@ export class WorldGenerator {
     // Preserve the existing external connector; it is not a new region design.
     const mainPathPoints = [
       ...path.points.map(point => new THREE.Vector3(...point)),
-      new THREE.Vector3(1.8, 0, -18)
+      ...(!PLAZA_COMPOSITION.constructionPhase ? [new THREE.Vector3(1.8, 0, -18)] : [])
     ];
 
     // 1. Terreno
@@ -385,17 +422,18 @@ export class WorldGenerator {
 
     // 2. Caminos
     // IMPLEMENTACION VISUAL PROVISIONAL: retain ribbon for migration parity.
-    const mainRoad = this.buildPathRibbon(mainPathPoints, path.width, path.color);
-    worldGroup.add(mainRoad);
+    if (path.visualImplementation === 'provisional-ribbon') {
+      worldGroup.add(this.buildPathRibbon(mainPathPoints, path.width, path.color));
+    }
 
     // 3. Plaza de las Notas
     this.generatePlaza(worldGroup);
 
     // 4. Árbol Maestro (Landmark)
-    this.generateMasterTree(worldGroup);
+    if (!PLAZA_COMPOSITION.constructionPhase) this.generateMasterTree(worldGroup);
 
     // 5. Transición corta a bosque. La bifurcación queda pausada hasta aprobar Plaza.
-    this.generateForestSection(worldGroup);
+    if (!PLAZA_COMPOSITION.constructionPhase) this.generateForestSection(worldGroup);
 
     // 7. Overlay Debug
     const debugOverlay = this.generateDebugScene(mainPathPoints);

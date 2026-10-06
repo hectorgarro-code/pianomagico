@@ -37,7 +37,22 @@ export function validateComposition(composition, { registeredAssets = [], assetE
   if (!vector(composition.origin, 3)) error('INVALID_TRANSFORM', 'origin');
   if (!vector(composition.spawn?.position, 3) || !vector(composition.spawn?.rotation, 3)) error('INVALID_TRANSFORM', 'spawn');
   if (!Number.isFinite(composition.camera?.yaw) || !Number.isFinite(composition.camera?.pitch) || !positive(composition.camera?.distance)) error('INVALID_CAMERA', 'camera');
+  if (composition.camera?.lookAhead !== undefined && (!Number.isFinite(composition.camera.lookAhead) || composition.camera.lookAhead < 0)) error('INVALID_CAMERA', 'camera.lookAhead');
+  if (composition.camera?.portraitDistance !== undefined && !positive(composition.camera.portraitDistance)) error('INVALID_CAMERA', 'camera.portraitDistance');
+  if (composition.atmosphere !== undefined) {
+    const {color,near,far}=composition.atmosphere || {};
+    if (!Number.isInteger(color) || color<0 || color>0xffffff || !positive(near) || !positive(far) || far<=near) error('INVALID_ATMOSPHERE','atmosphere');
+  }
   if (!Number.isFinite(composition.terrain?.baseY) || !positive(composition.terrain?.flatRadius)) error('INVALID_TERRAIN', 'terrain');
+  if (composition.constructionPhase !== undefined && !['5A', '5B', '5C', '5D', '5E', '5F'].includes(composition.constructionPhase)) error('INVALID_PHASE', 'constructionPhase');
+  if (composition.constructionPhase) {
+    const falloff = composition.terrain?.outerFalloff;
+    if (falloff !== undefined && (!positive(falloff?.width) || !positive(falloff?.depth))) error('INVALID_TERRAIN', 'terrain.outerFalloff');
+    if (!positive(composition.terrain?.reviewExtent) || !positive(composition.terrain?.transitionWidth) || !Number.isFinite(composition.terrain?.rimHeight) || !Array.isArray(composition.terrain?.landforms)) error('INVALID_TERRAIN', 'terrain.landforms');
+    else for (const form of composition.terrain.landforms) {
+      if (!text(form.id) || !vector(form.center, 2) || !vector(form.radius, 2) || !form.radius.every(positive) || !Number.isFinite(form.height)) error('INVALID_LANDFORM', form.id);
+    }
+  }
   const lists = {};
   const ids = new Map();
   for (const collection of schema.collections) {
@@ -83,8 +98,10 @@ export function validateComposition(composition, { registeredAssets = [], assetE
     if (!Array.isArray(item.points) || item.points.length < 2 || !item.points.every(point => vector(point, 3))) error('INVALID_PATH', item.id);
     if (!positive(item.width) || !Number.isFinite(item.freeMarginEachSide) || item.freeMarginEachSide < 0) error('INVALID_PATH_WIDTH', item.id);
     if (!Number.isInteger(item.color) || item.color < 0 || item.color > 0xffffff) error('INVALID_PATH_COLOR', item.id);
-    if (item.visualImplementation !== 'provisional-ribbon') error('UNSUPPORTED_PATH_IMPLEMENTATION', item.id);
-    else warning('PROVISIONAL_PATH_ART', item.id);
+    if (!['provisional-ribbon', 'terrain-blend'].includes(item.visualImplementation)) error('UNSUPPORTED_PATH_IMPLEMENTATION', item.id);
+    if (item.visualImplementation === 'provisional-ribbon') warning('PROVISIONAL_PATH_ART', item.id);
+    if (item.visualImplementation === 'terrain-blend' && !positive(item.edgeBlend)) error('INVALID_PATH_BLEND', item.id);
+    if (item.endFade !== undefined && !positive(item.endFade)) error('INVALID_PATH_BLEND', item.id);
   }
   for (const collection of ['boundaries', 'openZones', 'clearZones']) {
     for (const item of lists[collection]) {
