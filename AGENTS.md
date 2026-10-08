@@ -13,6 +13,7 @@ No reemplazar sistemas funcionales sin una razon tecnica comprobable. Respetar e
 - Stack: React 19, Vite 7, Tailwind 4, Three.js y Zustand; backend PHP en `backend/api.php` con persistencia en base de datos.
 - `src/main.jsx` monta `MusicSuite` bajo React StrictMode. `src/modules/core/MusicSuite.jsx` gestiona acceso, perfil y seleccion de instrumento; piano abre `src/game/GameApp.jsx`.
 - `GameApp` orquesta WORLD, PIANO y transiciones; carga perfil, canciones, interpretaciones y medallas mediante `src/game/services/progressService.js`.
+- WORLD SYSTEMS 2 usa `state/worldActivityFlow.js`: captura contexto atomico (posicion, orientacion, camara, region, estacion y actividad), conserva World3DView montado pero pausado y valida retorno con CollisionWorld. `world.stationResults` conserva completion de sesion; no hay nueva persistencia de exploracion. PianoStageView sigue reutilizando PianoMagico y su API, con entrada directa, resultado real y cancelacion independientes. No activar mic automaticamente en modo embebido sin preferencia previa explicita.
 - `src/game/state/GameState.js` define estado inicial y checkpoints. La exploracion vive en memoria React; no asumir persistencia de cofres, zonas, misiones o posicion.
 - `src/game/world/World3DView.jsx` administra escena Three.js, renderer, luces, camara, movimiento, personaje, proximidad y cofre de la primera estacion; delega el entorno a `WorldGenerator.js`.
 - `WorldGenerator.js` precarga y clona modelos, construye terreno y camino, y coloca Plaza, Arbol Maestro y transicion corta al bosque. `generateFork` existe pero no se ejecuta actualmente.
@@ -70,7 +71,7 @@ Para cambios en integracion validar mundo -> leccion -> retorno y conservar posi
 
 ## Desarrollo por regiones y detencion
 NO construir multiples regiones simultaneamente. Cada region debe aprobarse visual y funcionalmente antes de continuar con la siguiente.
-Plaza fue aprobada visualmente por el usuario el 2026-10-06 y queda congelada; consultar `docs/PLAZA_VISUAL_APPROVED.md`. Solo modificarla para bugs, integracion educativa, rendimiento, continuidad vecina, camara/colisiones o cambios explicitamente aprobados. La Fase 1 procedural sigue desaprobada. Bosque-A fue aprobado conceptualmente y Bosque-B macro fue aprobado visualmente por el usuario. Bosque-C queda aceptado como PROVISIONAL y congelado por cambio de prioridad humano: NO agregar arboles, pulir estetica, avanzar a Micro, nuevas estaciones ni otras regiones. Prioridad autorizada: WORLD SYSTEMS 1 - COLISIONES; al completarla detenerse, sin commit hasta aprobacion. La aprobacion visual no implica validacion funcional completa ni movil.
+Plaza fue aprobada visualmente por el usuario el 2026-10-06 y queda congelada; consultar `docs/PLAZA_VISUAL_APPROVED.md`. Solo modificarla para bugs, integracion educativa, rendimiento, continuidad vecina, camara/colisiones o cambios explicitamente aprobados. La Fase 1 procedural sigue desaprobada. Bosque-A fue aprobado conceptualmente y Bosque-B macro fue aprobado visualmente por el usuario. Bosque-C queda aceptado como PROVISIONAL y congelado: NO agregar arboles, pulir estetica, avanzar a Micro, nuevas estaciones ni otras regiones. WORLD SYSTEMS 1 fue aprobado y respaldado en `4c590c9 - Bosque foundation and world collisions`. Prioridad autorizada: WORLD SYSTEMS 2 - MUNDO/PIANO/MUNDO; al completarla detenerse, sin commit final ni push hasta aprobacion humana. La aprobacion visual no implica validacion funcional completa ni movil.
 Si la tarea pide una sola region, DETENERSE al terminarla. No anticipar la siguiente ni interpretar el build como permiso para expandir.
 
 ## Git y alcance
@@ -81,10 +82,10 @@ Comunicar avances y resultados en espanol, con concision; priorizar cambios y ve
 
 ## Hallazgos conocidos de la auditoria (verificar antes de actuar)
 Estos hallazgos no autorizan correcciones fuera del alcance solicitado y pueden cambiar con el desarrollo:
-- `PianoMagico` fuerza `setView('menu')` al montar y al cargar datos, pese a `initialView='game'` de PianoStageView.
-- `usePianoMicStore.stopMic` referencia `activeNote`, no declarada; el estado acustico usa `activePitchClass`.
-- El backend entrega `avatar_id`, mientras World3DView consulta `profile.avatarId`; revisar normalizacion del perfil.
-- GameState y World3DView leen el spawn de Plaza (z=3.5); una posicion recibida sigue prevaleciendo. El antiguo fallback aislado z=6.6 fue consolidado durante la migracion.
+- PianoMagico embebido carga la actividad con `startLevel` sin forzar menu; salir del resultado no dispara simultaneamente completion y cancelacion. El modo independiente conserva su menu.
+- `stopMic` limpia `activePitchClass`; pruebas cubren parada idempotente sin hardware. La validacion del loop usa teclado virtual, no certifica microfono fisico.
+- `profileAdapter.js` normaliza `avatar_id`/`avatarId` y respeta la eleccion local del personaje; no cambia esquema de backend.
+- GameState y World3DView leen el spawn aprovado actual de Plaza (z=5); una posicion recibida sigue prevaleciendo. El retorno de actividad usa contexto seguro, no spawn.
 - El blueprint menciona `bench.gltf`, ausente en disco. Los 378 GLTF revisados tenian sus dependencias externas presentes.
 - El Master Plan describe el Observatorio como circular y tambien semicircular; resolver esa discrepancia antes de construirlo.
 - Las composiciones actuales declaran 18 colliders solidos en Plaza y 33 en Bosque. Son estaticos y horizontales; no hay limites generales de exploracion ni colision de camara contra props/copas. La camara evita terreno, no todos los obstaculos.

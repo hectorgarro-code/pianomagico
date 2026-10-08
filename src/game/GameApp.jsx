@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { INITIAL_GAME_STATE, savePlayerCheckpoint } from './state/GameState';
+import React, { useState, useEffect, useCallback, useReducer } from 'react';
+import { GAME_MODES, createWorldActivityState, worldActivityReducer } from './state/worldActivityFlow.js';
 import { progressService } from './services/progressService';
 import World3DView from './world/World3DView';
 import PianoStageView from './piano/PianoStageView';
@@ -8,30 +8,24 @@ import { Zap, Shield } from 'lucide-react';
 import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
 
 // Estados del Orquestador General
-export const GAME_MODES = {
-  WORLD: 'WORLD',
-  PIANO: 'PIANO',
-  TRANSITION_TO_PIANO: 'TRANSITION_TO_PIANO',
-  TRANSITION_TO_WORLD: 'TRANSITION_TO_WORLD',
-  PAUSE: 'PAUSE'
-};
+export { GAME_MODES } from './state/worldActivityFlow.js';
 
 export default function GameApp({ userId, onExitApp }) {
   // Estado General del Juego (WORLD vs PIANO vs TRANSITION)
-  const [gameMode, setGameMode] = useState(GAME_MODES.WORLD);
-
-  // Estado Centralizado del Videojuego
-  const [gameState, setGameState] = useState(INITIAL_GAME_STATE);
+  const [flow, dispatch] = useReducer(worldActivityReducer, undefined, createWorldActivityState);
+  const gameMode = flow.mode;
+  const gameState = flow.game;
 
   // Datos pedagógicos y de backend
-  const [profile, setProfile] = useState({ name: 'AVENTURERO', avatarId: 1, total_score: 0 });
+  const [profile, setProfile] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const [songs, setSongs] = useState([]);
   const [userPerformances, setUserPerformances] = useState([]);
   const [memoryMedals, setMemoryMedals] = useState([]);
 
   // Lección seleccionada para el desafío musical
-  const [selectedSong, setSelectedSong] = useState(null);
-  const [selectedMode, setSelectedMode] = useState('solo');
+  const selectedSong = flow.activity?.song;
+  const selectedMode = flow.activity?.mode;
 
   // Cargar datos del usuario desde la capa progressService
   const loadUserData = useCallback(async () => {
@@ -44,25 +38,19 @@ export default function GameApp({ userId, onExitApp }) {
         progressService.getMemoryMedals(userId).catch(() => [])
       ]);
 
+      if (!profData) throw new Error('No se pudo cargar el perfil real.');
+      if (!Array.isArray(songsData) || !songsData.length) throw new Error('No hay lecciones de piano disponibles.');
       if (profData) {
         setProfile(profData);
-        setGameState(prev => ({
-          ...prev,
-          player: {
-            ...prev.player,
-            characterId: profData.avatar_id || 1
-          },
-          progression: {
-            ...prev.progression,
-            xp: profData.total_score || 0
-          }
-        }));
+        dispatch({ type: 'PROFILE', profile: profData });
       }
       setSongs(songsData || []);
       setUserPerformances(perfsData || []);
       setMemoryMedals(medalsData || []);
+      setLoadError(null);
     } catch (e) {
       console.error('[GameApp] Error al cargar datos:', e);
+      setLoadError(e.message);
     }
   }, [userId]);
 
@@ -70,62 +58,34 @@ export default function GameApp({ userId, onExitApp }) {
     loadUserData();
   }, [loadUserData]);
 
-  // Actualizar checkpoint de posición del jugador
-  const handlePlayerTransformChange = useCallback((transform) => {
-    setGameState(prev => ({
-      ...prev,
-      player: {
-        ...prev.player,
-        position: transform.position,
-        rotation: transform.rotation,
-        lastInteractionObject: transform.stationId
-      }
-    }));
-  }, []);
-
   // Iniciar transición hacia la Lección Musical
-  const handleEnterLesson = useCallback((song, mode = 'solo') => {
-    setSelectedSong(song);
-    setSelectedMode(mode);
-
-    // Guardar posición exacta para el retorno
-    const checkpoint = savePlayerCheckpoint(
-      gameState.player.position,
-      gameState.player.rotation,
-      song.id,
-      gameState.world.currentWorld
-    );
-
-    setGameState(prev => ({
-      ...prev,
-      player: {
-        ...prev.player,
-        checkpoint
-      }
-    }));
-
-    setGameMode(GAME_MODES.TRANSITION_TO_PIANO);
-  }, [gameState.player.position, gameState.player.rotation, gameState.world.currentWorld]);
+  const handleEnterLesson = useCallback((song, mode = 'solo', context) => {
+    dispatch({ type: 'REQUEST_PIANO', song, mode, context });
+  }, []);
 
   // Regresar de la Lección Musical al Mundo 3D
   const handleExitPianoStage = useCallback(() => {
-    setGameMode(GAME_MODES.TRANSITION_TO_WORLD);
-  }, []);
+    dispatch({ type: 'RETURN', result: { completed: false, cancelled: true } });
+    void loadUserData();
+  }, [loadUserData]);
 
   // Lección completada (recargar datos frescos de backend)
   const handleLessonFinished = useCallback(async (result) => {
+    dispatch({ type: 'RETURN', result });
     await loadUserData();
-    setGameMode(GAME_MODES.TRANSITION_TO_WORLD);
   }, [loadUserData]);
 
   // Fin de la animación de transición
   const handleTransitionComplete = useCallback((targetMode) => {
-    if (targetMode === 'PIANO') {
-      setGameMode(GAME_MODES.PIANO);
-    } else if (targetMode === 'WORLD') {
-      setGameMode(GAME_MODES.WORLD);
-    }
+    dispatch({ type: 'TRANSITION_COMPLETE', target: targetMode });
   }, []);
+
+  if (!profile) return (
+    <div className="h-[100dvh] flex flex-col items-center justify-center gap-4 bg-slate-950 text-white">
+      <p role={loadError ? 'alert' : 'status'}>{loadError || 'Cargando tu aventura...'}</p>
+      {loadError && <button onClick={loadUserData} className="px-4 py-2 border rounded">Reintentar</button>}
+    </div>
+  );
 
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 select-none">
@@ -184,9 +144,12 @@ export default function GameApp({ userId, onExitApp }) {
         onTransitionComplete={handleTransitionComplete}
       >
         {/* VISTA 1: MUNDO 3D (Desacoplado del motor musical) */}
-        {(gameMode === GAME_MODES.WORLD || gameMode === GAME_MODES.TRANSITION_TO_PIANO) && (
-          <div className="absolute inset-0 w-full h-full">
+        {(
+          <div className={`absolute inset-0 w-full h-full ${gameMode === GAME_MODES.PIANO || gameMode === GAME_MODES.TRANSITION_TO_WORLD ? 'invisible pointer-events-none' : ''}`}>
             <World3DView
+              active={gameMode === GAME_MODES.WORLD}
+              returnContext={flow.context}
+              completedStationIds={Object.keys(gameState.world.stationResults)}
               songs={songs}
               profile={profile}
               userPerformances={userPerformances}
@@ -194,7 +157,6 @@ export default function GameApp({ userId, onExitApp }) {
               initialPosition={gameState.player.position}
               initialRotation={gameState.player.rotation}
               onEnterLesson={handleEnterLesson}
-              onPlayerTransformChange={handlePlayerTransformChange}
             />
           </div>
         )}
@@ -206,6 +168,7 @@ export default function GameApp({ userId, onExitApp }) {
               userId={userId}
               initialSong={selectedSong}
               initialMode={selectedMode}
+              worldContext={flow.context}
               onFinishLesson={handleLessonFinished}
               onExitStage={handleExitPianoStage}
             />

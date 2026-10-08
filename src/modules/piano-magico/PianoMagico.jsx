@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 
 import { usePianoMic } from '../../hooks/usePianoMic';
+import { buildLessonResult } from '../../game/piano/lessonResult.js';
+import { normalizeGameProfile } from '../../game/services/profileAdapter.js';
 import MicSettingsModal from '../core/components/MicSettingsModal';
 import Model3DViewer from '../core/components/Model3DViewer';
 import { getCharacterModel, CHARACTER_MODELS } from '../core/utils/characterModels';
@@ -202,6 +204,13 @@ export default function PianoMagico({
   initialView = 'menu',
   onFinishLesson
 }) {
+  const embeddedActivity = initialView === 'game' && !!initialSong;
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [stageLoadError, setStageLoadError] = useState(null);
+  const stageStartedRef = useRef(false);
+  const stageExitRef = useRef(false);
+  const initialScoreRef = useRef(0);
+  const performanceSaveRef = useRef(null);
   // --- PERSISTENCIA STORE ---
   const [users, setUsers] = useState([]);
   const [userPerformances, setUserPerformances] = useState([]);
@@ -288,7 +297,7 @@ export default function PianoMagico({
   const [activePopover, setActivePopover] = useState(null);
 
   // --- JUEGO & NAVEGACIÓN ---
-  const [view, setView] = useState(initialView);
+  const [view, setView] = useState(embeddedActivity ? 'loading' : initialView);
   const [mode, setMode] = useState(initialMode);
   const [currentSong, setCurrentSong] = useState(initialSong);
   const [step, setStep] = useState(0);
@@ -445,7 +454,7 @@ export default function PianoMagico({
   });
 
   useEffect(() => {
-    if (view === 'game' && localStorage.getItem('piano_mic_auto') !== 'false' && !isListening) {
+    if (!stageExitRef.current && view === 'game' && (embeddedActivity ? localStorage.getItem('piano_mic_auto') === 'true' : localStorage.getItem('piano_mic_auto') !== 'false') && !isListening) {
       localStorage.setItem('piano_mic_auto', 'true');
       startMic();
     }
@@ -554,24 +563,28 @@ export default function PianoMagico({
   useEffect(() => {
     // Ya no cargamos usuarios aquí, se hace en MusicSuite
     // Solo aseguramos que se envíe a 'menu'
-    setView('menu');
+    if (!embeddedActivity) setView('menu');
   }, []);
 
   // --- CARGA DE DATOS DEPENDIENTE DE USUARIO ---
   useEffect(() => {
     if (!userId) return;
+    let live = true;
 
     const loadData = async () => {
       try {
         // Profile
         const resProfile = await fetch(`${API_URL}?action=get_profile&user_id=${userId}`);
         const dataProfile = await resProfile.json();
-        if (dataProfile) setProfile({ name: dataProfile.name, avatarId: dataProfile.avatar_id });
+        if (!live) return;
+        if (embeddedActivity && (!resProfile.ok || !dataProfile?.name || dataProfile.error)) throw new Error('No se pudo cargar el perfil de piano.');
+        if (dataProfile) setProfile(normalizeGameProfile(dataProfile, localStorage.getItem(`user_avatar_${userId}`) ?? undefined) || { name: dataProfile.name, avatarId: dataProfile.avatar_id });
         if (dataProfile) setTotalScore(dataProfile.total_score);
 
         // Songs
         const resSongs = await fetch(`${API_URL}?action=get_songs&user_id=${userId}&instrument=piano`);
         const userSongs = await resSongs.json();
+        if (!live) return;
 
         if (Array.isArray(userSongs)) {
           setSongs(userSongs.sort((a, b) => {
@@ -596,15 +609,20 @@ export default function PianoMagico({
         // Performances
         const resPerf = await fetch(`${API_URL}?action=get_performances&user_id=${userId}`);
         const perfs = await resPerf.json();
+        if (!live) return;
         setUserPerformances(perfs || []);
 
         // Transition to menu after successful login
-        setView('menu');
+        setDataLoaded(true);
+        if (!embeddedActivity) setView('menu');
       } catch (error) {
+        if (!live) return;
         console.error("Error loading data from SQL:", error);
+        setStageLoadError(error.message);
       }
     };
     loadData();
+    return () => { live = false; };
   }, [userId]);
 
   // --- GUARDADO EN SQL ---
@@ -658,7 +676,7 @@ export default function PianoMagico({
     } catch (e) { console.error(e); return null; }
   };
 
-  const savePerformanceOnServer = async (songId, log, finalScore) => {
+  const persistPerformance = async (songId, log, finalScore) => {
     if (!userId) return;
     try {
       const res = await fetch(`${API_URL}?action=save_performance`, {
@@ -672,7 +690,13 @@ export default function PianoMagico({
         const resPerf = await fetch(`${API_URL}?action=get_performances&user_id=${userId}`);
         setUserPerformances(await resPerf.json());
       }
+      return data;
     } catch (e) { console.error(e); }
+  };
+  const savePerformanceOnServer = (...args) => {
+    const pending = persistPerformance(...args);
+    performanceSaveRef.current = pending;
+    return pending;
   };
 
   // --- REFRESH ADMIN DATA ---
@@ -977,6 +1001,7 @@ export default function PianoMagico({
   };
 
   const handleAction = useCallback((note, source = 'touch', rms = 0, strikeId = 0) => {
+    if (stageExitRef.current) return;
     if (view !== 'game' && view !== 'composer' && view !== 'admin') return;
     // Reset glow behavior
     lastInteractionRef.current = Date.now();
@@ -1101,6 +1126,7 @@ export default function PianoMagico({
       hasReleasedRef.current = false;
       playSynth(FREQUENCIES[note], 'triangle', 0.3, 0.8);
       const timeOffset = Date.now() - startTime;
+      const completedLog = isRecordingPerformance ? [...performanceLog, { note, time: timeOffset }] : performanceLog;
       if (isRecordingPerformance) setPerformanceLog(prev => [...prev, { note, time: timeOffset }]);
 
       setDetectedNote(note); setTimeout(() => setDetectedNote(null), 150);
@@ -1126,6 +1152,7 @@ export default function PianoMagico({
       }, 350);
 
       setTimeout(() => {
+        if (stageExitRef.current) return;
         if (stepRef.current + 1 >= currentSong.sequence.length) {
           if (loopEnabled) {
             setStep(0); stepRef.current = 0;
@@ -1143,7 +1170,7 @@ export default function PianoMagico({
                 setMemoryMedals(pm => [...pm, currentSong.id]);
                 unlockMedalOnServer(currentSong.id);
               }
-              savePerformanceOnServer(currentSong.id, performanceLog, totalScore + (Date.now() - readyTimeRef.current < 450 ? 200 : 100));
+              savePerformanceOnServer(currentSong.id, completedLog, newScore);
             }
 
             // Recompensa Extra de Boss: Si es nivel 10,20,30,40
@@ -1208,7 +1235,7 @@ export default function PianoMagico({
         setFeedback({ msg: "MODO CALMA ACTIVADO", type: "miss" });
       }
     }
-  }, [currentSong, mode, userSimonIndex, simonStep, noteReady, tempoFactor, energy, unlockedStickers, memoryMode, memoryIntegrity, memoryMedals, runSimonSequence, isPreviewing, view, composerRecording, isRecordingPerformance, startTime, totalScore, profile, loopEnabled, detectiveAttempts]);
+  }, [currentSong, mode, userSimonIndex, simonStep, noteReady, tempoFactor, energy, unlockedStickers, memoryMode, memoryIntegrity, memoryMedals, runSimonSequence, isPreviewing, view, composerRecording, isRecordingPerformance, startTime, totalScore, profile, loopEnabled, detectiveAttempts, performanceLog]);
 
   const handleActionUp = useCallback((note) => {
     if (mode !== 'eco' || isPreviewing || lockRef.current || !currentSong) return;
@@ -1312,6 +1339,8 @@ export default function PianoMagico({
   }, [view, isPreviewing, mode, currentSong]);
 
   const startLevel = (song, m, isRetry = false) => {
+    stageExitRef.current = false;
+    initialScoreRef.current = totalScore;
     stopDemoPlayback();
     const parsedSequence = getSequenceArray(song?.sequence);
     const songWithParsedSeq = { ...song, sequence: parsedSequence };
@@ -1346,6 +1375,43 @@ export default function PianoMagico({
     if (m === 'eco') setTimeout(() => runEcoSequence(), 600);
   };
 
+  useEffect(() => {
+    if (!embeddedActivity || !dataLoaded || stageStartedRef.current) return;
+    stageStartedRef.current = true;
+    startLevel(initialSong, initialMode);
+  }, [embeddedActivity, dataLoaded, initialSong, initialMode]);
+
+  const stopStageResources = () => {
+    stopDrumLoop();
+    stopAllPreviews();
+    playbackTimers.current.forEach(clearTimeout);
+    playbackTimers.current = [];
+    stopMic();
+    audioCtx.current?.close().catch(console.error);
+    audioCtx.current = null;
+  };
+  const cancelStage = () => {
+    if (stageExitRef.current) return;
+    stageExitRef.current = true;
+    stopStageResources();
+    onExit?.();
+  };
+  const finishStage = async () => {
+    if (stageExitRef.current) return;
+    stageExitRef.current = true;
+    if (embeddedActivity) stopStageResources();
+    else { stopDrumLoop(); stopAllPreviews(); setDetectedNote(null); }
+    const saved = await performanceSaveRef.current;
+    if (onFinishLesson) onFinishLesson({ ...buildLessonResult({ songId: currentSong.id, totalScore, initialScore: initialScoreRef.current, errors: sessionErrors, medals: memoryMedals }), performanceId: saved?.id ?? null });
+    else if (onExit) onExit();
+    else { stageExitRef.current = false; setView('menu'); }
+  };
+  useEffect(() => {
+    if (!embeddedActivity) return;
+    stageExitRef.current = false;
+    return () => { stageExitRef.current = true; stopStageResources(); };
+  }, [embeddedActivity]);
+
   const startPlayback = () => {
     setView('playback'); initAudio();
     playbackTimers.current.forEach(clearTimeout);
@@ -1368,6 +1434,12 @@ export default function PianoMagico({
 
   return (
     <div className={`h-[100dvh] w-full ${view === 'menu' ? 'bg-slate-950' : 'bg-[#F7F7F7]'} text-slate-800 font-sans flex flex-col items-center overflow-hidden select-none relative`}>
+      {embeddedActivity && !dataLoaded && (
+        <div className="absolute inset-0 z-[130] bg-slate-950 text-white flex flex-col items-center justify-center gap-4">
+          <p role={stageLoadError ? 'alert' : 'status'}>{stageLoadError || 'Preparando la lección...'}</p>
+          <button onClick={cancelStage} className="px-4 py-2 rounded border">Volver al Valle</button>
+        </div>
+      )}
 
       {/* HUD DE VIDEOJUEGO FLOTANTE (Solo en vista de exploración 3D) */}
       {view === 'menu' ? (
@@ -1422,7 +1494,7 @@ export default function PianoMagico({
           <div className="w-full max-w-7xl px-2 sm:px-6 py-2 flex justify-between items-center gap-1 sm:gap-2">
             {/* Left: Perfil */}
             <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
-              <button onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-slate-100 p-1 pr-3 rounded-full border-2 border-slate-200 active:translate-y-0.5 transition-all hover:bg-slate-200/60 cursor-pointer shadow-sm">
+              <button disabled={embeddedActivity} onClick={() => setView('id_card')} className="flex items-center gap-1.5 bg-slate-100 p-1 pr-3 rounded-full border-2 border-slate-200 active:translate-y-0.5 transition-all hover:bg-slate-200/60 cursor-pointer shadow-sm">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1CB0F6] rounded-full flex items-center justify-center text-sm sm:text-lg shadow-inner text-white">
                   {STICKERS_BASE[profile.avatarId]?.emoji || '👤'}
                 </div>
@@ -1500,7 +1572,7 @@ export default function PianoMagico({
                 {isListening ? <Mic size={24} className="sm:w-[15px] sm:h-[15px]" /> : <MicOff size={24} className="sm:w-[15px] sm:h-[15px]" />}
               </button>
 
-              <button onClick={() => { stopAllPreviews(); setView('menu'); }} className="p-3 sm:p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title="Ir al Menú"><Home size={24} className="sm:w-[15px] sm:h-[15px]" /></button>
+              <button onClick={() => { if (embeddedActivity) { if (view === 'success') finishStage(); else cancelStage(); } else { stopAllPreviews(); setView('menu'); } }} className="p-3 sm:p-1.5 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 hover:bg-slate-50 rounded-2xl text-slate-600 cursor-pointer shadow-sm active:translate-y-0.5 active:border-b-2" title={embeddedActivity ? 'Volver al Valle' : 'Ir al Menú'}><Home size={24} className="sm:w-[15px] sm:h-[15px]" /></button>
             </div>
           </div>
         </div>
@@ -2012,7 +2084,7 @@ export default function PianoMagico({
 
                 {/* ROW 1: Next Lesson & Retry */}
                 <div className="flex items-center gap-3 w-full justify-center">
-                  {nextSong && !isFailed ? (
+                  {nextSong && !isFailed && !embeddedActivity ? (
                     <button
                       onClick={() => startLevel(nextSong, 'solo')}
                       className="flex-1 p-6 sm:p-5 bg-green-500 text-white rounded-3xl font-black text-xl sm:text-lg shadow-[0_8px_0_#166534] hover:bg-green-400 active:translate-y-2 active:shadow-[0_0px_0_#166534] transition-all uppercase flex items-center justify-center gap-3 drop-shadow-xl"
@@ -2044,20 +2116,7 @@ export default function PianoMagico({
 
                 {/* ROW 3: Home */}
                 <button
-                  onClick={() => {
-                    stopDrumLoop();
-                    stopDemoPlayback();
-                    stopAllPreviews();
-                    setDetectedNote(null);
-                    if (onFinishLesson) {
-                      onFinishLesson({ songId: currentSong?.id, score: totalScore });
-                    }
-                    if (onExit) {
-                      onExit();
-                    } else {
-                      setView('menu');
-                    }
-                  }}
+                  onClick={finishStage}
                   className="mt-6 w-20 h-20 sm:w-14 sm:h-14 mx-auto bg-white/10 text-white rounded-full flex items-center justify-center border-2 border-white/20 hover:bg-white/20 active:scale-95 transition-all shadow-lg cursor-pointer"
                   title="Volver al Mundo 3D"
                 >
@@ -3032,7 +3091,8 @@ export default function PianoMagico({
       {/* MODAL PRIMERO ESCUCHA - BOTONES GIGANTES EN SÍMBOLOS */}
       {showListenFirstModal && currentSong && (
         <div className="fixed inset-0 z-[120] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-slate-900 border-4 border-indigo-500/80 rounded-[2.5rem] p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-6 text-white">
+          <div className="relative bg-slate-900 border-4 border-indigo-500/80 rounded-[2.5rem] p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-6 text-white">
+            {embeddedActivity && <button onClick={cancelStage} title="Volver al Valle" className="absolute top-2 right-2 p-2 rounded hover:bg-white/10"><X size={20} /></button>}
             
             {/* Header Sticker & Song Title */}
             <div className="flex flex-col items-center gap-2">

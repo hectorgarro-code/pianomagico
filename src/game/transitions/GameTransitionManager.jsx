@@ -43,7 +43,7 @@ export default function GameTransitionManager({
       {/* Cortina Mágica de Transición */}
       {isTransitioning && (
         <div
-          className={`absolute inset-0 z-[150] pointer-events-none flex flex-col items-center justify-center transition-all duration-700 ease-in-out ${
+          className={`absolute inset-0 z-[150] pointer-events-auto flex flex-col items-center justify-center transition-all duration-700 ease-in-out ${
             animProgress === 1 ? 'opacity-100 backdrop-blur-md bg-slate-950/80 scale-100' : 'opacity-0 scale-95'
           }`}
         >

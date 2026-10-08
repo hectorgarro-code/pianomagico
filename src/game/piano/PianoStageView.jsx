@@ -12,6 +12,7 @@ export default function PianoStageView({
   userId,
   initialSong = null,
   initialMode = 'solo',
+  worldContext,
   onFinishLesson,
   onExitStage
 }) {
@@ -26,7 +27,7 @@ export default function PianoStageView({
           if (onExitStage) onExitStage();
         }}
         onFinishLesson={(result) => {
-          if (onFinishLesson) onFinishLesson(result);
+          if (onFinishLesson) onFinishLesson({ ...result, stationId: worldContext?.stationId });
         }}
       />
     </div>

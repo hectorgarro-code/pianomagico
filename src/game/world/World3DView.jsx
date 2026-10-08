@@ -9,8 +9,12 @@ import AssetDiagnosticModal from '../assets/AssetDiagnosticModal';
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
 import { CollisionWorld, PLAYER_COLLIDER } from './collision/CollisionWorld.js';
 import { createCollisionOutline, disposeCollisionDebug } from './collision/collisionDebug.js';
+import { restoreWorldContext } from '../state/worldActivityFlow.js';
 
 export default function World3DView({
+  active = true,
+  returnContext = null,
+  completedStationIds = [],
   songs = [],
   profile = {},
   userPerformances = [],
@@ -80,6 +84,26 @@ export default function World3DView({
   const characterActionsRef = useRef({});
   const activeActionNameRef = useRef('Idle');
   const debugGroupRef = useRef(null);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const interactionLockedRef = useRef(false);
+  const collisionWorldRef = useRef(null);
+  const terrainHeightRef = useRef(() => 0);
+
+  useEffect(() => {
+    for (const key of Object.keys(keysRef.current)) keysRef.current[key] = false;
+    isDraggingMouseRef.current = false;
+    if (!active) return;
+    interactionLockedRef.current = false;
+    if (returnContext && collisionWorldRef.current) {
+      const safe = restoreWorldContext(returnContext, collisionWorldRef.current, terrainHeightRef.current);
+      Object.assign(playerPosRef.current, safe.position);
+      playerRotYRef.current = safe.rotation;
+      playerVelYRef.current = 0;
+      isGroundedRef.current = true;
+      if (safe.camera) Object.assign(cameraAngleRef.current, safe.camera);
+    }
+  }, [active, returnContext]);
 
   // Sincronizar visibilidad del overlay de depuración
   useEffect(() => {
@@ -90,22 +114,25 @@ export default function World3DView({
 
   // Notificar al estado del juego al interactuar
   const handleTriggerLesson = (station) => {
-    if (!station) return;
+    if (!station || !activeRef.current || interactionLockedRef.current || loading) return;
+    interactionLockedRef.current = true;
+    const context = {
+      position: { ...playerPosRef.current }, rotation: playerRotYRef.current,
+      stationId: station.id, regionId: station.regionId,
+      worldId: 'valle_notas', camera: { ...cameraAngleRef.current }
+    };
     if (onPlayerTransformChange) {
-      onPlayerTransformChange({
-        position: { ...playerPosRef.current },
-        rotation: playerRotYRef.current,
-        stationId: station.song.id
-      });
+      onPlayerTransformChange(context);
     }
     if (onEnterLesson) {
-      onEnterLesson(station.song, 'solo');
+      onEnterLesson(station.song, 'solo', context);
     }
   };
 
   // Keyboard Event Listeners (WASD + Shift + Space + E)
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (!activeRef.current || e.repeat || e.target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
       if (e.code === 'KeyW' || e.code === 'ArrowUp') keysRef.current.forward = true;
       if (e.code === 'KeyS' || e.code === 'ArrowDown') keysRef.current.backward = true;
       if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysRef.current.left = true;
@@ -144,21 +171,26 @@ export default function World3DView({
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    const clearKeys = () => { for (const key of Object.keys(keysRef.current)) keysRef.current[key] = false; };
+    window.addEventListener('blur', clearKeys);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', clearKeys);
     };
-  }, [nearbyStation]);
+  }, [nearbyStation, active, loading]);
 
   // Arrastre con ratón para rotación orbital con amortiguación (Damping)
   useEffect(() => {
     const handleMouseDown = (e) => {
+      if (!activeRef.current) return;
       if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
       isDraggingMouseRef.current = true;
       mousePosRef.current = { x: e.clientX, y: e.clientY };
     };
 
     const handleMouseMove = (e) => {
+      if (!activeRef.current) return;
       if (!isDraggingMouseRef.current) return;
       const dx = e.clientX - mousePosRef.current.x;
       const dy = e.clientY - mousePosRef.current.y;
@@ -173,6 +205,7 @@ export default function World3DView({
     };
 
     const handleWheel = (e) => {
+      if (!activeRef.current) return;
       cameraAngleRef.current.targetDistance = Math.max(8.5, Math.min(22.0, cameraAngleRef.current.targetDistance + e.deltaY * 0.012));
     };
 
@@ -274,7 +307,9 @@ export default function World3DView({
         return;
       }
       getTerrainHeight = heightAt;
+      terrainHeightRef.current = heightAt;
       collisionWorld = new CollisionWorld(colliders);
+      collisionWorldRef.current = collisionWorld;
       const safeSpawn=collisionWorld.move(playerPosRef.current,{x:0,z:0});
       Object.assign(playerPosRef.current,safeSpawn);
       scene.add(sceneGroup);
@@ -331,7 +366,7 @@ export default function World3DView({
       // backend-generated song IDs. Other references retain exact ID lookup.
       for (const station of composition.stations) {
         const song = station.lessonRef === 'first-song'
-          ? songs[0] || { id: 'leccion_1', title: 'Primera Nota: Do Mayor' }
+          ? songs[0]
           : songs.find(item => String(item.id) === station.lessonRef);
         let instance = null;
         sceneGroup.traverse(obj => { if (obj.userData.compositionId === station.instanceId) instance = obj; });
@@ -340,7 +375,7 @@ export default function World3DView({
           continue;
         }
         const position = instance.getWorldPosition(new THREE.Vector3());
-        levelPositions.push({ x: position.x, y: position.y, z: position.z, song, interactionRadius: station.interactionRadius, isCompleted: completedSongIds.has(song.id) });
+        levelPositions.push({ id: station.id, regionId: composition.regionId, x: position.x, y: position.y, z: position.z, song, interactionRadius: station.interactionRadius });
       }
 
       // 6. Spawn del Héroe
@@ -399,6 +434,7 @@ export default function World3DView({
       const now = performance.now();
       const delta = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
+      if (!activeRef.current) return;
 
       if (characterMixerRef.current) {
         characterMixerRef.current.update(delta);
@@ -556,9 +592,10 @@ export default function World3DView({
       renderer.dispose();
       if(collisionDebug)disposeCollisionDebug(collisionDebug);
       debugGroupRef.current=null;
+      collisionWorldRef.current=null;
       scene.clear();
     };
-  }, [songs, highestUnlockedIndex]);
+  }, [profile.avatarId]);
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-slate-950 select-none">
@@ -585,13 +622,13 @@ export default function World3DView({
       )}
 
       {nearbyStation && !showTutorial && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto">
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto w-max max-w-[calc(100%-2rem)]">
           <button
             onClick={() => handleTriggerLesson(nearbyStation)}
-            className="bg-slate-900/85 hover:bg-slate-900 active:scale-95 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-xl border border-sky-400/40 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all hover:border-sky-400"
+            className="bg-slate-900/85 hover:bg-slate-900 active:scale-95 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase shadow-xl border border-sky-400/40 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all hover:border-sky-400"
           >
             <Sparkles size={14} className="text-amber-400 fill-amber-400" />
-            <span className="text-slate-200">Presiona <span className="text-sky-300 font-black">ESPACIO</span> para tocar: <strong className="text-white">{nearbyStation.song.title}</strong></span>
+            <span className="text-slate-200">{completedStationIds.includes(nearbyStation.id) ? 'Completada · ' : ''}<span className="text-sky-300 font-black">E</span> - Practicar: <strong className="text-white">{nearbyStation.song.title}</strong></span>
             <Play size={13} fill="white" className="text-white" />
           </button>
         </div>

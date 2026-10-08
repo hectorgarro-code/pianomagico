@@ -217,7 +217,7 @@ export const usePianoMicStore = create(
           globalAudioCtx.close().catch(console.error);
           globalAudioCtx = null;
         }
-        activeNote = null;
+        activePitchClass = null;
         peakRms = 0;
         minRmsSincePeak = 0;
         smoothedRms = 0;

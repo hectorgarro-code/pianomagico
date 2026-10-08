@@ -4,6 +4,7 @@
  * No modifica ni duplica endpoints; provee métodos limpios y desacoplados.
  */
 
+import { normalizeGameProfile } from './profileAdapter.js';
 const API_BASE = 'backend/api.php';
 
 export const progressService = {
@@ -14,7 +15,10 @@ export const progressService = {
     if (!userId) return null;
     const res = await fetch(`${API_BASE}?action=get_profile&user_id=${userId}`);
     if (!res.ok) throw new Error('Error al cargar perfil');
-    return await res.json();
+    const data = await res.json();
+    let preferredAvatar;
+    try { preferredAvatar = globalThis.localStorage?.getItem(`user_avatar_${userId}`) ?? undefined; } catch { /* Storage can be disabled. */ }
+    return normalizeGameProfile(data, preferredAvatar);
   },
 
   /**
