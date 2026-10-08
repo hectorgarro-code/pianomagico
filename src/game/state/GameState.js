@@ -28,7 +28,6 @@ export const INITIAL_GAME_STATE = {
   // Estado del Mundo
   world: {
     currentWorld: 'valle_notas',
-    currentRegion: PLAZA_COMPOSITION.regionId,
     unlockedAreas: ['valle_notas_inicio'],
     completedLessons: [],
     openedChests: [],

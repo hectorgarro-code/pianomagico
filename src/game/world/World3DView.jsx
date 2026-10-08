@@ -11,6 +11,7 @@ import { CollisionWorld, PLAYER_COLLIDER } from './collision/CollisionWorld.js';
 import { createCollisionOutline, disposeCollisionDebug } from './collision/collisionDebug.js';
 import { restoreWorldContext } from '../state/worldActivityFlow.js';
 import { ADVENTURE_STATES } from '../adventure/adventureState.js';
+import { getPlayableRegionAt } from '../adventure/valleyProgression.js';
 import { ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
 
 function updateChestLids(models, state) {
@@ -463,8 +464,7 @@ export default function World3DView({
           walkedDistanceRef.current += Math.hypot(next.x-beforeX,next.z-beforeZ);
           if (tutorialVisibleRef.current) { tutorialVisibleRef.current = false; setShowTutorial(false); }
           const journey = adventureStateRef.current?.journey;
-          const enteredForest = next.z <= -19.5 && next.x >= 6 && next.x <= 25;
-          const event = enteredForest ? 'FOREST' : walkedDistanceRef.current >= 3 || next.z < -10 ? 'WALKED' : null;
+          const event = `${getPlayableRegionAt(next) || 'TRANSITION'}:${walkedDistanceRef.current >= 3 || next.z < -10 ? 'WALKED' : 'START'}`;
           if (journey?.started && event && event !== reportedObjectiveRef.current) {
             reportedObjectiveRef.current = event;
             objectiveCallbackRef.current?.({ ...playerPosRef.current }, walkedDistanceRef.current);

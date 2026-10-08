@@ -24,6 +24,9 @@
  * Camera lookAhead is a nonnegative orbit-relative distance; portraitDistance
  * is an optional positive distance for vertical viewports. Station lessonRef
  * first-song binds the original first lesson; other strings are exact song IDs.
+ * Optional gates [{id,gateId,exitId?,instanceId?}] bind authored exits/props to
+ * logical WORLD_GATES. validateWorldGateBindings checks this contract; rendering
+ * does not create geometry or invisible walls for an unavailable gate.
  */
 export const COMPOSITION_SCHEMA = {
   version: 1,

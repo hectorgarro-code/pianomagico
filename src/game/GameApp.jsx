@@ -9,7 +9,9 @@ import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
 import AdventureDiscovery from './adventure/AdventureDiscovery.jsx';
 import { findAdventureObject, getAdventureSummary } from './adventure/adventureState.js';
 import AdventureStart from './adventure/AdventureStart.jsx';
-import { hasAdventureProgress, getNewAdventurePhase, OBJECTIVES } from './adventure/adventureStart.js';
+import { hasAdventureProgress, getNewAdventurePhase } from './adventure/adventureStart.js';
+import { getValleyProgress } from './adventure/valleyProgression.js';
+import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -51,6 +53,7 @@ export default function GameApp({ userId, onExitApp }) {
   const discoveredObject = findAdventureObject(flow.discovery?.objectId);
   const discoveredSong = songs.find(song => String(song.id) === String(discoveredObject?.activityId));
   const adventureSummary = getAdventureSummary(gameState.adventure);
+  const valleyProgress = getValleyProgress(gameState.adventure);
 
   // Cargar datos del usuario desde la capa progressService
   const loadUserData = useCallback(async () => {
@@ -172,8 +175,11 @@ export default function GameApp({ userId, onExitApp }) {
         </div>
       )}
       {gameMode === GAME_MODES.WORLD && !flow.discovery && <div role="status" className="absolute top-14 left-3 z-40 max-w-[calc(100%-6rem)] rounded-lg bg-zinc-950/80 px-3 py-2 text-xs pointer-events-none">
-        {OBJECTIVES[gameState.adventure.journey.objective]}
+        {valleyProgress.currentObjective.text}
       </div>}
+      {debugEnabled && gameMode === GAME_MODES.WORLD && !flow.discovery && <ValleyProgressDebug
+        adventure={gameState.adventure} onEvent={event => dispatch({ type: 'VALLEY_EVENT', event })} onReset={resetAdventure}
+      />}
 
       {/* GESTOR DE ESCENAS Y TRANSICIONES CINEMATOGRÁFICAS */}
       <GameTransitionManager

@@ -32,4 +32,12 @@ Las herramientas de AdventureStart y World3DView requieren DEV y `?debug=1`. No 
 
 Los botones de caminar automatico y Prueba funcional pertenecen a paginas auxiliares de validacion fuera del repositorio, no al juego. Las capturas de aprobacion del entry flow deben comenzar en perfiles y usar la experiencia normal.
 
-SYSTEMS 4 funcionalidad interna aprobada; integracion de entry flow pendiente de aprobacion humana. Sin commit final, sin push, sin SYSTEMS 5.
+SYSTEMS 4 + ENTRY FLOW 4.5 aprobados; checkpoint `734efe3 - Valle de las Notas new adventure and unified entry flow`. Arquitectura oficial congelada: no reintroducir seleccion de instrumento.
+
+## Progresion global
+
+SYSTEMS 5 extiende Adventure con hechos versionados y requisitos declarativos. `getValleyProgress` deriva regiones, gates, objetivos y final; no duplica XP, medallas, performances ni rangos. Ver `VALLEY_PROGRESSION.md` para contratos, topologia y migracion v1 -> v2.
+
+Bosque utiliza sus tres cofres reales. Rio y Montana quedan disponibles juntos al completarlo; ambas completadas habilitan Ruinas; Ruinas habilita Observatorio y su completion representa el final. Gruta es secreta/opcional. Los hitos de futuras regiones son provisionales y solo simulables; no hay regiones nuevas construidas.
+
+SYSTEMS 5 pendiente de aprobacion humana: sin commit final, sin push ni nuevas regiones.

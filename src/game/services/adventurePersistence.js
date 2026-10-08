@@ -13,7 +13,7 @@ export function createAdventurePersistence(getStorage = () => globalThis.localSt
       try {
         const storage = getStorage();
         if (!storage) return false;
-        storage.setItem(key(userId), JSON.stringify({ schemaVersion: state.schemaVersion, entries: state.entries, journey: state.journey }));
+        storage.setItem(key(userId), JSON.stringify({ schemaVersion: state.schemaVersion, entries: state.entries, journey: state.journey, valley: state.valley }));
         return true;
       } catch { return false; }
     }

@@ -1,7 +1,8 @@
 import { INITIAL_GAME_STATE } from './GameState.js';
 import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObject, settleAdventureActivity } from '../adventure/adventureState.js';
 import { createAdventureState } from '../adventure/adventureState.js';
-import { advanceObjective } from '../adventure/adventureStart.js';
+import { applyValleyEvent, getPlayableRegionAt } from '../adventure/valleyProgression.js';
+import { REGION_IDS } from '../adventure/valleyBlueprint.js';
 
 export const GAME_MODES = Object.freeze({
   WORLD: 'WORLD', PIANO: 'PIANO', PAUSE: 'PAUSE',
@@ -10,7 +11,7 @@ export const GAME_MODES = Object.freeze({
 
 export function createWorldActivityState(adventure) {
   const game = structuredClone(INITIAL_GAME_STATE);
-  if (adventure) game.adventure = adventure;
+  if (adventure) game.adventure = { ...adventure, valley: { ...adventure.valley, currentRegion: REGION_IDS.PLAZA } };
   return { mode: GAME_MODES.WORLD, game, activity: null, context: null, lastResult: null, discovery: null };
 }
 
@@ -26,8 +27,16 @@ export function worldActivityReducer(state, action) {
       return { ...state, game: { ...state.game, adventure: { ...state.game.adventure, journey: { ...state.game.adventure.journey, started: true } } } };
     case 'OBJECTIVE': {
       if (state.mode !== GAME_MODES.WORLD) return state;
-      const journey = advanceObjective(state.game.adventure.journey, action.position, action.distance);
-      return journey === state.game.adventure.journey ? state : { ...state, game: { ...state.game, adventure: { ...state.game.adventure, journey } } };
+      let adventure = state.game.adventure;
+      if (adventure.journey.started && (action.distance >= 3 || action.position.z < -10)) adventure = applyValleyEvent(adventure, { type: 'MILESTONE_REACHED', id: 'plaza-explored' });
+      const regionId = getPlayableRegionAt(action.position);
+      if (adventure.journey.started && regionId) adventure = applyValleyEvent(adventure, { type: 'REGION_DISCOVERED', regionId });
+      return adventure === state.game.adventure ? state : { ...state, game: { ...state.game, adventure } };
+    }
+    case 'VALLEY_EVENT': {
+      if (state.mode !== GAME_MODES.WORLD) return state;
+      const adventure = applyValleyEvent(state.game.adventure, action.event);
+      return adventure === state.game.adventure ? state : { ...state, game: { ...state.game, adventure } };
     }
     case 'RESET_ADVENTURE': {
       if (state.mode !== GAME_MODES.WORLD) return state;
@@ -58,7 +67,7 @@ export function worldActivityReducer(state, action) {
         activity: { song: action.song, mode: context.activityMode }, lastResult: null,
         game: { ...state.game, adventure: adventureObject ? beginAdventureActivity(state.game.adventure, adventureObject.id, action.song.id) : state.game.adventure,
           player: { ...state.game.player, position: { ...context.position }, rotation: context.rotation, lastInteractionObject: context.stationId, checkpoint: context },
-          world: { ...state.game.world, currentRegion: context.regionId } }
+          world: state.game.world }
       };
     }
     case 'TRANSITION_COMPLETE':

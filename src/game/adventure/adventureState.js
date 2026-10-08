@@ -1,5 +1,6 @@
 import { FOREST_LESSON_CHESTS, ADVENTURE_OBJECT_TYPES, REWARD_TYPES } from '../world/composition/forestAdventureComposition.js';
 import { normalizeJourney } from './adventureStart.js';
+import { normalizeValley, getValleyProgress, applyValleyEvent } from './valleyProgression.js';
 
 export const ADVENTURE_STATES = Object.freeze({ LOCKED: 'LOCKED', AVAILABLE: 'AVAILABLE', IN_PROGRESS: 'IN_PROGRESS', COMPLETED: 'COMPLETED' });
 export const findAdventureObject = id => FOREST_LESSON_CHESTS.find(object => object.id === id);
@@ -18,14 +19,17 @@ export function createAdventureState(snapshot) {
   const entries = Object.fromEntries(FOREST_LESSON_CHESTS.map(object => [object.id, { state: ADVENTURE_STATES.LOCKED, activityId: object.activityId, claimedRewards: [] }]));
   // Restore only known completed activities whose prerequisites and reward IDs match.
   for (const object of FOREST_LESSON_CHESTS) {
-    const saved = snapshot?.schemaVersion === 1 ? snapshot.entries?.[object.id] : null;
+    const saved = [1, 2].includes(snapshot?.schemaVersion) ? snapshot.entries?.[object.id] : null;
     if (saved?.state === ADVENTURE_STATES.COMPLETED && String(saved.activityId) === String(object.activityId)
       && object.requirements.completedObjects.every(id => entries[id].state === ADVENTURE_STATES.COMPLETED)
       && Array.isArray(saved.claimedRewards) && saved.claimedRewards.includes(object.reward.id)) {
       entries[object.id] = { state: ADVENTURE_STATES.COMPLETED, activityId: object.activityId, claimedRewards: [object.reward.id] };
     }
   }
-  return { schemaVersion: 1, entries: refreshAvailability(entries), lastReward: null, journey: normalizeJourney(snapshot?.schemaVersion === 1 ? snapshot.journey : null) };
+  const supported = [1, 2].includes(snapshot?.schemaVersion);
+  const journey = normalizeJourney(supported ? snapshot.journey : null);
+  return { schemaVersion: 2, entries: refreshAvailability(entries), lastReward: null, journey,
+    valley: normalizeValley(snapshot?.schemaVersion === 2 ? snapshot.valley : null, journey, entries) };
 }
 
 export function canRequestAdventureActivity(state, objectId, activityId) {
@@ -36,6 +40,7 @@ export function canRequestAdventureActivity(state, objectId, activityId) {
 
 export function beginAdventureActivity(state, objectId, activityId) {
   if (!canRequestAdventureActivity(state, objectId, activityId)) return state;
+  state = applyValleyEvent(state, { type: 'REGION_DISCOVERED', regionId: findAdventureObject(objectId).regionId });
   if (state.entries[objectId].state === ADVENTURE_STATES.COMPLETED) return { ...state, lastReward: null };
   return { ...state, lastReward: null, entries: { ...state.entries, [objectId]: { ...state.entries[objectId], state: ADVENTURE_STATES.IN_PROGRESS } } };
 }
@@ -59,5 +64,5 @@ export function getAdventureSummary(state) {
   const completed = FOREST_LESSON_CHESTS.filter(object => state.entries[object.id]?.state === ADVENTURE_STATES.COMPLETED);
   return { completedActivityIds: completed.map(object => object.activityId),
     claimedRewardIds: completed.flatMap(object => state.entries[object.id].claimedRewards),
-    segmentCompleted: completed.length === FOREST_LESSON_CHESTS.length };
+    segmentCompleted: getValleyProgress(state).completedRegions.includes('BOSQUE_DE_LAS_NOTAS') };
 }
