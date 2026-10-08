@@ -15,7 +15,7 @@ import {
 import { KAYKIT_ASSETS, loadCachedModel } from '../assets/assetManifest';
 import { WORLD_BLUEPRINT } from './worldBlueprint';
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
-import { FOREST_COMPOSITION } from './composition/forestComposition.js';
+import { FOREST_ADVENTURE_COMPOSITION as FOREST_COMPOSITION, ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
 import { collectAssetUrls, validateComposition } from './composition/validateComposition.js';
 import { materializeCollider } from './collision/modelColliders.js';
 import { createCollisionOutline } from './collision/collisionDebug.js';
@@ -26,6 +26,7 @@ export class WorldGenerator {
     this.rng = createRNG(seed);
     this.models = new Map();
     this.colliders = [];
+    this.interactionObjects = [];
     this.collisionDebug = new THREE.Group();
     this.collisionDebug.name = 'Collision_Debug';
     this.stats = {
@@ -279,7 +280,16 @@ export class WorldGenerator {
       const instance=plazaRoot.children.find(obj=>obj.userData.compositionId===station.instanceId);
       if(!instance)continue;
       const p=instance.getWorldPosition(new THREE.Vector3());
+      this.interactionObjects.push({ ...station, type: ADVENTURE_OBJECT_TYPES.PRACTICE_STATION, regionId: composition.regionId,
+        position: { x: p.x, y: p.y, z: p.z }, interaction: { radius: station.interactionRadius } });
       this.collisionDebug.add(createCollisionOutline({shape:'circle',x:p.x,z:p.z,radius:station.interactionRadius},0xffc247,calculateTerrainElevation));
+    }
+    for (const object of composition.adventureObjects || []) {
+      const instance = plazaRoot.children.find(item => item.userData.compositionId === object.instanceId);
+      if (!instance) throw new Error(`Adventure object failed to materialize: ${object.id}`);
+      const p = instance.getWorldPosition(new THREE.Vector3());
+      this.interactionObjects.push({ ...object, position: { x: p.x, y: p.y, z: p.z } });
+      this.collisionDebug.add(createCollisionOutline({ shape: 'circle', x: p.x, z: p.z, radius: object.interaction.radius }, 0xffc247, calculateTerrainElevation));
     }
   }
 
@@ -492,6 +502,7 @@ export class WorldGenerator {
       heightAt: (x, z) => calculateTerrainElevation(x, z),
       composition: PLAZA_COMPOSITION,
       colliders: this.colliders,
+      interactionObjects: this.interactionObjects,
       stats: this.stats
     };
   }

@@ -5,9 +5,12 @@
  */
 
 import { normalizeGameProfile } from './profileAdapter.js';
+import { adventurePersistence } from './adventurePersistence.js';
 const API_BASE = 'backend/api.php';
 
 export const progressService = {
+  loadAdventure: userId => adventurePersistence.load(userId),
+  saveAdventure: (userId, state) => adventurePersistence.save(userId, state),
   /**
    * Obtiene el perfil del usuario.
    */

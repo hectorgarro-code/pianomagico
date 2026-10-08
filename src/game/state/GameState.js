@@ -5,8 +5,10 @@
  */
 
 import { PLAZA_COMPOSITION } from '../world/composition/plazaComposition.js';
+import { createAdventureState } from '../adventure/adventureState.js';
 
 export const INITIAL_GAME_STATE = {
+  adventure: createAdventureState(),
   // Estado del Jugador en el Mundo 3D
   player: {
     characterId: 1,

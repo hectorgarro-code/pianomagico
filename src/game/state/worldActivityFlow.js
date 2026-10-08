@@ -1,12 +1,15 @@
 import { INITIAL_GAME_STATE } from './GameState.js';
+import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObject, settleAdventureActivity } from '../adventure/adventureState.js';
 
 export const GAME_MODES = Object.freeze({
   WORLD: 'WORLD', PIANO: 'PIANO', PAUSE: 'PAUSE',
   TRANSITION_TO_PIANO: 'TRANSITION_TO_PIANO', TRANSITION_TO_WORLD: 'TRANSITION_TO_WORLD'
 });
 
-export function createWorldActivityState() {
-  return { mode: GAME_MODES.WORLD, game: structuredClone(INITIAL_GAME_STATE), activity: null, context: null, lastResult: null };
+export function createWorldActivityState(adventure) {
+  const game = structuredClone(INITIAL_GAME_STATE);
+  if (adventure) game.adventure = adventure;
+  return { mode: GAME_MODES.WORLD, game, activity: null, context: null, lastResult: null, discovery: null };
 }
 
 export function restoreWorldContext(context, collisionWorld, heightAt) {
@@ -17,6 +20,16 @@ export function restoreWorldContext(context, collisionWorld, heightAt) {
 
 export function worldActivityReducer(state, action) {
   switch (action.type) {
+    case 'DISCOVER_ADVENTURE': {
+      if (state.mode !== GAME_MODES.WORLD || state.discovery) return state;
+      const object = findAdventureObject(action.objectId);
+      if (!object || action.context?.stationId !== object.id) return state;
+      return { ...state, context: structuredClone(action.context), discovery: { objectId: object.id } };
+    }
+    case 'CLOSE_DISCOVERY':
+      return state.mode === GAME_MODES.WORLD ? { ...state, discovery: null } : state;
+    case 'ACK_REWARD':
+      return { ...state, game: { ...state.game, adventure: { ...state.game.adventure, lastReward: null } } };
     case 'PROFILE':
       return { ...state, game: { ...state.game,
         player: { ...state.game.player, characterId: action.profile.avatarId },
@@ -24,10 +37,13 @@ export function worldActivityReducer(state, action) {
       } };
     case 'REQUEST_PIANO': {
       if (state.mode !== GAME_MODES.WORLD || !action.song?.id || !action.context?.stationId) return state;
+      const adventureObject = findAdventureObject(action.context.stationId);
+      if (adventureObject && (!state.discovery || state.discovery.objectId !== adventureObject.id || !canRequestAdventureActivity(state.game.adventure, adventureObject.id, action.song.id))) return state;
       const context = structuredClone({ ...action.context, activityId: action.song.id, activityMode: action.mode || 'solo' });
-      return { ...state, mode: GAME_MODES.TRANSITION_TO_PIANO, context,
+      return { ...state, mode: GAME_MODES.TRANSITION_TO_PIANO, context, discovery: null,
         activity: { song: action.song, mode: context.activityMode }, lastResult: null,
-        game: { ...state.game, player: { ...state.game.player, position: { ...context.position }, rotation: context.rotation, lastInteractionObject: context.stationId, checkpoint: context },
+        game: { ...state.game, adventure: adventureObject ? beginAdventureActivity(state.game.adventure, adventureObject.id, action.song.id) : state.game.adventure,
+          player: { ...state.game.player, position: { ...context.position }, rotation: context.rotation, lastInteractionObject: context.stationId, checkpoint: context },
           world: { ...state.game.world, currentRegion: context.regionId } }
       };
     }
@@ -41,7 +57,7 @@ export function worldActivityReducer(state, action) {
       if (action.result?.activityId != null && String(action.result.activityId) !== String(state.context.activityId)) return state;
       const world = state.game.world;
       return { ...state, mode: GAME_MODES.TRANSITION_TO_WORLD, lastResult: result,
-        game: { ...state.game, world: result.completed ? { ...world,
+        game: { ...state.game, adventure: settleAdventureActivity(state.game.adventure, result.stationId, result), world: result.completed && !findAdventureObject(result.stationId) ? { ...world,
           completedLessons: [...new Set([...world.completedLessons, result.activityId])],
           stationResults: { ...world.stationResults, [result.stationId]: result }
         } : world }

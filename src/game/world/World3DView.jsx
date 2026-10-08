@@ -10,6 +10,12 @@ import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
 import { CollisionWorld, PLAYER_COLLIDER } from './collision/CollisionWorld.js';
 import { createCollisionOutline, disposeCollisionDebug } from './collision/collisionDebug.js';
 import { restoreWorldContext } from '../state/worldActivityFlow.js';
+import { ADVENTURE_STATES } from '../adventure/adventureState.js';
+import { ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
+
+function updateChestLids(models, state) {
+  for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED ? -1.15 : 0);
+}
 
 export default function World3DView({
   active = true,
@@ -22,6 +28,8 @@ export default function World3DView({
   initialPosition = null,
   initialRotation = null,
   onEnterLesson,
+  onDiscoverAdventure,
+  adventureState,
   onPlayerTransformChange
 }) {
   const containerRef = useRef(null);
@@ -89,6 +97,11 @@ export default function World3DView({
   const interactionLockedRef = useRef(false);
   const collisionWorldRef = useRef(null);
   const terrainHeightRef = useRef(() => 0);
+  const adventureModelsRef = useRef(new Map());
+  const adventureStateRef = useRef(adventureState);
+  adventureStateRef.current = adventureState;
+  const [interactionObjects, setInteractionObjects] = useState([]);
+  useEffect(() => { updateChestLids(adventureModelsRef.current, adventureState); }, [adventureState]);
 
   useEffect(() => {
     for (const key of Object.keys(keysRef.current)) keysRef.current[key] = false;
@@ -115,6 +128,7 @@ export default function World3DView({
   // Notificar al estado del juego al interactuar
   const handleTriggerLesson = (station) => {
     if (!station || !activeRef.current || interactionLockedRef.current || loading) return;
+    if (station.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST && !onDiscoverAdventure) return;
     interactionLockedRef.current = true;
     const context = {
       position: { ...playerPosRef.current }, rotation: playerRotYRef.current,
@@ -124,7 +138,9 @@ export default function World3DView({
     if (onPlayerTransformChange) {
       onPlayerTransformChange(context);
     }
-    if (onEnterLesson) {
+    if (station.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST) {
+      onDiscoverAdventure(station.id, context);
+    } else if (onEnterLesson && station.song) {
       onEnterLesson(station.song, 'solo', context);
     }
   };
@@ -301,7 +317,7 @@ export default function World3DView({
     let playerColliderDebug = null;
     let collisionDebug = null;
 
-    generator.buildSection1().then(async ({ sceneGroup, debugGroup, heightAt, stats, composition, colliders }) => {
+    generator.buildSection1().then(async ({ sceneGroup, debugGroup, heightAt, stats, colliders, interactionObjects: generatedObjects }) => {
       if (!isMounted) {
         disposeCollisionDebug(debugGroup.getObjectByName('Collision_Debug'));
         return;
@@ -324,59 +340,21 @@ export default function World3DView({
 
       setWorldMetrics(stats);
 
-      // 5. Estación 01 (En el Claro del Árbol Maestro)
-      // Keep the legacy station outside the staged Plaza-only visual review.
-      if (!composition.constructionPhase) {
-      const station1X = 1.8;
-      const station1Z = -18.0;
-      const station1Y = heightAt(station1X, station1Z);
-      const song0 = songs[0] || { id: 'leccion_1', title: 'Primera Nota: Do Mayor' };
-
-      const chestGroup = new THREE.Group();
-      chestGroup.name = 'Station_01_Group';
-      chestGroup.position.set(station1X, station1Y, station1Z);
-
-      // Cargar cofre real para la estación
-      try {
-        const chestGltf = await loadCachedModel('/models/props/chest_wood.glb');
-        if (chestGltf && chestGltf.scene) {
-          const chestObj = chestGltf.scene.clone(true);
-          chestObj.scale.set(1.2, 1.2, 1.2);
-          chestObj.position.set(0, 0.12, 0);
-          chestObj.traverse(c => { if (c.isMesh) c.castShadow = true; });
-          chestGroup.add(chestObj);
-        }
-      } catch (e) {
-        console.warn('Error cargando cofre:', e);
-      }
-
-      scene.add(chestGroup);
-
-      levelPositions.push({
-        x: station1X,
-        y: station1Y,
-        z: station1Z,
-        songIndex: 0,
-        song: song0,
-        isCompleted: completedSongIds.has(song0.id)
-      });
-      }
-
-      // first-song preserves the existing first-lesson binding, independent of
-      // backend-generated song IDs. Other references retain exact ID lookup.
-      for (const station of composition.stations) {
-        const song = station.lessonRef === 'first-song'
+      for (const object of generatedObjects) {
+        const song = object.lessonRef === 'first-song'
           ? songs[0]
-          : songs.find(item => String(item.id) === station.lessonRef);
+          : songs.find(item => String(item.id) === String(object.activityId ?? object.lessonRef));
         let instance = null;
-        sceneGroup.traverse(obj => { if (obj.userData.compositionId === station.instanceId) instance = obj; });
-        if (!song || !instance) {
-          console.warn('[CompositionBlueprint] Unresolved station', station.id);
-          continue;
+        sceneGroup.traverse(obj => { if (obj.userData.compositionId === object.instanceId) instance = obj; });
+        if (object.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST && instance) {
+          const lid = instance.getObjectByName('chest_lid');
+          if (lid) adventureModelsRef.current.set(object.id, { node: lid, closedRotation: lid.rotation.x });
         }
-        const position = instance.getWorldPosition(new THREE.Vector3());
-        levelPositions.push({ id: station.id, regionId: composition.regionId, x: position.x, y: position.y, z: position.z, song, interactionRadius: station.interactionRadius });
+        if (!song && object.type === ADVENTURE_OBJECT_TYPES.PRACTICE_STATION) continue;
+        levelPositions.push({ ...object, ...object.position, song, interactionRadius: object.interaction.radius });
       }
+      setInteractionObjects(levelPositions);
+      updateChestLids(adventureModelsRef.current, adventureStateRef.current);
 
       // 6. Spawn del Héroe
       const charInfo = getCharacterModel(profile.avatarId);
@@ -593,6 +571,7 @@ export default function World3DView({
       if(collisionDebug)disposeCollisionDebug(collisionDebug);
       debugGroupRef.current=null;
       collisionWorldRef.current=null;
+      adventureModelsRef.current.clear();
       scene.clear();
     };
   }, [profile.avatarId]);
@@ -621,18 +600,29 @@ export default function World3DView({
         </div>
       )}
 
-      {nearbyStation && !showTutorial && (
+      {active && nearbyStation && !showTutorial && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto w-max max-w-[calc(100%-2rem)]">
           <button
             onClick={() => handleTriggerLesson(nearbyStation)}
             className="bg-slate-900/85 hover:bg-slate-900 active:scale-95 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase shadow-xl border border-sky-400/40 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all hover:border-sky-400"
           >
             <Sparkles size={14} className="text-amber-400 fill-amber-400" />
-            <span className="text-slate-200">{completedStationIds.includes(nearbyStation.id) ? 'Completada · ' : ''}<span className="text-sky-300 font-black">E</span> - Practicar: <strong className="text-white">{nearbyStation.song.title}</strong></span>
+            <span className="text-slate-200">{nearbyStation.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST
+              ? `${adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.COMPLETED ? 'Completado · E - Practicar' : adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.LOCKED ? 'E - Examinar · Completa la lección anterior' : 'E - Abrir'}: ${nearbyStation.label}`
+              : <>{completedStationIds.includes(nearbyStation.id) ? 'Completada · ' : ''}<span className="text-sky-300 font-black">E</span> - Practicar: <strong className="text-white">{nearbyStation.song.title}</strong></>}</span>
             <Play size={13} fill="white" className="text-white" />
           </button>
         </div>
       )}
+
+      {active && debugMode && <div className="absolute bottom-16 left-4 z-40 max-h-[40vh] w-[min(440px,calc(100%-2rem))] overflow-auto rounded-lg border border-white/20 bg-zinc-950/90 p-3 text-[11px]">
+        {interactionObjects.map(object => <div key={object.id} className="border-b border-white/15 py-2">
+          <div>{object.id} · {object.type}</div>
+          <div>STATE: {adventureState?.entries[object.id]?.state || (completedStationIds.includes(object.id) ? 'COMPLETED' : 'AVAILABLE')} · ACTIVITY: {object.song?.id ?? object.activityId ?? 'unavailable'}</div>
+          <div>REQUIREMENTS: {object.requirements?.completedObjects.join(', ') || 'none'}</div>
+          <div>REWARD: {object.reward ? `${object.reward.type} / ${object.reward.id}` : 'educational engine'}</div>
+        </div>)}
+      </div>}
 
       {/* Controles de Diagnóstico y Modo Debug */}
       <div className="absolute top-20 right-4 z-40 flex items-center gap-2">

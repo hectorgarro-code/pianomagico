@@ -4,15 +4,17 @@ import { progressService } from './services/progressService';
 import World3DView from './world/World3DView';
 import PianoStageView from './piano/PianoStageView';
 import GameTransitionManager from './transitions/GameTransitionManager';
-import { Zap, Shield } from 'lucide-react';
+import { Zap, X } from 'lucide-react';
 import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
+import AdventureDiscovery from './adventure/AdventureDiscovery.jsx';
+import { findAdventureObject, getAdventureSummary } from './adventure/adventureState.js';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
 
 export default function GameApp({ userId, onExitApp }) {
   // Estado General del Juego (WORLD vs PIANO vs TRANSITION)
-  const [flow, dispatch] = useReducer(worldActivityReducer, undefined, createWorldActivityState);
+  const [flow, dispatch] = useReducer(worldActivityReducer, userId, id => createWorldActivityState(progressService.loadAdventure(id)));
   const gameMode = flow.mode;
   const gameState = flow.game;
 
@@ -22,10 +24,17 @@ export default function GameApp({ userId, onExitApp }) {
   const [songs, setSongs] = useState([]);
   const [userPerformances, setUserPerformances] = useState([]);
   const [memoryMedals, setMemoryMedals] = useState([]);
+  const [adventureSaved, setAdventureSaved] = useState(true);
+  useEffect(() => {
+    setAdventureSaved(progressService.saveAdventure(userId, flow.game.adventure));
+  }, [userId, flow.game.adventure]);
 
   // Lección seleccionada para el desafío musical
   const selectedSong = flow.activity?.song;
   const selectedMode = flow.activity?.mode;
+  const discoveredObject = findAdventureObject(flow.discovery?.objectId);
+  const discoveredSong = songs.find(song => String(song.id) === String(discoveredObject?.activityId));
+  const adventureSummary = getAdventureSummary(gameState.adventure);
 
   // Cargar datos del usuario desde la capa progressService
   const loadUserData = useCallback(async () => {
@@ -61,6 +70,9 @@ export default function GameApp({ userId, onExitApp }) {
   // Iniciar transición hacia la Lección Musical
   const handleEnterLesson = useCallback((song, mode = 'solo', context) => {
     dispatch({ type: 'REQUEST_PIANO', song, mode, context });
+  }, []);
+  const handleDiscoverAdventure = useCallback((objectId, context) => {
+    dispatch({ type: 'DISCOVER_ADVENTURE', objectId, context });
   }, []);
 
   // Regresar de la Lección Musical al Mundo 3D
@@ -106,7 +118,7 @@ export default function GameApp({ userId, onExitApp }) {
           <div className="pointer-events-none hidden md:flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-white/15 px-4 py-1.5 rounded-full shadow-2xl">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300">
-              {gameState.quest.activeQuest}
+              {adventureSummary.segmentCompleted ? 'Recorrido del Bosque completado' : `Bosque: ${adventureSummary.completedActivityIds.length}/3 cofres completados`}
             </span>
           </div>
 
@@ -147,7 +159,7 @@ export default function GameApp({ userId, onExitApp }) {
         {(
           <div className={`absolute inset-0 w-full h-full ${gameMode === GAME_MODES.PIANO || gameMode === GAME_MODES.TRANSITION_TO_WORLD ? 'invisible pointer-events-none' : ''}`}>
             <World3DView
-              active={gameMode === GAME_MODES.WORLD}
+              active={gameMode === GAME_MODES.WORLD && !flow.discovery}
               returnContext={flow.context}
               completedStationIds={Object.keys(gameState.world.stationResults)}
               songs={songs}
@@ -157,9 +169,22 @@ export default function GameApp({ userId, onExitApp }) {
               initialPosition={gameState.player.position}
               initialRotation={gameState.player.rotation}
               onEnterLesson={handleEnterLesson}
+              onDiscoverAdventure={handleDiscoverAdventure}
+              adventureState={gameState.adventure}
             />
           </div>
         )}
+
+        {gameMode === GAME_MODES.WORLD && discoveredObject && <AdventureDiscovery
+          object={discoveredObject} song={discoveredSong} state={gameState.adventure.entries[discoveredObject.id].state}
+          onClose={() => dispatch({ type: 'CLOSE_DISCOVERY' })}
+          onStart={() => handleEnterLesson(discoveredSong, 'solo', flow.context)}
+        />}
+        {gameMode === GAME_MODES.WORLD && gameState.adventure.lastReward && !flow.discovery && <div role="status" className="absolute bottom-16 left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border border-emerald-400 bg-zinc-900 px-4 py-3 text-sm">
+          <span>Recompensa: {gameState.adventure.lastReward.label}</span>
+          <button onClick={() => dispatch({ type: 'ACK_REWARD' })} title="Cerrar recompensa" aria-label="Cerrar recompensa"><X size={16}/></button>
+        </div>}
+        {!adventureSaved && gameMode === GAME_MODES.WORLD && <p role="alert" className="absolute bottom-16 left-4 z-40 max-w-xs bg-zinc-900 p-3 text-xs">No se pudo guardar la aventura en este dispositivo. El progreso se conserva durante esta sesión.</p>}
 
         {/* VISTA 2: PIANO STAGE (Encapsulado del motor musical de PianoMagico) */}
         {(gameMode === GAME_MODES.PIANO || gameMode === GAME_MODES.TRANSITION_TO_WORLD) && (
