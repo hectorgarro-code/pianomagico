@@ -1,0 +1,93 @@
+import test, { before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { createServer } from 'vite';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { profileEntryReducer, getEntryScreen } from './profileEntryFlow.js';
+import { createAdventureState, beginAdventureActivity, settleAdventureActivity } from '../../game/adventure/adventureState.js';
+import { getNewAdventurePhase, hasAdventureProgress } from '../../game/adventure/adventureStart.js';
+import { createWorldActivityState, worldActivityReducer } from '../../game/state/worldActivityFlow.js';
+import { createAdventurePersistence } from '../../game/services/adventurePersistence.js';
+
+let server, LoginScreen, AdventureStart;
+before(async () => {
+  server = await createServer({ server: { middlewareMode: true }, optimizeDeps: { noDiscovery: true, include: [] }, appType: 'custom', logLevel: 'error' });
+  LoginScreen = (await server.ssrLoadModule('/src/modules/core/LoginScreen.jsx')).default;
+  AdventureStart = (await server.ssrLoadModule('/src/game/adventure/AdventureStart.jsx')).default;
+});
+after(async () => { await server?.close(); });
+const profile = { id: 2, avatarId: 2, name: 'SOPHIA', total_score: 2500 };
+const renderEntry = props => renderToStaticMarkup(React.createElement(AdventureStart, { phase: 'ENTRY', profile, canContinue: false, ...props }));
+
+test('profile selection enters Valle directly; exit and refresh return only to profiles', () => {
+  assert.equal(getEntryScreen(null), 'PROFILE');
+  const loggedIn = profileEntryReducer(null, { type: 'SELECT_PROFILE', userId: 2 });
+  assert.equal(getEntryScreen(loggedIn), 'VALLE');
+  assert.equal(profileEntryReducer(loggedIn, { type: 'SELECT_INSTRUMENT', instrument: 'guitar' }), loggedIn);
+  assert.equal(profileEntryReducer(null, { type: 'SELECT_PROFILE', userId: 'not-a-user' }), null);
+  assert.equal(getEntryScreen(profileEntryReducer(loggedIn, { type: 'EXIT_VALLE' })), 'PROFILE');
+  assert.equal(getEntryScreen(profileEntryReducer(null, { type: 'SELECT_PROFILE', userId: '2' })), 'VALLE');
+});
+
+test('rendered profile screen has real profiles, never instrument selection or character customization', () => {
+  const html = renderToStaticMarkup(React.createElement(LoginScreen, { users: [profile] }));
+  assert.match(html, /VALLE DE LAS NOTAS/);
+  assert.match(html, /Entrar como SOPHIA/);
+  assert.match(html, /2500/);
+  assert.doesNotMatch(html, /Galáctica|Galactic|Instrumento|Uke Hero|Piano Mágico|Personaje Anterior|canvas/i);
+});
+
+test('New leads to character selection, intro and approved Plaza startup without legacy screens', () => {
+  const adventure = createAdventureState();
+  assert.equal(getNewAdventurePhase(adventure), 'CHARACTER');
+  assert.doesNotMatch(renderEntry(), /Continuar/);
+  const characters = renderEntry({ phase: 'CHARACTER' });
+  for (const name of ['Knight', 'Mage', 'Barbarian', 'Rogue']) assert.match(characters, new RegExp(name));
+  assert.match(characters, /Confirmar/);
+  const intro = renderEntry({ phase: 'INTRO' });
+  assert.match(intro, /Tu aventura comienza en la Plaza/);
+  assert.match(intro, /Comenzar/);
+  const playing = worldActivityReducer(createWorldActivityState(adventure), { type: 'START_ADVENTURE' });
+  assert.equal(playing.mode, 'WORLD');
+  assert.deepEqual(playing.game.player.position, { x: 0, y: 0.15, z: 5 });
+});
+
+test('existing adventure offers Continue and New; requesting or cancelling New never resets progress', () => {
+  const completed = settleAdventureActivity(beginAdventureActivity(createAdventureState(), 'forest-chest-01', 1), 'forest-chest-01', { activityId: 1, completed: true });
+  const before = structuredClone(completed);
+  assert.equal(getNewAdventurePhase(completed), 'CONFIRM_NEW');
+  assert.deepEqual(completed, before);
+  assert.match(renderEntry({ canContinue: true }), /Continuar/);
+  assert.match(renderEntry({ canContinue: true }), /Nueva Aventura/);
+  const confirmation = renderEntry({ phase: 'CONFIRM_NEW' });
+  assert.match(confirmation, /alertdialog/);
+  assert.match(confirmation, /Cancelar/);
+  assert.match(confirmation, /progreso educativo/);
+  assert.equal(getNewAdventurePhase(completed, true), 'CHARACTER');
+});
+
+test('Continue restores character, objective and chests; confirmed New resets only Adventure', () => {
+  const storage = new Map([['educational-history', 'performances-and-medals'], ['user_avatar_2', '2']]);
+  const persistence = createAdventurePersistence(() => ({ getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) }));
+  let adventure = settleAdventureActivity(beginAdventureActivity(createAdventureState(), 'forest-chest-01', 1), 'forest-chest-01', { activityId: 1, completed: true });
+  adventure = { ...adventure, journey: { started: true, objective: 'FIND_FIRST_CHEST' } };
+  persistence.save(2, adventure);
+  let flow = createWorldActivityState(persistence.load(2));
+  flow = worldActivityReducer(flow, { type: 'PROFILE', profile });
+  flow = worldActivityReducer(flow, { type: 'START_ADVENTURE' });
+  assert.equal(flow.game.player.characterId, 2);
+  assert.equal(flow.game.adventure.entries['forest-chest-01'].state, 'COMPLETED');
+  assert.equal(flow.game.adventure.journey.objective, 'FIND_FIRST_CHEST');
+  const reset = worldActivityReducer(flow, { type: 'RESET_ADVENTURE' });
+  persistence.save(2, reset.game.adventure);
+  assert.equal(hasAdventureProgress(persistence.load(2)), false);
+  assert.equal(reset.game.progression.xp, 2500);
+  assert.equal(reset.game.player.characterId, 2);
+  assert.equal(storage.get('educational-history'), 'performances-and-medals');
+  assert.equal(storage.get('user_avatar_2'), '2');
+});
+
+test('normal startup hides development controls; explicit debug can expose them', () => {
+  assert.doesNotMatch(renderEntry(), /Desarrollo|Saltar intro|Reiniciar aventura/);
+  assert.match(renderEntry({ debugEnabled: true }), /Desarrollo/);
+});

@@ -18,6 +18,7 @@ function updateChestLids(models, state) {
 }
 
 export default function World3DView({
+  debugEnabled = false,
   active = true,
   returnContext = null,
   completedStationIds = [],
@@ -30,6 +31,8 @@ export default function World3DView({
   onEnterLesson,
   onDiscoverAdventure,
   adventureState,
+  onObjectiveProgress,
+  onAdventureDebug,
   onPlayerTransformChange
 }) {
   const containerRef = useRef(null);
@@ -55,11 +58,11 @@ export default function World3DView({
     else break;
   }
 
-  // Ocultar tutorial inicial tras 5 segundos
-  useEffect(() => {
-    const t = setTimeout(() => setShowTutorial(false), 5000);
-    return () => clearTimeout(t);
-  }, []);
+  const tutorialVisibleRef = useRef(true);
+  const walkedDistanceRef = useRef(0);
+  const objectiveCallbackRef = useRef(onObjectiveProgress);
+  objectiveCallbackRef.current = onObjectiveProgress;
+  const reportedObjectiveRef = useRef(null);
 
   // Player state refs (Preserva posición recibida o valor inicial)
   const keysRef = useRef({ forward: false, backward: false, left: false, right: false, shift: false, space: false });
@@ -456,6 +459,17 @@ export default function World3DView({
         const next=collisionWorld.move(playerPosRef.current,{x:moveDir.x*baseSpeed*delta,z:moveDir.z*baseSpeed*delta});
         Object.assign(playerPosRef.current,next);
         isMoving=Math.hypot(next.x-beforeX,next.z-beforeZ)>1e-5;
+        if (isMoving) {
+          walkedDistanceRef.current += Math.hypot(next.x-beforeX,next.z-beforeZ);
+          if (tutorialVisibleRef.current) { tutorialVisibleRef.current = false; setShowTutorial(false); }
+          const journey = adventureStateRef.current?.journey;
+          const enteredForest = next.z <= -19.5 && next.x >= 6 && next.x <= 25;
+          const event = enteredForest ? 'FOREST' : walkedDistanceRef.current >= 3 || next.z < -10 ? 'WALKED' : null;
+          if (journey?.started && event && event !== reportedObjectiveRef.current) {
+            reportedObjectiveRef.current = event;
+            objectiveCallbackRef.current?.({ ...playerPosRef.current }, walkedDistanceRef.current);
+          }
+        }
       }
 
       const groundY = getTerrainHeight(playerPosRef.current.x, playerPosRef.current.z);
@@ -592,16 +606,16 @@ export default function World3DView({
       )}
 
       {showTutorial && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-none">
+        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-40 w-max max-w-[calc(100%-2rem)] animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-none">
           <div className="bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-white/90 text-xs font-bold shadow-xl flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-            <span>Explora el valle con <strong className="text-amber-300">WASD</strong> y gira la vista arrastrando el ratón</span>
+            <span>WASD / flechas: mover · Shift: correr · E: interactuar</span>
           </div>
         </div>
       )}
 
       {active && nearbyStation && !showTutorial && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto w-max max-w-[calc(100%-2rem)]">
+        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto w-max max-w-[calc(100%-2rem)]">
           <button
             onClick={() => handleTriggerLesson(nearbyStation)}
             className="bg-slate-900/85 hover:bg-slate-900 active:scale-95 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase shadow-xl border border-sky-400/40 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all hover:border-sky-400"
@@ -615,7 +629,17 @@ export default function World3DView({
         </div>
       )}
 
-      {active && debugMode && <div className="absolute bottom-16 left-4 z-40 max-h-[40vh] w-[min(440px,calc(100%-2rem))] overflow-auto rounded-lg border border-white/20 bg-zinc-950/90 p-3 text-[11px]">
+      {debugEnabled && active && debugMode && <div className="absolute bottom-16 left-4 z-40 max-h-[40vh] w-[min(440px,calc(100%-2rem))] overflow-auto rounded-lg border border-white/20 bg-zinc-950/90 p-3 text-[11px]">
+        {import.meta.env.DEV && onAdventureDebug && <div className="flex gap-3 pb-3">
+          <button onClick={onAdventureDebug}>Nueva Aventura / Personaje / Reinicio</button>
+          <button onClick={() => {
+            Object.assign(playerPosRef.current, { x: PLAZA_COMPOSITION.spawn.position[0], y: PLAZA_COMPOSITION.spawn.position[1], z: PLAZA_COMPOSITION.spawn.position[2] });
+            playerRotYRef.current = PLAZA_COMPOSITION.spawn.rotation[1];
+            Object.assign(cameraAngleRef.current, { targetYaw: PLAZA_COMPOSITION.camera.yaw, currentYaw: PLAZA_COMPOSITION.camera.yaw, targetPitch: PLAZA_COMPOSITION.camera.pitch, currentPitch: PLAZA_COMPOSITION.camera.pitch });
+            playerVelYRef.current = 0; isGroundedRef.current = true;
+            for (const key of Object.keys(keysRef.current)) keysRef.current[key] = false;
+          }}>Spawn Plaza</button>
+        </div>}
         {interactionObjects.map(object => <div key={object.id} className="border-b border-white/15 py-2">
           <div>{object.id} · {object.type}</div>
           <div>STATE: {adventureState?.entries[object.id]?.state || (completedStationIds.includes(object.id) ? 'COMPLETED' : 'AVAILABLE')} · ACTIVITY: {object.song?.id ?? object.activityId ?? 'unavailable'}</div>
@@ -625,7 +649,7 @@ export default function World3DView({
       </div>}
 
       {/* Controles de Diagnóstico y Modo Debug */}
-      <div className="absolute top-20 right-4 z-40 flex items-center gap-2">
+      {debugEnabled && <div className="absolute top-20 right-4 z-40 flex items-center gap-2">
         <button
           onClick={() => setDebugMode(!debugMode)}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all active:scale-95 border ${
@@ -647,10 +671,10 @@ export default function World3DView({
           <Database size={13} />
           <span>Assets KayKit</span>
         </button>
-      </div>
+      </div>}
 
       {/* Métricas Rápidas en modo Debug */}
-      {debugMode && worldMetrics && (
+      {debugEnabled && debugMode && worldMetrics && (
         <div className="absolute top-32 right-4 z-40 bg-slate-900/90 border border-amber-400/30 backdrop-blur-md px-3 py-2 rounded-xl text-[11px] text-slate-200 font-mono flex flex-col gap-1 shadow-2xl">
           <div className="text-amber-300 font-bold border-b border-white/10 pb-1">Plaza / {PLAZA_COMPOSITION.constructionPhase || 'Legacy'}</div>
           <div>Objetos instanciados: <span className="text-emerald-400 font-bold">{worldMetrics.objectsPlaced}</span></div>
@@ -664,11 +688,11 @@ export default function World3DView({
         </div>
       )}
 
-      <div className="absolute bottom-4 left-5 z-20 pointer-events-none hidden sm:flex items-center gap-2 bg-slate-950/45 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/70 shadow-lg">
+      {!onObjectiveProgress && <div className="absolute bottom-4 left-5 z-20 pointer-events-none hidden sm:flex items-center gap-2 bg-slate-950/45 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/70 shadow-lg">
         <span className="text-[10px] font-medium text-slate-300">
           <span className="text-amber-300 font-bold">WASD</span> Mover • <span className="text-amber-300 font-bold">Shift</span> Correr • <span className="text-amber-300 font-bold">Espacio</span> Saltar • <span className="text-amber-300 font-bold">Arrastrar</span> Mirar
         </span>
-      </div>
+      </div>}
 
       {/* Modal de Diagnóstico de Assets */}
       <AssetDiagnosticModal

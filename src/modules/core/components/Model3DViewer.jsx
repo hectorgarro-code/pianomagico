@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 // Cache for loaded GLTF objects to avoid refetching
 const gltfCache = new Map();
@@ -140,7 +141,7 @@ export default function Model3DViewer({
         if (!isMounted) return;
 
         // Clone model scene cleanly
-        const model = gltf.scene.clone(true);
+        const model = SkeletonUtils.clone(gltf.scene);
         model.scale.set(scale, scale, scale);
         model.position.set(0, yOffset, 0);
 

@@ -8,6 +8,8 @@ import { Zap, X } from 'lucide-react';
 import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
 import AdventureDiscovery from './adventure/AdventureDiscovery.jsx';
 import { findAdventureObject, getAdventureSummary } from './adventure/adventureState.js';
+import AdventureStart from './adventure/AdventureStart.jsx';
+import { hasAdventureProgress, getNewAdventurePhase, OBJECTIVES } from './adventure/adventureStart.js';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -17,6 +19,20 @@ export default function GameApp({ userId, onExitApp }) {
   const [flow, dispatch] = useReducer(worldActivityReducer, userId, id => createWorldActivityState(progressService.loadAdventure(id)));
   const gameMode = flow.mode;
   const gameState = flow.game;
+  const [startPhase, setStartPhase] = useState('ENTRY');
+  const [worldVisit, setWorldVisit] = useState(0);
+  const debugEnabled = import.meta.env.DEV && new URLSearchParams(globalThis.location?.search || '').get('debug') === '1';
+  const handleObjective = useCallback((position, distance) => dispatch({ type: 'OBJECTIVE', position, distance }), []);
+  const beginAdventure = () => { dispatch({ type: 'START_ADVENTURE' }); setStartPhase('PLAYING'); };
+  const resetAdventure = () => { dispatch({ type: 'RESET_ADVENTURE' }); setWorldVisit(value => value + 1); setStartPhase('ENTRY'); };
+  const newAdventure = (confirmed = false) => {
+    const phase = getNewAdventurePhase(gameState.adventure, confirmed);
+    if (phase === 'CHARACTER') {
+      dispatch({ type: 'RESET_ADVENTURE' });
+      setWorldVisit(value => value + 1);
+    }
+    setStartPhase(phase);
+  };
 
   // Datos pedagógicos y de backend
   const [profile, setProfile] = useState(null);
@@ -99,6 +115,18 @@ export default function GameApp({ userId, onExitApp }) {
     </div>
   );
 
+  if (startPhase !== 'PLAYING') return <AdventureStart
+    phase={startPhase} profile={profile} canContinue={hasAdventureProgress(gameState.adventure)}
+    onPhase={setStartPhase} onBegin={beginAdventure} onContinue={beginAdventure}
+    onNewAdventure={newAdventure} debugEnabled={debugEnabled}
+    onCharacter={async avatarId => {
+      const saved = await progressService.selectCharacter(userId, avatarId);
+      if (!saved || saved.avatarId !== avatarId) throw new Error('Character not confirmed');
+      setProfile(saved); dispatch({ type: 'PROFILE', profile: saved });
+    }}
+    onExit={onExitApp} onReset={resetAdventure}
+  />;
+
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 select-none">
       {/* HUD SUPERIOR DEL VIDEOJUEGO (Solo visible en WORLD) */}
@@ -136,13 +164,16 @@ export default function GameApp({ userId, onExitApp }) {
                 if (onExitApp) onExitApp();
               }}
               className="bg-red-600/80 hover:bg-red-600 active:scale-95 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-full border border-red-400/30 backdrop-blur-md shadow-2xl transition-all cursor-pointer"
-              title="Salir al Menú"
+              title="Volver a perfiles"
             >
               Salir
             </button>
           </div>
         </div>
       )}
+      {gameMode === GAME_MODES.WORLD && !flow.discovery && <div role="status" className="absolute top-14 left-3 z-40 max-w-[calc(100%-6rem)] rounded-lg bg-zinc-950/80 px-3 py-2 text-xs pointer-events-none">
+        {OBJECTIVES[gameState.adventure.journey.objective]}
+      </div>}
 
       {/* GESTOR DE ESCENAS Y TRANSICIONES CINEMATOGRÁFICAS */}
       <GameTransitionManager
@@ -159,6 +190,8 @@ export default function GameApp({ userId, onExitApp }) {
         {(
           <div className={`absolute inset-0 w-full h-full ${gameMode === GAME_MODES.PIANO || gameMode === GAME_MODES.TRANSITION_TO_WORLD ? 'invisible pointer-events-none' : ''}`}>
             <World3DView
+              key={worldVisit}
+              debugEnabled={debugEnabled}
               active={gameMode === GAME_MODES.WORLD && !flow.discovery}
               returnContext={flow.context}
               completedStationIds={Object.keys(gameState.world.stationResults)}
@@ -171,6 +204,8 @@ export default function GameApp({ userId, onExitApp }) {
               onEnterLesson={handleEnterLesson}
               onDiscoverAdventure={handleDiscoverAdventure}
               adventureState={gameState.adventure}
+              onObjectiveProgress={handleObjective}
+              onAdventureDebug={() => setStartPhase('ENTRY')}
             />
           </div>
         )}

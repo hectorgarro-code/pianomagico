@@ -69,6 +69,15 @@ try {
     case 'update_profile':
         $userId = isset($input->userId) ? (int)$input->userId : null;
         if (!$userId) { echo json_encode(["error" => "No user_id"]); break; }
+        // Character selection must never overwrite educational XP or the profile name.
+        if (isset($input->avatarOnly) && $input->avatarOnly === true) {
+            $avatarId = isset($input->avatarId) ? (int)$input->avatarId : 0;
+            if ($avatarId < 1 || $avatarId > 4) { echo json_encode(["error" => "Invalid avatar"]); break; }
+            $stmt = $conn->prepare("UPDATE user_profile SET avatar_id = :avatar_id WHERE user_id = :user_id");
+            $stmt->execute([':avatar_id' => $avatarId, ':user_id' => $userId]);
+            echo json_encode(["message" => "Profile updated"]);
+            break;
+        }
         $stmt = $conn->prepare("UPDATE user_profile SET name = :name, avatar_id = :avatar_id, total_score = :total_score WHERE user_id = :user_id");
         $stmt->bindParam(':name', $input->name);
         $stmt->bindParam(':avatar_id', $input->avatarId);

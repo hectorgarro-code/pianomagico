@@ -9,6 +9,17 @@ import { adventurePersistence } from './adventurePersistence.js';
 const API_BASE = 'backend/api.php';
 
 export const progressService = {
+  async selectCharacter(userId, avatarId) {
+    if (!userId || ![1, 2, 3, 4].includes(avatarId)) throw new Error('Invalid character');
+    const res = await fetch(`${API_BASE}?action=update_profile`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, avatarId, avatarOnly: true })
+    });
+    const result = await res.json();
+    if (!res.ok || result.error || result.message !== 'Profile updated') throw new Error('Character not saved');
+    try { globalThis.localStorage?.setItem(`user_avatar_${userId}`, avatarId); } catch { /* Backend remains authoritative when storage is disabled. */ }
+    return this.getProfile(userId);
+  },
   loadAdventure: userId => adventurePersistence.load(userId),
   saveAdventure: (userId, state) => adventurePersistence.save(userId, state),
   /**

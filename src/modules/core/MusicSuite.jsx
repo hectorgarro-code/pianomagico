@@ -1,86 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import LoginScreen from './LoginScreen';
-import InstrumentSelection from './InstrumentSelection';
-import GameApp from '../../game/GameApp'; // Nuevo Orquestador del Videojuego 3D
-import PianoMagico from '../piano-magico/PianoMagico'; // Piano Mágico (Legacy direct)
-import UkeHero from '../uke-hero/UkeHero'; // Ukelele
-import MusicStudio from '../studio/MusicStudio'; // Estudio Grabación
-
-const API_URL = 'backend/api.php';
+import GameApp from '../../game/GameApp';
+import { profileEntryReducer, getEntryScreen } from './profileEntryFlow.js';
 
 export default function MusicSuite() {
-    const [userId, setUserId] = useState(null);
-    const [profile, setProfile] = useState(null);
-    const [currentApp, setCurrentApp] = useState('menu'); // 'menu', 'piano', 'guitar'
+    const [userId, dispatch] = useReducer(profileEntryReducer, null);
     const [users, setUsers] = useState([]);
-
-    // Cargar usuarios al iniciar
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [retry, setRetry] = useState(0);
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const res = await fetch(`${API_URL}?action=get_users`);
-                const data = await res.json();
-                setUsers(data || []);
-            } catch (e) {
-                console.error("Error fetching users:", e);
-            }
-        };
-        fetchUsers();
-    }, []);
+        if (userId !== null) return;
+        const controller = new AbortController();
+        setLoading(true);
+        setError(null);
+        fetch('backend/api.php?action=get_users', { signal: controller.signal })
+            .then(async response => {
+                if (!response.ok) throw new Error('No se pudieron cargar los perfiles.');
+                const data = await response.json();
+                if (!Array.isArray(data)) throw new Error('No se pudieron cargar los perfiles.');
+                if (!controller.signal.aborted) setUsers(data);
+            })
+            .catch(reason => { if (!controller.signal.aborted) setError(reason.message); })
+            .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+        return () => controller.abort();
+    }, [retry, userId]);
 
-    // Cargar perfil cuando userId cambie
-    useEffect(() => {
-        if (!userId) {
-            setProfile(null);
-            setCurrentApp('menu');
-            return;
-        }
-        const loadProfile = async () => {
-            try {
-                const resProfile = await fetch(`${API_URL}?action=get_profile&user_id=${userId}`);
-                const dataProfile = await resProfile.json();
-                const savedAvatar = localStorage.getItem(`user_avatar_${userId}`);
-                if (dataProfile) setProfile({ 
-                    name: dataProfile.name, 
-                    avatarId: savedAvatar ? Number(savedAvatar) : dataProfile.avatar_id, 
-                    totalScore: dataProfile.total_score 
-                });
-            } catch (e) {
-                console.error("Error fetching profile", e);
-            }
-        };
-        loadProfile();
-    }, [userId]);
+    if (getEntryScreen(userId) === 'PROFILE') return <LoginScreen
+        users={users} loading={loading} error={error} onRetry={() => setRetry(value => value + 1)}
+        onLogin={id => {
+            if (users.some(user => Number(user.id) === Number(id))) dispatch({ type: 'SELECT_PROFILE', userId: id });
+        }}
+    />;
 
-    const handleLogin = (id) => {
-        setUserId(id);
-        setCurrentApp('piano');
-    };
-
-    const handleLogout = () => {
-        setUserId(null);
-    };
-
-    // Renderizar la vista correspondiente
-    if (!userId) {
-        return <LoginScreen users={users} onLogin={handleLogin} />;
-    }
-
-    if (currentApp === 'menu') {
-        return <InstrumentSelection profile={profile} onSelectApp={setCurrentApp} onLogout={handleLogout} />;
-    }
-
-    if (currentApp === 'piano') {
-        return <GameApp userId={userId} onExitApp={() => setCurrentApp('menu')} />;
-    }
-
-    if (currentApp === 'guitar') {
-        return <UkeHero userId={userId} onExit={() => setCurrentApp('menu')} />;
-    }
-
-    if (currentApp === 'studio') {
-        return <MusicStudio userId={userId} onExit={() => setCurrentApp('menu')} />;
-    }
-
-    return null;
+    return <GameApp key={userId} userId={userId} onExitApp={() => dispatch({ type: 'EXIT_VALLE' })} />;
 }

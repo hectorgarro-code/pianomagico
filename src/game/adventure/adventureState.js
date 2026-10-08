@@ -1,4 +1,5 @@
 import { FOREST_LESSON_CHESTS, ADVENTURE_OBJECT_TYPES, REWARD_TYPES } from '../world/composition/forestAdventureComposition.js';
+import { normalizeJourney } from './adventureStart.js';
 
 export const ADVENTURE_STATES = Object.freeze({ LOCKED: 'LOCKED', AVAILABLE: 'AVAILABLE', IN_PROGRESS: 'IN_PROGRESS', COMPLETED: 'COMPLETED' });
 export const findAdventureObject = id => FOREST_LESSON_CHESTS.find(object => object.id === id);
@@ -24,7 +25,7 @@ export function createAdventureState(snapshot) {
       entries[object.id] = { state: ADVENTURE_STATES.COMPLETED, activityId: object.activityId, claimedRewards: [object.reward.id] };
     }
   }
-  return { schemaVersion: 1, entries: refreshAvailability(entries), lastReward: null };
+  return { schemaVersion: 1, entries: refreshAvailability(entries), lastReward: null, journey: normalizeJourney(snapshot?.schemaVersion === 1 ? snapshot.journey : null) };
 }
 
 export function canRequestAdventureActivity(state, objectId, activityId) {

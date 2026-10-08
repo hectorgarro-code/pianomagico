@@ -1,5 +1,7 @@
 import { INITIAL_GAME_STATE } from './GameState.js';
 import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObject, settleAdventureActivity } from '../adventure/adventureState.js';
+import { createAdventureState } from '../adventure/adventureState.js';
+import { advanceObjective } from '../adventure/adventureStart.js';
 
 export const GAME_MODES = Object.freeze({
   WORLD: 'WORLD', PIANO: 'PIANO', PAUSE: 'PAUSE',
@@ -20,6 +22,18 @@ export function restoreWorldContext(context, collisionWorld, heightAt) {
 
 export function worldActivityReducer(state, action) {
   switch (action.type) {
+    case 'START_ADVENTURE':
+      return { ...state, game: { ...state.game, adventure: { ...state.game.adventure, journey: { ...state.game.adventure.journey, started: true } } } };
+    case 'OBJECTIVE': {
+      if (state.mode !== GAME_MODES.WORLD) return state;
+      const journey = advanceObjective(state.game.adventure.journey, action.position, action.distance);
+      return journey === state.game.adventure.journey ? state : { ...state, game: { ...state.game, adventure: { ...state.game.adventure, journey } } };
+    }
+    case 'RESET_ADVENTURE': {
+      if (state.mode !== GAME_MODES.WORLD) return state;
+      return { ...state, context: null, discovery: null, activity: null, lastResult: null,
+        game: { ...state.game, adventure: createAdventureState(), player: { ...state.game.player, position: structuredClone(INITIAL_GAME_STATE.player.position), rotation: INITIAL_GAME_STATE.player.rotation, checkpoint: null, lastInteractionObject: null }, world: structuredClone(INITIAL_GAME_STATE.world) } };
+    }
     case 'DISCOVER_ADVENTURE': {
       if (state.mode !== GAME_MODES.WORLD || state.discovery) return state;
       const object = findAdventureObject(action.objectId);
