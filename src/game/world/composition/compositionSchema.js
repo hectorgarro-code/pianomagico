@@ -1,6 +1,11 @@
 /** Serializable authoring contract: metres, +Y up, north -Z, XYZ Euler radians.
  * Scale has three positive components. Terrain grounding adds position Y to
  * sampled ground height; absolute grounding uses position Y directly.
+ * Optional instance collision defaults to {type:'none'}. Solid shapes are
+ * circle or box; source base samples the lowest native mesh band (tree trunks),
+ * bounds uses the full native bounds. Optional local center [x,z], radius or
+ * size [width,depth] overrides allow reusable authored shapes. Upright Y rotation
+ * and nonuniform scale are supported. Interaction radius stays on stations.
  * Landmarks reference instances without duplicating them. Boundaries and
  * sightlines are diagnostics, not automatic collision or placement systems.
  * Optional constructionPhase gates the Plaza-only review. Its authored terrain
@@ -11,6 +16,11 @@
  * A terrain-blend path colors the terrain using its positive edgeBlend in metres.
  * Optional positive endFade blends its final metres into grass. Optional atmosphere
  * defines a 24-bit color and positive near/far distances (far > near) for linear fog.
+ * Optional reservations are semantic zones, never materialized assets. Optional
+ * instanceId identifies the explicitly authorized occupant, not an automatic placement.
+ * vegetationMasses group instance references with an authored purpose.
+ * Terrain blendBounds blends a neighboring height field outside a protected radius.
+ * Plateaus define soft clearings; startFade optionally blends path entry metres.
  * Camera lookAhead is a nonnegative orbit-relative distance; portraitDistance
  * is an optional positive distance for vertical viewports. Station lessonRef
  * first-song binds the original first lesson; other strings are exact song IDs.

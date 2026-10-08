@@ -45,13 +45,21 @@ export function validateComposition(composition, { registeredAssets = [], assetE
   }
   if (!Number.isFinite(composition.terrain?.baseY) || !positive(composition.terrain?.flatRadius)) error('INVALID_TERRAIN', 'terrain');
   if (composition.constructionPhase !== undefined && !['5A', '5B', '5C', '5D', '5E', '5F'].includes(composition.constructionPhase)) error('INVALID_PHASE', 'constructionPhase');
-  if (composition.constructionPhase) {
+  if (composition.constructionPhase || composition.terrain?.landforms) {
     const falloff = composition.terrain?.outerFalloff;
     if (falloff !== undefined && (!positive(falloff?.width) || !positive(falloff?.depth))) error('INVALID_TERRAIN', 'terrain.outerFalloff');
-    if (!positive(composition.terrain?.reviewExtent) || !positive(composition.terrain?.transitionWidth) || !Number.isFinite(composition.terrain?.rimHeight) || !Array.isArray(composition.terrain?.landforms)) error('INVALID_TERRAIN', 'terrain.landforms');
+    if (composition.constructionPhase && (!positive(composition.terrain?.reviewExtent) || !positive(composition.terrain?.transitionWidth) || !Number.isFinite(composition.terrain?.rimHeight))) error('INVALID_TERRAIN','terrain');
+    if (!Array.isArray(composition.terrain?.landforms)) error('INVALID_TERRAIN', 'terrain.landforms');
     else for (const form of composition.terrain.landforms) {
       if (!text(form.id) || !vector(form.center, 2) || !vector(form.radius, 2) || !form.radius.every(positive) || !Number.isFinite(form.height)) error('INVALID_LANDFORM', form.id);
     }
+  }
+  if (composition.stage !== undefined && !['macro','medium','micro'].includes(composition.stage)) error('INVALID_STAGE','stage');
+  const bounds=composition.terrain?.blendBounds;
+  if (bounds && (!vector(bounds.min,2)||!vector(bounds.max,2)||!bounds.min.every((v,i)=>v<bounds.max[i])||!positive(bounds.edgeWidth)||!positive(bounds.protectedRadius))) error('INVALID_TERRAIN','terrain.blendBounds');
+  if (composition.terrain?.plateaus !== undefined) {
+    if (!Array.isArray(composition.terrain.plateaus)) error('INVALID_TERRAIN','terrain.plateaus');
+    else for(const p of composition.terrain.plateaus) if(!text(p.id)||!vector(p.center,2)||!positive(p.radius)||!positive(p.blendWidth)||!Number.isFinite(p.height)) error('INVALID_TERRAIN','terrain.plateaus');
   }
   const lists = {};
   const ids = new Map();
@@ -63,6 +71,15 @@ export function validateComposition(composition, { registeredAssets = [], assetE
       if (!item || typeof item !== 'object' || !text(item.id)) { error('ID_REQUIRED', at); continue; }
       if (ids.has(item.id)) error('DUPLICATE_ID', item.id);
       else ids.set(item.id, { collection, item });
+    }
+  }
+  for(const collection of ['reservations','vegetationMasses']) {
+    lists[collection]=composition[collection]===undefined?[]:composition[collection];
+    if(!Array.isArray(lists[collection])) { error('INVALID_COLLECTION',collection);lists[collection]=[]; }
+    for(const item of lists[collection]) {
+      if(!item||!text(item.id)||!text(item.purpose)) {error('INVALID_SEMANTIC_ZONE',collection);continue;}
+      if(ids.has(item.id)) error('DUPLICATE_ID',item.id);
+      else ids.set(item.id,{collection,item});
     }
   }
   const reference = (id, at, collection) => {
@@ -78,6 +95,17 @@ export function validateComposition(composition, { registeredAssets = [], assetE
     if (!vector(item.position, 3) || !vector(item.rotation, 3)) error('INVALID_TRANSFORM', at);
     if (!vector(item.scale, 3) || !item.scale.every(positive)) error('INVALID_SCALE', at);
     if (!schema.grounding.includes(item.grounding)) error('INVALID_GROUNDING', at);
+    if(item.collision!==undefined) {
+      const c=item.collision;
+      if(!c||typeof c!=='object'||!['none','solid'].includes(c.type))error('INVALID_COLLISION',at);
+      else if(c.type==='solid') {
+        if(!['circle','box'].includes(c.shape)||!['base','bounds'].includes(c.source))error('INVALID_COLLISION',at);
+        if(c.center!==undefined&&!vector(c.center,2))error('INVALID_COLLISION',at);
+        if(c.radius!==undefined&&(c.shape!=='circle'||!positive(c.radius)))error('INVALID_COLLISION',at);
+        if(c.size!==undefined&&(c.shape!=='box'||!vector(c.size,2)||!c.size.every(positive)))error('INVALID_COLLISION',at);
+        if(vector(item.rotation,3)&&(Math.abs(item.rotation[0])>1e-7||Math.abs(item.rotation[2])>1e-7))error('COLLISION_REQUIRES_UPRIGHT_INSTANCE',at);
+      }
+    }
     if (!schema.roles.includes(item.role)) error('INVALID_ROLE', at);
     if (item.kind !== undefined && !schema.kinds.includes(item.kind)) error('INVALID_KIND', at);
     for (const field of ['castShadow', 'receiveShadow']) if (item[field] !== undefined && typeof item[field] !== 'boolean') error('INVALID_SHADOW', `${at}.${field}`);
@@ -102,8 +130,9 @@ export function validateComposition(composition, { registeredAssets = [], assetE
     if (item.visualImplementation === 'provisional-ribbon') warning('PROVISIONAL_PATH_ART', item.id);
     if (item.visualImplementation === 'terrain-blend' && !positive(item.edgeBlend)) error('INVALID_PATH_BLEND', item.id);
     if (item.endFade !== undefined && !positive(item.endFade)) error('INVALID_PATH_BLEND', item.id);
+    if (item.startFade !== undefined && !positive(item.startFade)) error('INVALID_PATH_BLEND', item.id);
   }
-  for (const collection of ['boundaries', 'openZones', 'clearZones']) {
+  for (const collection of ['boundaries', 'openZones', 'clearZones','reservations']) {
     for (const item of lists[collection]) {
       if (!item || typeof item !== 'object') continue;
       if (!schema.zoneShapes.includes(item.shape)) error('INVALID_ZONE_SHAPE', item.id);
@@ -116,9 +145,15 @@ export function validateComposition(composition, { registeredAssets = [], assetE
           if (Math.abs(area) < 1e-8) error('INVALID_ZONE', item.id);
         }
       }
-      if (collection !== 'boundaries' && (!Array.isArray(item.excludes) || !item.excludes.length || !item.excludes.every(text))) error('ZONE_EXCLUSIONS_REQUIRED', item.id);
+      if (['openZones','clearZones'].includes(collection) && (!Array.isArray(item.excludes) || !item.excludes.length || !item.excludes.every(text))) error('ZONE_EXCLUSIONS_REQUIRED', item.id);
       if (collection === 'boundaries' && item.purpose !== 'authoring') error('INVALID_BOUNDARY_PURPOSE', item.id);
+      if (collection === 'reservations' && item.instanceId !== undefined) reference(item.instanceId, `${item.id}.instanceId`, 'instances');
     }
+  }
+  for(const mass of lists.vegetationMasses) {
+    if(!mass||typeof mass!=='object') continue;
+    if(!Array.isArray(mass.memberIds)||!mass.memberIds.length) error('LANDMARK_MEMBERS_REQUIRED',mass.id);
+    else { if(new Set(mass.memberIds).size!==mass.memberIds.length) error('DUPLICATE_MEMBER',mass.id); for(const id of mass.memberIds) reference(id,mass.id,'instances'); }
   }
   for (const collection of ['entries', 'exits', 'pointsOfInterest']) for (const item of lists[collection]) {
     if (!item || typeof item !== 'object') continue;

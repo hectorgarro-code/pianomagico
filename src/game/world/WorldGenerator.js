@@ -15,13 +15,19 @@ import {
 import { KAYKIT_ASSETS, loadCachedModel } from '../assets/assetManifest';
 import { WORLD_BLUEPRINT } from './worldBlueprint';
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
+import { FOREST_COMPOSITION } from './composition/forestComposition.js';
 import { collectAssetUrls, validateComposition } from './composition/validateComposition.js';
+import { materializeCollider } from './collision/modelColliders.js';
+import { createCollisionOutline } from './collision/collisionDebug.js';
 
 export class WorldGenerator {
   constructor(seed = 'VALLE_DE_LAS_NOTAS_V1') {
     this.seed = seed;
     this.rng = createRNG(seed);
     this.models = new Map();
+    this.colliders = [];
+    this.collisionDebug = new THREE.Group();
+    this.collisionDebug.name = 'Collision_Debug';
     this.stats = {
       objectsPlaced: 0,
       treesCount: 0,
@@ -37,7 +43,7 @@ export class WorldGenerator {
    */
   async preloadModels() {
     const requiredUrls = PLAZA_COMPOSITION.constructionPhase
-      ? [...new Set(PLAZA_COMPOSITION.instances.map(item => item.assetUrl))]
+      ? [...new Set([...PLAZA_COMPOSITION.instances,...FOREST_COMPOSITION.instances].map(item => item.assetUrl))]
       : [
       ...new Set(PLAZA_COMPOSITION.instances.map(item => item.assetUrl)),
 
@@ -131,6 +137,10 @@ export class WorldGenerator {
     const curve = new THREE.CatmullRomCurve3(path.points.map(point => new THREE.Vector3(...point)));
     const samples = curve.getSpacedPoints(160);
     const pathLength = curve.getLength();
+    const neighboringPaths=FOREST_COMPOSITION.paths.map(p=>{
+      const c=new THREE.CatmullRomCurve3(p.points.map(point=>new THREE.Vector3(...point)));
+      return {path:p,samples:c.getSpacedPoints(160),length:c.getLength()};
+    });
     const grass = new THREE.Color(0x63b75f);
     const earth = new THREE.Color(path.color);
     const darkGrass = new THREE.Color(0x36754b);
@@ -152,6 +162,18 @@ export class WorldGenerator {
       if (path.endFade) {
         const remaining = pathLength * (1 - nearestIndex / (samples.length-1));
         weight = 1 - (1-weight) * THREE.MathUtils.smoothstep(remaining, 0, path.endFade);
+      }
+      for(const neighbor of neighboringPaths) {
+        let nearest=Infinity,index=0;
+        for(let j=0;j<neighbor.samples.length;j++) {
+          const p=neighbor.samples[j],d=Math.hypot(vx-p.x,vz-p.z);
+          if(d<nearest){nearest=d;index=j;}
+        }
+        const p=neighbor.path,t=index/(neighbor.samples.length-1);
+        let coverage=1-THREE.MathUtils.smoothstep(nearest,p.width/2,p.width/2+p.edgeBlend);
+        if(p.startFade) coverage*=THREE.MathUtils.smoothstep(neighbor.length*t,0,p.startFade);
+        if(p.endFade) coverage*=THREE.MathUtils.smoothstep(neighbor.length*(1-t),0,p.endFade);
+        weight=Math.min(weight,1-coverage);
       }
       bankColor.copy(grass).lerp(darkGrass, THREE.MathUtils.smoothstep(Math.hypot(vx, vz), 9, 22) * 0.45);
       color.copy(earth).lerp(bankColor, weight);
@@ -225,11 +247,11 @@ export class WorldGenerator {
   /**
    * Genera el conjunto arquitectónico de la Plaza de las Notas (Fase 1)
    */
-  generatePlaza(group) {
+  generateComposition(group, composition) {
     const plazaRoot = new THREE.Group();
-    plazaRoot.name = PLAZA_COMPOSITION.groupName;
-    plazaRoot.position.fromArray(PLAZA_COMPOSITION.origin);
-    for (const item of PLAZA_COMPOSITION.instances) {
+    plazaRoot.name = composition.groupName;
+    plazaRoot.position.fromArray(composition.origin);
+    for (const item of composition.instances) {
       const [x, offsetY, z] = item.position;
       const [sx, sy, sz] = item.scale;
       const y = item.grounding === "terrain" ? calculateTerrainElevation(x, z) + offsetY : offsetY;
@@ -243,6 +265,22 @@ export class WorldGenerator {
       }
     }
     group.add(plazaRoot);
+    plazaRoot.updateWorldMatrix(true,true);
+    for(const item of composition.instances) {
+      const instance=plazaRoot.children.find(obj=>obj.userData.compositionId===item.id);
+      if(!instance)continue;
+      const collider=materializeCollider(instance,item,this.models.get(item.assetUrl),composition.regionId);
+      if(collider) {
+        this.colliders.push(collider);
+        this.collisionDebug.add(createCollisionOutline(collider,collider.shape==='circle'?0x22e68d:0x36bfff,calculateTerrainElevation));
+      }
+    }
+    for(const station of composition.stations) {
+      const instance=plazaRoot.children.find(obj=>obj.userData.compositionId===station.instanceId);
+      if(!instance)continue;
+      const p=instance.getWorldPosition(new THREE.Vector3());
+      this.collisionDebug.add(createCollisionOutline({shape:'circle',x:p.x,z:p.z,radius:station.interactionRadius},0xffc247,calculateTerrainElevation));
+    }
   }
 
   /**
@@ -366,7 +404,7 @@ export class WorldGenerator {
 
     // 1. Visualización de zonas de Negative Space (Círculos amarillos translúcidos)
     const zones = PLAZA_COMPOSITION.constructionPhase
-      ? [...PLAZA_COMPOSITION.openZones, ...PLAZA_COMPOSITION.clearZones].map(zone => ({x:zone.center[0],z:zone.center[1],radius:zone.radius}))
+      ? [...PLAZA_COMPOSITION.openZones, ...PLAZA_COMPOSITION.clearZones,...FOREST_COMPOSITION.openZones,...FOREST_COMPOSITION.clearZones,...FOREST_COMPOSITION.reservations].map(zone => ({x:zone.center[0],z:zone.center[1],radius:zone.radius}))
       : GENERATION_RULES.clearanceZones;
     zones.forEach((z) => {
       const geo = new THREE.RingGeometry(z.radius - 0.2, z.radius, 32);
@@ -388,6 +426,10 @@ export class WorldGenerator {
     );
     const line = new THREE.Line(lineGeo, lineMat);
     debugGroup.add(line);
+    for(const path of FOREST_COMPOSITION.paths) {
+      const geometry=new THREE.BufferGeometry().setFromPoints(path.points.map(p=>new THREE.Vector3(p[0],calculateTerrainElevation(p[0],p[2])+0.25,p[2])));
+      debugGroup.add(new THREE.Line(geometry,lineMat));
+    }
 
     return debugGroup;
   }
@@ -396,6 +438,8 @@ export class WorldGenerator {
    * Ejecuta la construcción completa de la Sección 1
    */
   async buildSection1() {
+    const forestValidation=validateComposition(FOREST_COMPOSITION,{registeredAssets:collectAssetUrls(KAYKIT_ASSETS),worldBlueprint:WORLD_BLUEPRINT});
+    if(!forestValidation.valid) throw new Error(`Invalid Forest composition: ${JSON.stringify(forestValidation.errors)}`);
     const validation = validateComposition(PLAZA_COMPOSITION, {
       registeredAssets: collectAssetUrls(KAYKIT_ASSETS),
       worldBlueprint: WORLD_BLUEPRINT
@@ -403,7 +447,7 @@ export class WorldGenerator {
     for (const warning of validation.warnings) console.warn('[CompositionBlueprint]', warning);
     if (!validation.valid) throw new Error(`Invalid Plaza composition: ${JSON.stringify(validation.errors)}`);
     await this.preloadModels();
-    const missingAssets = PLAZA_COMPOSITION.instances.filter(item => !this.models.has(item.assetUrl));
+    const missingAssets = [...PLAZA_COMPOSITION.instances,...FOREST_COMPOSITION.instances].filter(item => !this.models.has(item.assetUrl));
     if (missingAssets.length) throw new Error(`Plaza assets failed to load: ${missingAssets.map(item => item.assetUrl).join(', ')}`);
 
     const worldGroup = new THREE.Group();
@@ -427,7 +471,8 @@ export class WorldGenerator {
     }
 
     // 3. Plaza de las Notas
-    this.generatePlaza(worldGroup);
+    this.generateComposition(worldGroup,PLAZA_COMPOSITION);
+    this.generateComposition(worldGroup,FOREST_COMPOSITION);
 
     // 4. Árbol Maestro (Landmark)
     if (!PLAZA_COMPOSITION.constructionPhase) this.generateMasterTree(worldGroup);
@@ -437,12 +482,16 @@ export class WorldGenerator {
 
     // 7. Overlay Debug
     const debugOverlay = this.generateDebugScene(mainPathPoints);
+    debugOverlay.add(this.collisionDebug);
+    this.stats.solidColliders=this.colliders.length;
+    this.stats.collidersByRegion=Object.fromEntries([PLAZA_COMPOSITION,FOREST_COMPOSITION].map(c=>[c.regionId,this.colliders.filter(item=>item.regionId===c.regionId).length]));
 
     return {
       sceneGroup: worldGroup,
       debugGroup: debugOverlay,
       heightAt: (x, z) => calculateTerrainElevation(x, z),
       composition: PLAZA_COMPOSITION,
+      colliders: this.colliders,
       stats: this.stats
     };
   }

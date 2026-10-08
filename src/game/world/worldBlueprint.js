@@ -87,8 +87,14 @@ export const WORLD_BLUEPRINT = {
       name: 'Bosque de las Notas',
       type: 'FOREST_ADVENTURE',
       pedagogicalFunction: 'Notas Individuales (Identificación tonal de Do, Re, Mi, Fa, Sol).',
-      approxCenter: { x: 0, z: -22 },
-      boundsRadius: 18,
+      // Plaza approved composition supersedes preliminary forest coordinates.
+      approxCenter: { x: 4, z: -35 },
+      boundsRadius: 30,
+      macroConnections: {
+        plazaEntry: [10,-19.5], clearingOne: [12,-28], clearingTwo: [-2,-39],
+        echoGrottoExit: [-12,-39], riverFutureExit: [-8,-46], mountainFutureExit: [5,-46],
+        status: 'BOSQUE-B macro human approved; BOSQUE-C medium draft; exits reserve space only'
+      },
       relativeScale: {
         width: 'Amplia',
         depth: 'Profunda',
@@ -122,6 +128,7 @@ export const WORLD_BLUEPRINT = {
         bushes: ['/models/props/Assets/gltf/Bush_1_A_Color1.gltf', '/models/props/Assets/gltf/Bush_2_A_Color1.gltf', '/models/props/Assets/gltf/Bush_3_A_Color1.gltf'],
         rocks: ['/models/props/Assets/gltf/Rock_1_A_Color1.gltf', '/models/props/Assets/gltf/Rock_1_B_Color1.gltf'],
         trunks: ['/models/props/Assets/gltf/trunk_large_A.gltf', '/models/props/Assets/gltf/trunk_medium_B.gltf'],
+        heritage: ['/models/props/Assets/gltf/floor_tile_small_weeds_A.gltf', '/models/props/Assets/gltf/floor_tile_small_weeds_B.gltf'],
         stations: ['/models/props/chest_wood.glb', '/models/props/Assets/gltf/torch_lit.gltf', '/models/props/Assets/gltf/floor_tile_small_decorated.gltf']
       },
       forbiddenAssets: [

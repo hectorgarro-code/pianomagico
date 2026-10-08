@@ -24,16 +24,17 @@ const atriumInstances = [
   {id:'atrium-column-front-east',asset:'pillar',position:[1.484,0.19,-5.685],scale:[1,1,1]},
   {id:'atrium-column-back-west',asset:'pillar',position:[-5.484,0.19,-6.315],scale:[1,1,1]},
   {id:'atrium-column-back-east',asset:'pillar',position:[-0.082,0.19,-8.926],scale:[1,1,1]},
-  {id:'atrium-lintel-front',asset:'floor_tile_large',position:[-1.217,4.32,-4.379],scale:[1.875,2.6,0.375]},
-  {id:'atrium-lintel-back',asset:'floor_tile_large',position:[-2.783,4.32,-7.621],scale:[1.875,2.6,0.375]},
-  {id:'atrium-lintel-west',asset:'floor_tile_large',position:[-4.701,4.32,-4.695],scale:[0.375,2.6,1.275]},
-  {id:'atrium-lintel-east',asset:'floor_tile_large',position:[0.701,4.32,-7.305],scale:[0.375,2.6,1.275]},
+  {id:'atrium-lintel-front',asset:'floor_tile_large',position:[-1.217,4.32,-4.379],scale:[1.875,2.6,0.375],collision:{type:'none'}},
+  {id:'atrium-lintel-back',asset:'floor_tile_large',position:[-2.783,4.32,-7.621],scale:[1.875,2.6,0.375],collision:{type:'none'}},
+  {id:'atrium-lintel-west',asset:'floor_tile_large',position:[-4.701,4.32,-4.695],scale:[0.375,2.6,1.275],collision:{type:'none'}},
+  {id:'atrium-lintel-east',asset:'floor_tile_large',position:[0.701,4.32,-7.305],scale:[0.375,2.6,1.275],collision:{type:'none'}},
   {id:'atrium-banner',asset:'banner_blue',position:[-3.65,0.5,-2.55],scale:[0.65,0.65,0.65],role:'importantProp'}
 ].map(item => ({
   id:item.id,role:item.role || 'architecture',kind:'props',
   assetUrl:'/models/props/Assets/gltf/' + item.asset + '.gltf',
   position:item.position,rotation:[0,0.45,0],scale:item.scale,
-  grounding:'absolute',castShadow:item.role !== 'floor',receiveShadow:true
+  grounding:'absolute',castShadow:item.role !== 'floor',receiveShadow:true,
+  collision:item.collision || (item.role ? {type:'none'} : {type:'solid',shape:'box',source:'bounds'})
 }));
 const gardenInstances = [
   {id:'west-grove-main',asset:'Tree_3_A_Color1',position:[-14,0.08,-10],scale:1.55,yaw:0.4},
@@ -47,7 +48,7 @@ const gardenInstances = [
 ].map(item => ({
   id:item.id,role:'mainTree',kind:'trees',assetUrl:'/models/props/Assets/gltf/' + (item.asset || 'Tree_2_A_Color1') + '.gltf',
   position:item.position,rotation:[0,item.yaw,0],scale:[item.scale,item.scale,item.scale],
-  grounding:'terrain',castShadow:true,receiveShadow:true
+  grounding:'terrain',castShadow:true,receiveShadow:true,collision:{type:'solid',shape:'circle',source:'base'}
 }));
 const gardenUnderstory = [
   {id:'west-bank-shrub-main',position:[-13,0,-7],scale:2,yaw:0.5},
@@ -71,8 +72,8 @@ const exitPaving = [
   grounding:'terrain',castShadow:false,receiveShadow:true
 }));
 const stationInstances = [
-  {id:'plaza-lesson-chest',role:'importantProp',kind:'props',assetUrl:'/models/props/chest_wood.glb',position:[7.5,0.065,0.5],rotation:[0,-2.2,0],scale:[0.6,0.6,0.6],grounding:'absolute',castShadow:true,receiveShadow:true},
-  {id:'plaza-practice-chair',role:'importantProp',kind:'props',assetUrl:'/models/props/Assets/gltf/chair.gltf',position:[8.7,0.065,1.8],rotation:[0,-2.2,0],scale:[0.9,0.9,0.9],grounding:'absolute',castShadow:true,receiveShadow:true}
+  {id:'plaza-lesson-chest',role:'importantProp',kind:'props',assetUrl:'/models/props/chest_wood.glb',position:[7.5,0.065,0.5],rotation:[0,-2.2,0],scale:[0.6,0.6,0.6],grounding:'absolute',castShadow:true,receiveShadow:true,collision:{type:'solid',shape:'box',source:'bounds'}},
+  {id:'plaza-practice-chair',role:'importantProp',kind:'props',assetUrl:'/models/props/Assets/gltf/chair.gltf',position:[8.7,0.065,1.8],rotation:[0,-2.2,0],scale:[0.9,0.9,0.9],grounding:'absolute',castShadow:true,receiveShadow:true,collision:{type:'solid',shape:'box',source:'bounds'}}
 ];
 const gardenDetails = [
   {id:'west-root-stone',asset:'Rock_1_A_Color1',position:[-13.2,0,-9.5],scale:1.8,yaw:0.7,kind:'rocks'},
@@ -84,7 +85,8 @@ const gardenDetails = [
 ].map(item => ({
   id:item.id,role:'decoration',kind:item.kind,assetUrl:'/models/props/Assets/gltf/' + item.asset + '.gltf',
   position:item.position,rotation:[0,item.yaw,0],scale:[item.scale,item.scale,item.scale],
-  grounding:'terrain',castShadow:true,receiveShadow:true
+  grounding:'terrain',castShadow:true,receiveShadow:true,
+  collision:item.kind==='rocks'?{type:'solid',shape:'box',source:'bounds'}:{type:'none'}
 }));
 export const PLAZA_COMPOSITION = {
   schemaVersion: 1,

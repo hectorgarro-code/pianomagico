@@ -7,6 +7,8 @@ import { ASSET_MANIFEST, loadCachedModel } from '../assets/assetManifest';
 import { WorldGenerator } from './WorldGenerator';
 import AssetDiagnosticModal from '../assets/AssetDiagnosticModal';
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
+import { CollisionWorld, PLAYER_COLLIDER } from './collision/CollisionWorld.js';
+import { createCollisionOutline, disposeCollisionDebug } from './collision/collisionDebug.js';
 
 export default function World3DView({
   songs = [],
@@ -262,16 +264,28 @@ export default function World3DView({
     setLoadingProgress('Preparando Plaza de las Notas...');
     const generator = new WorldGenerator('VALLE_DE_LAS_NOTAS_V1');
     let getTerrainHeight = (x, z) => 0;
+    let collisionWorld = null;
+    let playerColliderDebug = null;
+    let collisionDebug = null;
 
-    generator.buildSection1().then(async ({ sceneGroup, debugGroup, heightAt, stats, composition }) => {
-      if (!isMounted) return;
+    generator.buildSection1().then(async ({ sceneGroup, debugGroup, heightAt, stats, composition, colliders }) => {
+      if (!isMounted) {
+        disposeCollisionDebug(debugGroup.getObjectByName('Collision_Debug'));
+        return;
+      }
       getTerrainHeight = heightAt;
+      collisionWorld = new CollisionWorld(colliders);
+      const safeSpawn=collisionWorld.move(playerPosRef.current,{x:0,z:0});
+      Object.assign(playerPosRef.current,safeSpawn);
       scene.add(sceneGroup);
 
       // Debug overlay
       debugGroup.visible = debugMode;
       scene.add(debugGroup);
       debugGroupRef.current = debugGroup;
+      collisionDebug=debugGroup.getObjectByName('Collision_Debug');
+      playerColliderDebug=createCollisionOutline({shape:'circle',x:0,z:0,radius:PLAYER_COLLIDER.radius,y:.1},0xff6580);
+      collisionDebug.add(playerColliderDebug);
 
       setWorldMetrics(stats);
 
@@ -422,9 +436,12 @@ export default function World3DView({
         playerRotYRef.current += diff * Math.min(1.0, 12 * delta);
       }
 
-      if (isInputActive) {
-        playerPosRef.current.x += moveDir.x * baseSpeed * delta;
-        playerPosRef.current.z += moveDir.z * baseSpeed * delta;
+      let isMoving=false;
+      if (isInputActive && collisionWorld) {
+        const beforeX=playerPosRef.current.x,beforeZ=playerPosRef.current.z;
+        const next=collisionWorld.move(playerPosRef.current,{x:moveDir.x*baseSpeed*delta,z:moveDir.z*baseSpeed*delta});
+        Object.assign(playerPosRef.current,next);
+        isMoving=Math.hypot(next.x-beforeX,next.z-beforeZ)>1e-5;
       }
 
       const groundY = getTerrainHeight(playerPosRef.current.x, playerPosRef.current.z);
@@ -444,7 +461,7 @@ export default function World3DView({
 
       // Animaciones de Personaje
       let desiredAnim = 'Idle';
-      if (isInputActive) {
+      if (isMoving) {
         desiredAnim = isShift ? 'Running_A' : 'Walking_A';
       }
 
@@ -470,6 +487,7 @@ export default function World3DView({
         characterMeshRef.current.rotation.y = playerRotYRef.current;
         sunLight.target = characterMeshRef.current;
       }
+      if(playerColliderDebug)playerColliderDebug.position.set(playerPosRef.current.x,playerPosRef.current.y,playerPosRef.current.z);
 
       // Detección de proximidad a estaciones
       let detected = null;
@@ -536,6 +554,8 @@ export default function World3DView({
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      if(collisionDebug)disposeCollisionDebug(collisionDebug);
+      debugGroupRef.current=null;
       scene.clear();
     };
   }, [songs, highestUnlockedIndex]);
@@ -611,6 +631,8 @@ export default function World3DView({
           <div>Rocas colocadas: <span className="text-emerald-400">{worldMetrics.rocksCount}</span></div>
           <div>Arbustos colocados: <span className="text-emerald-400">{worldMetrics.bushesCount}</span></div>
           <div>Props arquitectónicos: <span className="text-emerald-400">{worldMetrics.propsCount}</span></div>
+          <div>Colliders sólidos: <span className="text-sky-300">{worldMetrics.solidColliders}</span></div>
+          <div className="flex gap-2 text-[10px]"><span className="text-rose-400">Jugador</span><span className="text-emerald-400">Tronco</span><span className="text-sky-300">Caja</span><span className="text-amber-300">Interacción</span></div>
           <div className="text-[10px] text-amber-200/80 mt-1">Centro: {PLAZA_COMPOSITION.openZones[0].radius} m</div>
         </div>
       )}

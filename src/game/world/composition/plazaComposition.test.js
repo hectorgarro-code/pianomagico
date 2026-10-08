@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { PLAZA_COMPOSITION as plaza } from './plazaComposition.js';
 import { collectAssetUrls, validateComposition } from './validateComposition.js';
-import { calculateTerrainElevation, pointToSegmentDistance } from '../worldGenerationRules.js';
+import { calculateTerrainElevation, calculatePlazaElevation, pointToSegmentDistance } from '../worldGenerationRules.js';
 
 const publicRoot = new URL('../../../../public/', import.meta.url);
 const catalog = JSON.parse(fs.readFileSync(new URL('../../assets/kaykitCatalog.json', import.meta.url)));
@@ -70,7 +70,8 @@ test('invalid landforms, camera, path and station references fail explicitly', (
 
 test('outer support falls smoothly outside the review; authored route stays inside Plaza', () => {
   const {reviewExtent,outerFalloff}=plaza.terrain;
-  assert.ok(calculateTerrainElevation(0,-reviewExtent)>calculateTerrainElevation(0,-reviewExtent-outerFalloff.width));
+  // The northern world support is now replaced by the neighboring region.
+  assert.ok(calculatePlazaElevation(0,-reviewExtent)>calculatePlazaElevation(0,-reviewExtent-outerFalloff.width));
   for(const radius of [reviewExtent,reviewExtent+outerFalloff.width]) {
     assert.ok(Math.abs(calculateTerrainElevation(radius+.001,0)-calculateTerrainElevation(radius-.001,0))<.001);
   }

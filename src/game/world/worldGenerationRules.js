@@ -5,6 +5,30 @@
  */
 
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
+import { FOREST_COMPOSITION } from './composition/forestComposition.js';
+
+const smooth = (value) => { const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t); };
+
+export function calculateForestElevation(x,z) {
+  const terrain=FOREST_COMPOSITION.terrain;
+  let height=terrain.baseY;
+  for(const form of terrain.landforms) {
+    const d=Math.hypot((x-form.center[0])/form.radius[0],(z-form.center[1])/form.radius[1]);
+    height+=form.height*Math.max(0,1-d*d)**2;
+  }
+  for(const p of terrain.plateaus) {
+    const weight=1-smooth((Math.hypot(x-p.center[0],z-p.center[1])-p.radius)/p.blendWidth);
+    height=height*(1-weight)+p.height*weight;
+  }
+  return height;
+}
+
+export function calculateTerrainElevation(x,z) {
+  const plazaHeight=calculatePlazaElevation(x,z);
+  const b=FOREST_COMPOSITION.terrain.blendBounds;
+  const weight=smooth(Math.min(x-b.min[0],b.max[0]-x,z-b.min[1],b.max[1]-z)/b.edgeWidth)*smooth((Math.hypot(x,z)-b.protectedRadius)/b.edgeWidth);
+  return plazaHeight*(1-weight)+calculateForestElevation(x,z)*weight;
+}
 
 export const GENERATION_RULES = {
   // Corredor despejado a cada lado de cualquier camino
@@ -86,7 +110,7 @@ export function isInClearanceZone(px, pz, customZones = []) {
  * - Transición a bosque (+0.6m -> +1.8m)
  * - Inicio del desnivel hacia el río (-X) y montaña (+X) al llegar a la bifurcación.
  */
-export function calculateTerrainElevation(x, z) {
+export function calculatePlazaElevation(x, z) {
   if (PLAZA_COMPOSITION.constructionPhase) {
     const terrain = PLAZA_COMPOSITION.terrain;
     const t = Math.max(0, Math.min(1, (Math.hypot(x, z) - terrain.flatRadius) / terrain.transitionWidth));

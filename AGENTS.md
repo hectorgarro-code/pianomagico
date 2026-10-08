@@ -16,6 +16,7 @@ No reemplazar sistemas funcionales sin una razon tecnica comprobable. Respetar e
 - `src/game/state/GameState.js` define estado inicial y checkpoints. La exploracion vive en memoria React; no asumir persistencia de cofres, zonas, misiones o posicion.
 - `src/game/world/World3DView.jsx` administra escena Three.js, renderer, luces, camara, movimiento, personaje, proximidad y cofre de la primera estacion; delega el entorno a `WorldGenerator.js`.
 - `WorldGenerator.js` precarga y clona modelos, construye terreno y camino, y coloca Plaza, Arbol Maestro y transicion corta al bosque. `generateFork` existe pero no se ejecuta actualmente.
+- `collision/CollisionWorld.js` resuelve movimiento XZ con circulo de jugador (radio 0.34), circulos de base y cajas orientadas, sliding y celdas estaticas de 4 m. `modelColliders.js` cachea bounds nativos por modelo y materializa el contrato opcional `instance.collision` al generar composicion; no recalcular geometria por frame. Copas, suelos y vegetacion pequena no bloquean; rango de interaccion permanece independiente. Debug World muestra ambos tipos de limites.
 - `worldGenerationRules.js` calcula alturas y define despejes y margenes. Su presencia no garantiza que todas las colocaciones apliquen esas reglas.
 - `worldSeed.js` ofrece PRNG determinista. El generador lo inicializa, pero la composicion actual usa posiciones fijas.
 - `worldBlueprint.js` conserva identidad, intencion y restricciones. `composition/plazaComposition.js` contiene las 61 instancias autoradas de Plaza, su spawn, camara, tramo de camino y zonas. `compositionSchema.js` documenta el contrato serializable y `validateComposition.js` reporta errores sin corregir datos. WorldGenerator materializa ese plano y contrasta sus assets con el blueprint; no convierte el blueprint conceptual en coordenadas automaticamente.
@@ -69,7 +70,7 @@ Para cambios en integracion validar mundo -> leccion -> retorno y conservar posi
 
 ## Desarrollo por regiones y detencion
 NO construir multiples regiones simultaneamente. Cada region debe aprobarse visual y funcionalmente antes de continuar con la siguiente.
-Plaza fue aprobada visualmente por el usuario el 2026-10-06 y queda congelada; consultar `docs/PLAZA_VISUAL_APPROVED.md`. Solo modificarla para bugs, integracion educativa, rendimiento, continuidad vecina, camara/colisiones o cambios explicitamente aprobados. La Fase 1 procedural sigue desaprobada. Bosque-A esta autorizado solo como propuesta de diseno macro; NO implementarlo hasta recibir aprobacion humana. La aprobacion visual no implica validacion funcional completa ni movil.
+Plaza fue aprobada visualmente por el usuario el 2026-10-06 y queda congelada; consultar `docs/PLAZA_VISUAL_APPROVED.md`. Solo modificarla para bugs, integracion educativa, rendimiento, continuidad vecina, camara/colisiones o cambios explicitamente aprobados. La Fase 1 procedural sigue desaprobada. Bosque-A fue aprobado conceptualmente y Bosque-B macro fue aprobado visualmente por el usuario. Bosque-C queda aceptado como PROVISIONAL y congelado por cambio de prioridad humano: NO agregar arboles, pulir estetica, avanzar a Micro, nuevas estaciones ni otras regiones. Prioridad autorizada: WORLD SYSTEMS 1 - COLISIONES; al completarla detenerse, sin commit hasta aprobacion. La aprobacion visual no implica validacion funcional completa ni movil.
 Si la tarea pide una sola region, DETENERSE al terminarla. No anticipar la siguiente ni interpretar el build como permiso para expandir.
 
 ## Git y alcance
@@ -86,6 +87,6 @@ Estos hallazgos no autorizan correcciones fuera del alcance solicitado y pueden 
 - GameState y World3DView leen el spawn de Plaza (z=3.5); una posicion recibida sigue prevaleciendo. El antiguo fallback aislado z=6.6 fue consolidado durante la migracion.
 - El blueprint menciona `bench.gltf`, ausente en disco. Los 378 GLTF revisados tenian sus dependencias externas presentes.
 - El Master Plan describe el Observatorio como circular y tambien semicircular; resolver esa discrepancia antes de construirlo.
-- La escena carece de colisiones con props y limites de exploracion; la camara evita terreno, no todos los obstaculos.
+- Las composiciones actuales declaran 18 colliders solidos en Plaza y 33 en Bosque. Son estaticos y horizontales; no hay limites generales de exploracion ni colision de camara contra props/copas. La camara evita terreno, no todos los obstaculos.
 - La limpieza Three.js no libera explicitamente todas las geometries y materiales; revisar propiedad y caches antes de disponer recursos compartidos.
 - El build pasa, pero advierte un bundle principal grande. No convertir esto en autorizacion para refactorizar.
