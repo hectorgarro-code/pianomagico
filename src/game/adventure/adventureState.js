@@ -1,12 +1,13 @@
 import { FOREST_LESSON_CHESTS, ADVENTURE_OBJECT_TYPES, REWARD_TYPES } from '../world/composition/forestAdventureComposition.js';
 import { normalizeJourney } from './adventureStart.js';
+import { ALL_LESSON_CHESTS } from '../world/composition/routeAdventureComposition.js';
 import { normalizeValley, getValleyProgress, applyValleyEvent } from './valleyProgression.js';
 
 export const ADVENTURE_STATES = Object.freeze({ LOCKED: 'LOCKED', AVAILABLE: 'AVAILABLE', IN_PROGRESS: 'IN_PROGRESS', COMPLETED: 'COMPLETED' });
-export const findAdventureObject = id => FOREST_LESSON_CHESTS.find(object => object.id === id);
+export const findAdventureObject = id => ALL_LESSON_CHESTS.find(object => object.id === id);
 
 function refreshAvailability(entries) {
-  for (const object of FOREST_LESSON_CHESTS) {
+  for (const object of ALL_LESSON_CHESTS) {
     const entry = entries[object.id];
     if (entry.state === ADVENTURE_STATES.COMPLETED || entry.state === ADVENTURE_STATES.IN_PROGRESS) continue;
     entry.state = object.requirements.completedObjects.every(id => entries[id]?.state === ADVENTURE_STATES.COMPLETED)
@@ -16,9 +17,9 @@ function refreshAvailability(entries) {
 }
 
 export function createAdventureState(snapshot) {
-  const entries = Object.fromEntries(FOREST_LESSON_CHESTS.map(object => [object.id, { state: ADVENTURE_STATES.LOCKED, activityId: object.activityId, claimedRewards: [] }]));
+  const entries = Object.fromEntries(ALL_LESSON_CHESTS.map(object => [object.id, { state: ADVENTURE_STATES.LOCKED, activityId: object.activityId, claimedRewards: [] }]));
   // Restore only known completed activities whose prerequisites and reward IDs match.
-  for (const object of FOREST_LESSON_CHESTS) {
+  for (const object of ALL_LESSON_CHESTS) {
     const saved = [1, 2].includes(snapshot?.schemaVersion) ? snapshot.entries?.[object.id] : null;
     if (saved?.state === ADVENTURE_STATES.COMPLETED && String(saved.activityId) === String(object.activityId)
       && object.requirements.completedObjects.every(id => entries[id].state === ADVENTURE_STATES.COMPLETED)

@@ -30,6 +30,7 @@ export function worldActivityReducer(state, action) {
       let adventure = state.game.adventure;
       if (adventure.journey.started && (action.distance >= 3 || action.position.z < -10)) adventure = applyValleyEvent(adventure, { type: 'MILESTONE_REACHED', id: 'plaza-explored' });
       const regionId = getPlayableRegionAt(action.position);
+      if(adventure.journey.started && regionId===REGION_IDS.GROTTO) adventure=applyValleyEvent(adventure,{type:'DISCOVERY_RECORDED',id:'echo-grotto-found'});
       if (adventure.journey.started && regionId) adventure = applyValleyEvent(adventure, { type: 'REGION_DISCOVERED', regionId });
       return adventure === state.game.adventure ? state : { ...state, game: { ...state.game, adventure } };
     }

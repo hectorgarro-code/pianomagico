@@ -410,6 +410,7 @@ export default function World3DView({
 
     // 8. Bucle de Render y Movimiento de Aventura con Damping de Cámara y Prevención de Clipping
     let lastTime = performance.now();
+    let metricsTime=lastTime, metricsFrames=0;
 
     const animate = () => {
       animFrameId = requestAnimationFrame(animate);
@@ -570,6 +571,15 @@ export default function World3DView({
       camera.lookAt(targetLookAt);
 
       renderer.render(scene, camera);
+      if(debugEnabled) {
+        metricsFrames++;
+        if(now-metricsTime>=1000) {
+          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+          renderer.domElement.dataset.renderMetrics=JSON.stringify(metrics);
+          setWorldMetrics(previous=>previous?{...previous,...metrics}:previous);
+          metricsFrames=0;metricsTime=now;
+        }
+      }
     };
 
     animate();
@@ -683,6 +693,7 @@ export default function World3DView({
           <div>Arbustos colocados: <span className="text-emerald-400">{worldMetrics.bushesCount}</span></div>
           <div>Props arquitectónicos: <span className="text-emerald-400">{worldMetrics.propsCount}</span></div>
           <div>Colliders sólidos: <span className="text-sky-300">{worldMetrics.solidColliders}</span></div>
+          <div>FPS: {worldMetrics.fps} · Draw calls: {worldMetrics.drawCalls} · Triangles: {worldMetrics.triangles}</div>
           <div className="flex gap-2 text-[10px]"><span className="text-rose-400">Jugador</span><span className="text-emerald-400">Tronco</span><span className="text-sky-300">Caja</span><span className="text-amber-300">Interacción</span></div>
           <div className="text-[10px] text-amber-200/80 mt-1">Centro: {PLAZA_COMPOSITION.openZones[0].radius} m</div>
         </div>

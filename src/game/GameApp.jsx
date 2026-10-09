@@ -12,6 +12,7 @@ import AdventureStart from './adventure/AdventureStart.jsx';
 import { hasAdventureProgress, getNewAdventurePhase } from './adventure/adventureStart.js';
 import { getValleyProgress } from './adventure/valleyProgression.js';
 import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
+import WorldMusic from './audio/WorldMusic.jsx';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -133,8 +134,8 @@ export default function GameApp({ userId, onExitApp }) {
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 select-none">
       {/* HUD SUPERIOR DEL VIDEOJUEGO (Solo visible en WORLD) */}
-      {gameMode === GAME_MODES.WORLD && (
-        <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start">
+      {(
+        <div className={`fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start ${gameMode !== GAME_MODES.WORLD ? 'hidden' : ''}`}>
           {/* HUD Izquierda: Avatar y Nombre */}
           <div className="pointer-events-auto flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-2xl">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-sm shadow-md border border-white/20 text-white">
@@ -155,6 +156,7 @@ export default function GameApp({ userId, onExitApp }) {
 
           {/* HUD Derecha: XP y Salir */}
           <div className="pointer-events-auto flex items-center gap-2">
+            <WorldMusic active={gameMode === GAME_MODES.WORLD} immediatePause={gameMode === GAME_MODES.PIANO} />
             <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md border border-amber-400/30 px-3 py-1.5 rounded-full shadow-2xl">
               <Zap size={15} className="text-amber-400 fill-amber-400" />
               <span className="text-xs font-black text-amber-300 tracking-wider">

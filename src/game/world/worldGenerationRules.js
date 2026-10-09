@@ -6,6 +6,8 @@
 
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
 import { FOREST_COMPOSITION } from './composition/forestComposition.js';
+import { RIVER_CHANNEL, BRIDGE } from './composition/riverComposition.js';
+import { MOUNTAIN_COMPOSITION } from './composition/mountainComposition.js';
 
 const smooth = (value) => { const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t); };
 
@@ -27,7 +29,35 @@ export function calculateTerrainElevation(x,z) {
   const plazaHeight=calculatePlazaElevation(x,z);
   const b=FOREST_COMPOSITION.terrain.blendBounds;
   const weight=smooth(Math.min(x-b.min[0],b.max[0]-x,z-b.min[1],b.max[1]-z)/b.edgeWidth)*smooth((Math.hypot(x,z)-b.protectedRadius)/b.edgeWidth);
-  return plazaHeight*(1-weight)+calculateForestElevation(x,z)*weight;
+  const original=plazaHeight*(1-weight)+calculateForestElevation(x,z)*weight;
+  // The approved Plaza/Forest remain exact south of their authorized final connector.
+  const extension=smooth((-z-46)/10);
+  if (!extension) return original;
+  let height=1.7;
+  if (x< -8) height=1.7*(1-smooth((-x-8)/16));
+  if (x>8) {
+    const east=smooth((x-8)/20), north=smooth((-z-55)/22);
+    height=1.7+east*(2.7+3.2*north);
+    for (const p of MOUNTAIN_COMPOSITION.terrain.plateaus) {
+      const terrace=1-smooth((Math.hypot(x-p.center[0],z-p.center[1])-p.radius)/p.blendWidth);
+      height=height*(1-terrace)+p.height*terrace;
+    }
+  }
+  if (x < -18 && z < -56 && z > -83) {
+    const distance=riverChannelDistance(x,z);
+    height-=1.7*(1-smooth((distance-1.3)/1.3));
+    const island=1-smooth((Math.hypot(x+31,z+74)-1.4)/1.2);
+    height=height*(1-island)+.2*island;
+    const islet=1-smooth((Math.hypot(x+26.5,z+74)-.6)/.35);
+    height=height*(1-islet)+.2*islet;
+    const bridgeWeight=(1-smooth((Math.abs(z-BRIDGE.z)-BRIDGE.depth/2)/1.2))*(1-smooth((Math.abs(x-BRIDGE.x)-BRIDGE.width/2)/1.5));
+    height=height*(1-bridgeWeight)+(BRIDGE.height+.04)*bridgeWeight;
+  }
+  return original*(1-extension)+height*extension;
+}
+
+export function riverChannelDistance(x,z) {
+  return Math.min(...RIVER_CHANNEL.slice(1).map((p,i)=>pointToSegmentDistance(x,z,...RIVER_CHANNEL[i],...p)));
 }
 
 export const GENERATION_RULES = {

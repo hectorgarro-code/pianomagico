@@ -1,5 +1,15 @@
 # Global Valley Progression - SYSTEMS 5
 
+## WORLD BUILD 1
+
+Checkpoint SYSTEMS 5 aprobado: fba5ee4. Rio y Montana ya no usan hitos prototype-complete: requieren sus tres Lesson Chests reales. Primer cofre de cada ruta requiere los tres del Bosque; posteriores requieren el anterior de su propia ruta. No hay dependencia cruzada ni XP adicional. Registro ALL_LESSON_CHESTS conserva IDs/claims anteriores y restaura los seis nuevos con el mismo contrato v2.
+
+Las composiciones separadas Junction, River, Mountain y Grotto Entrance se materializan realmente en WorldGenerator. Las regiones se detectan al caminar. La entrada secreta registra echo-grotto-found y descubre Gruta; su interior y completion siguen pendientes. Ruinas y Observatorio no se construyen; routes_to_ruins solo queda AVAILABLE al completar ambas rutas. Las salidas son reservas, no puertas finales. Los centros aproximados del blueprint no son coordenadas obligatorias: las rutas nuevas continúan al norte del Bosque aprobado, sin superponer biomas sobre sus claros.
+
+El cauce tiene agua sencilla y colliders de banco; el puente usa grounding del controlador existente. La topografia nueva se mezcla solamente al norte de z=-46; Plaza y las instancias/cofres de Bosque permanecen intactos. Challenge no implementado: los tres cofres reutilizan directamente PianoMagico sin introducir otro sistema educativo.
+
+Las secciones siguientes describen el checkpoint previo; sus referencias a Rio/Montana futuras quedan reemplazadas por este bloque construido.
+
 ## Autoridad y contratos
 
 `game.adventure` es la unica autoridad de Adventure. `valleyBlueprint.js` declara regiones, requisitos y gates con los IDs del World Blueprint. `valleyProgression.js` resuelve el estado sin componentes, renderer, backend ni XP.

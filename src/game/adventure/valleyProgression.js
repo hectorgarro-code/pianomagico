@@ -63,6 +63,9 @@ function getCurrentObjective(adventure, completed, discovered, valleyCompleted) 
   if (valleyCompleted) return { id: 'VALLEY_COMPLETED', text: 'Has completado el Valle de las Notas' };
   if (completed.has(REGION_IDS.RUINS)) return { id: 'REACH_OBSERVATORY', text: 'Llega al Observatorio Musical' };
   if (completed.has(REGION_IDS.RIVER) && completed.has(REGION_IDS.MOUNTAIN)) return { id: 'REACH_RUINS', text: 'Alcanza el antiguo Pentagrama' };
+  if (completed.has(REGION_IDS.RIVER) || completed.has(REGION_IDS.MOUNTAIN)) return {id:'EXPLORE_REMAINING_ROUTE',text:completed.has(REGION_IDS.RIVER)?'Explora la ruta restante: Montana de las Melodias':'Explora la ruta restante: Rio del Ritmo'};
+  if (completed.has(REGION_IDS.FOREST) && adventure.valley.currentRegion===REGION_IDS.RIVER) return {id:'EXPLORE_RIVER',text:'Explora el Rio del Ritmo. Completa sus tres cofres'};
+  if (completed.has(REGION_IDS.FOREST) && adventure.valley.currentRegion===REGION_IDS.MOUNTAIN) return {id:'EXPLORE_MOUNTAIN',text:'Explora la Montana de las Melodias. Completa sus tres cofres'};
   if (completed.has(REGION_IDS.FOREST)) return { id: 'EXPLORE_ROUTES', text: 'El camino se divide. Explora el Rio o la Montana; completa ambas rutas' };
   if (discovered.includes(REGION_IDS.FOREST)) return { id: 'COMPLETE_FOREST', text: 'Encuentra y completa los cofres de leccion del Bosque' };
   if (adventure.valley.milestones.includes('plaza-explored')) return { id: 'FIND_FOREST_PATH', text: 'Busca el camino hacia el Bosque' };
@@ -102,6 +105,12 @@ export function applyValleyEvent(adventure, event) {
 // Only the already-authored Plaza and Forest are physically detectable today.
 export function getPlayableRegionAt(position) {
   if (!Number.isFinite(position?.x) || !Number.isFinite(position?.z)) return null;
+  if (Math.hypot(position.x+19,position.z+54)<2) return REGION_IDS.GROTTO;
+  if(position.z<=-57 && position.z>=-83) {
+    if(position.x<=-18 && position.x>=-43) return REGION_IDS.RIVER;
+    if(position.x>=18 && position.x<=43) return REGION_IDS.MOUNTAIN;
+  }
+  if(position.z<-46 && position.z>=-60 && Math.abs(position.x)<18) return REGION_IDS.FOREST;
   if (position.z <= -19.5 && position.z >= -57 && position.x >= -28 && position.x <= 32) return REGION_IDS.FOREST;
   if (Math.hypot(position.x, position.z) <= 19) return REGION_IDS.PLAZA;
   return null;

@@ -35,6 +35,7 @@ Los botones de caminar automatico y Prueba funcional pertenecen a paginas auxili
 SYSTEMS 4 + ENTRY FLOW 4.5 aprobados; checkpoint `734efe3 - Valle de las Notas new adventure and unified entry flow`. Arquitectura oficial congelada: no reintroducir seleccion de instrumento.
 
 ## Progresion global
+WORLD BUILD 1 incorpora rutas fisicas de Rio/Montana, bifurcacion y entrada de Gruta, reutilizando los contratos existentes. Las dos rutas requieren tres cofres reales cada una y habilitan Ruinas conjuntamente; no hay menu de eleccion ni monedas nuevas. Checkpoint SYSTEMS 5 aprobado: fba5ee4. Ruinas/Observatorio siguen fuera de alcance.
 
 SYSTEMS 5 extiende Adventure con hechos versionados y requisitos declarativos. `getValleyProgress` deriva regiones, gates, objetivos y final; no duplica XP, medallas, performances ni rangos. Ver `VALLEY_PROGRESSION.md` para contratos, topologia y migracion v1 -> v2.
 

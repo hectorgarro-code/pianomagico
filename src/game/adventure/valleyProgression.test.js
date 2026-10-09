@@ -4,6 +4,7 @@ import { createAdventureState, beginAdventureActivity, settleAdventureActivity, 
 import { applyValleyEvent as event, getValleyProgress as progress, requirementMet, getPlayableRegionAt, validateWorldGateBindings } from './valleyProgression.js';
 import { REGION_IDS as R, VALLEY_REGIONS, WORLD_GATES } from './valleyBlueprint.js';
 import { FOREST_LESSON_CHESTS } from '../world/composition/forestAdventureComposition.js';
+import { ROUTE_LESSON_CHESTS } from '../world/composition/routeAdventureComposition.js';
 import { WORLD_BLUEPRINT } from '../world/worldBlueprint.js';
 import { createAdventurePersistence } from '../services/adventurePersistence.js';
 import { createWorldActivityState, worldActivityReducer as reduce } from '../state/worldActivityFlow.js';
@@ -17,7 +18,11 @@ function forestComplete() {
 function prototypeComplete(state, id) {
   state = discover(state, id);
   const region = VALLEY_REGIONS.find(item => item.id === id);
-  for (const req of region.regionCompletionRequirements) state = event(state, { type: 'MILESTONE_REACHED', id: req.id });
+  for (const req of region.regionCompletionRequirements) {
+    const chest=ROUTE_LESSON_CHESTS.find(c=>c.id===req.id);
+    if(chest) state=settleAdventureActivity(beginAdventureActivity(state,chest.id,chest.activityId),chest.id,{activityId:chest.activityId,completed:true});
+    else state = event(state, { type: 'MILESTONE_REACHED', id: req.id });
+  }
   return state;
 }
 
@@ -56,7 +61,7 @@ test('physical exploration discovers Forest, opens its gate and updates objectiv
   flow = reduce(flow, { type: 'OBJECTIVE', position: { x: 0, z: 5 }, distance: 45 });
   assert.equal(progress(flow.game.adventure).currentRegion, R.PLAZA);
   assert.equal(progress(flow.game.adventure).regions[R.FOREST].state, 'DISCOVERED');
-  assert.equal(getPlayableRegionAt({ x: -26, z: -75 }), null);
+  assert.equal(getPlayableRegionAt({ x: -26, z: -75 }), R.RIVER);
 });
 
 test('three real chest completions declaratively complete Forest and unlock both routes', () => {

@@ -1,5 +1,6 @@
 import { WORLD_BLUEPRINT } from '../world/worldBlueprint.js';
 import { FOREST_LESSON_CHESTS } from '../world/composition/forestAdventureComposition.js';
+import { RIVER_LESSON_CHESTS, MOUNTAIN_LESSON_CHESTS } from '../world/composition/routeAdventureComposition.js';
 
 export const REGION_IDS = Object.freeze({
   PLAZA: 'PLAZA_DE_LAS_NOTAS', FOREST: 'BOSQUE_DE_LAS_NOTAS', RIVER: 'RIO_DEL_RITMO',
@@ -19,8 +20,8 @@ const region = (id, unlockRequirements, completionRequirements, optional = false
 export const VALLEY_REGIONS = [
   region(REGION_IDS.PLAZA, [], [milestone('plaza-explored')]),
   region(REGION_IDS.FOREST, [discovered(REGION_IDS.PLAZA)], FOREST_LESSON_CHESTS.map(chest => requirement('OBJECT_COMPLETED', chest.id))),
-  region(REGION_IDS.RIVER, [completed(REGION_IDS.FOREST)], [milestone('river-prototype-complete')]),
-  region(REGION_IDS.MOUNTAIN, [completed(REGION_IDS.FOREST)], [milestone('mountain-prototype-complete')]),
+  region(REGION_IDS.RIVER, [completed(REGION_IDS.FOREST)], RIVER_LESSON_CHESTS.map(c=>requirement('OBJECT_COMPLETED',c.id))),
+  region(REGION_IDS.MOUNTAIN, [completed(REGION_IDS.FOREST)], MOUNTAIN_LESSON_CHESTS.map(c=>requirement('OBJECT_COMPLETED',c.id))),
   region(REGION_IDS.GROTTO, [discovered(REGION_IDS.FOREST), requirement('DISCOVERY', 'echo-grotto-found')], [milestone('grotto-prototype-complete')], true),
   region(REGION_IDS.RUINS, [completed(REGION_IDS.RIVER), completed(REGION_IDS.MOUNTAIN)], [milestone('ruins-prototype-complete')]),
   region(REGION_IDS.OBSERVATORY, [completed(REGION_IDS.RUINS)], [milestone('observatory-prototype-complete')])

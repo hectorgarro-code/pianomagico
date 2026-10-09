@@ -19,6 +19,12 @@ import { FOREST_ADVENTURE_COMPOSITION as FOREST_COMPOSITION, ADVENTURE_OBJECT_TY
 import { collectAssetUrls, validateComposition } from './composition/validateComposition.js';
 import { materializeCollider } from './collision/modelColliders.js';
 import { createCollisionOutline } from './collision/collisionDebug.js';
+import { JUNCTION_COMPOSITION } from './composition/junctionComposition.js';
+import { RIVER_COMPOSITION, RIVER_CHANNEL, BRIDGE } from './composition/riverComposition.js';
+import { MOUNTAIN_COMPOSITION } from './composition/mountainComposition.js';
+import { GROTTO_ENTRANCE_COMPOSITION } from './composition/grottoEntranceComposition.js';
+import { validateWorldGateBindings } from '../adventure/valleyProgression.js';
+const COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION];
 
 export class WorldGenerator {
   constructor(seed = 'VALLE_DE_LAS_NOTAS_V1') {
@@ -44,7 +50,7 @@ export class WorldGenerator {
    */
   async preloadModels() {
     const requiredUrls = PLAZA_COMPOSITION.constructionPhase
-      ? [...new Set([...PLAZA_COMPOSITION.instances,...FOREST_COMPOSITION.instances].map(item => item.assetUrl))]
+      ? [...new Set(COMPOSITIONS.flatMap(c=>c.instances).map(item => item.assetUrl))]
       : [
       ...new Set(PLAZA_COMPOSITION.instances.map(item => item.assetUrl)),
 
@@ -129,8 +135,9 @@ export class WorldGenerator {
   buildTerrain() {
     const size = 110;
     const segments = PLAZA_COMPOSITION.constructionPhase ? Math.ceil(size*2) : 56;
-    const geo = new THREE.PlaneGeometry(size, size, segments, segments);
+    const geo = new THREE.PlaneGeometry(size, 150, segments, 300);
     geo.rotateX(-Math.PI / 2);
+    geo.translate(0,0,-20);
 
     const pos = geo.attributes.position;
     const colors = [];
@@ -138,9 +145,9 @@ export class WorldGenerator {
     const curve = new THREE.CatmullRomCurve3(path.points.map(point => new THREE.Vector3(...point)));
     const samples = curve.getSpacedPoints(160);
     const pathLength = curve.getLength();
-    const neighboringPaths=FOREST_COMPOSITION.paths.map(p=>{
+    const neighboringPaths=COMPOSITIONS.slice(1).flatMap(c=>c.paths).map(p=>{
       const c=new THREE.CatmullRomCurve3(p.points.map(point=>new THREE.Vector3(...point)));
-      return {path:p,samples:c.getSpacedPoints(160),length:c.getLength()};
+      return {path:p,samples:c.getSpacedPoints(FOREST_COMPOSITION.paths.includes(p) ? 160 : 80),length:c.getLength()};
     });
     const grass = new THREE.Color(0x63b75f);
     const earth = new THREE.Color(path.color);
@@ -448,6 +455,11 @@ export class WorldGenerator {
    * Ejecuta la construcción completa de la Sección 1
    */
   async buildSection1() {
+    for(const composition of COMPOSITIONS.slice(2)) {
+      const result=validateComposition(composition,{registeredAssets:collectAssetUrls(KAYKIT_ASSETS),worldBlueprint:WORLD_BLUEPRINT});
+      const gateErrors=validateWorldGateBindings(composition);
+      if(!result.valid || gateErrors.length) throw new Error(`Invalid ${composition.groupName}: ${JSON.stringify([result.errors,gateErrors])}`);
+    }
     const forestValidation=validateComposition(FOREST_COMPOSITION,{registeredAssets:collectAssetUrls(KAYKIT_ASSETS),worldBlueprint:WORLD_BLUEPRINT});
     if(!forestValidation.valid) throw new Error(`Invalid Forest composition: ${JSON.stringify(forestValidation.errors)}`);
     const validation = validateComposition(PLAZA_COMPOSITION, {
@@ -457,7 +469,7 @@ export class WorldGenerator {
     for (const warning of validation.warnings) console.warn('[CompositionBlueprint]', warning);
     if (!validation.valid) throw new Error(`Invalid Plaza composition: ${JSON.stringify(validation.errors)}`);
     await this.preloadModels();
-    const missingAssets = [...PLAZA_COMPOSITION.instances,...FOREST_COMPOSITION.instances].filter(item => !this.models.has(item.assetUrl));
+    const missingAssets = COMPOSITIONS.flatMap(c=>c.instances).filter(item => !this.models.has(item.assetUrl));
     if (missingAssets.length) throw new Error(`Plaza assets failed to load: ${missingAssets.map(item => item.assetUrl).join(', ')}`);
 
     const worldGroup = new THREE.Group();
@@ -483,6 +495,8 @@ export class WorldGenerator {
     // 3. Plaza de las Notas
     this.generateComposition(worldGroup,PLAZA_COMPOSITION);
     this.generateComposition(worldGroup,FOREST_COMPOSITION);
+    for(const composition of COMPOSITIONS.slice(2)) this.generateComposition(worldGroup,composition);
+    this.buildRiverWater(worldGroup);
 
     // 4. Árbol Maestro (Landmark)
     if (!PLAZA_COMPOSITION.constructionPhase) this.generateMasterTree(worldGroup);
@@ -494,7 +508,7 @@ export class WorldGenerator {
     const debugOverlay = this.generateDebugScene(mainPathPoints);
     debugOverlay.add(this.collisionDebug);
     this.stats.solidColliders=this.colliders.length;
-    this.stats.collidersByRegion=Object.fromEntries([PLAZA_COMPOSITION,FOREST_COMPOSITION].map(c=>[c.regionId,this.colliders.filter(item=>item.regionId===c.regionId).length]));
+    this.stats.collidersByRegion=Object.fromEntries(COMPOSITIONS.map(c=>[c.regionId,this.colliders.filter(item=>item.regionId===c.regionId).length]));
 
     return {
       sceneGroup: worldGroup,
@@ -505,5 +519,27 @@ export class WorldGenerator {
       interactionObjects: this.interactionObjects,
       stats: this.stats
     };
+  }
+
+  buildRiverWater(group) {
+    const vertices=[],indices=[];
+    // Authored meanders, shallow visible water; bank colliders exclude the real bridge crossing.
+    for(let i=0;i<RIVER_CHANNEL.length;i++) {
+      const [x,z]=RIVER_CHANNEL[i];
+      vertices.push(x-1.6,-1.15,z,x+1.6,-1.15,z);
+      if(i<RIVER_CHANNEL.length-1) {const n=i*2;indices.push(n,n+2,n+1,n+1,n+2,n+3);}
+    }
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();
+    const water=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:0x299caf,roughness:.3,metalness:.15,side:THREE.DoubleSide}));
+    water.name='River_Water';group.add(water);
+    for(let z=-57;z>=-82;z-=.5) {
+      if(Math.abs(z-BRIDGE.z)<BRIDGE.depth/2+.5) continue;
+      const index=RIVER_CHANNEL.findIndex((p,i)=>i<RIVER_CHANNEL.length-1 && z<=p[1] && z>=RIVER_CHANNEL[i+1][1]);
+      if(index<0)continue;
+      const a=RIVER_CHANNEL[index],b=RIVER_CHANNEL[index+1],t=(z-a[1])/(b[1]-a[1]),x=a[0]+(b[0]-a[0])*t;
+      // Keep feet on the sloped bank; the scenic islet is not a water crossing.
+      this.colliders.push({id:`river-water-${z}`,regionId:RIVER_COMPOSITION.regionId,type:'solid',shape:'box',x,z,halfWidth:1.85,halfDepth:.3,yaw:0});
+    }
   }
 }
