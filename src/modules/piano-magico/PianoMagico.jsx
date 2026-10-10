@@ -2164,7 +2164,7 @@ export default function PianoMagico({
             )}
 
             {/* CARTEL HABILITAR MICRÓFONO EN LECCIÓN */}
-            {view === 'game' && !isListening && !isDemoPlaying && (
+            {!embeddedActivity && view === 'game' && !isListening && !isDemoPlaying && (
               <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[90] bg-slate-900/95 border-2 border-indigo-500/50 backdrop-blur-xl p-3 sm:p-4 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-3 max-w-sm sm:max-w-md w-[92%] animate-in slide-in-from-bottom duration-300">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-indigo-600/30 border border-indigo-500/40 rounded-xl">

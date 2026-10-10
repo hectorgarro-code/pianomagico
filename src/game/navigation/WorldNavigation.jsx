@@ -34,25 +34,29 @@ function MapDrawing({ model, pose, enlarged }) {
   </svg>;
 }
 
-export default function WorldNavigation({ adventure, pose, active, onOpenChange }) {
+export default function WorldNavigation({ adventure, pose, active, onOpenChange, onPlaytestEvent }) {
   const [open, setOpen] = useState(false);
   const [assisted, setAssisted] = useState(true);
   const target = resolveObjectiveTarget(adventure, assisted);
   const model = getValleyMap(adventure, target);
   const direction = getDirectionHint(pose.position, target, pose.cameraYaw, pose.projected);
-  const changeOpen = value => { setOpen(value); onOpenChange(value); };
+  const changeOpen = value => {
+    if (value && !open) onPlaytestEvent?.('MAP_OPENED');
+    setOpen(value); onOpenChange(value);
+  };
   useEffect(() => {
     if (!active) return;
     const key = event => {
       if (event.repeat) return;
       if (event.code !== 'Escape' && (event.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName))) return;
       if (event.code === 'KeyM' || (event.code === 'Escape' && open)) {
+        if (!open) onPlaytestEvent?.('MAP_OPENED');
         event.preventDefault(); setOpen(!open); onOpenChange(!open);
       }
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [active, open, onOpenChange]);
+  }, [active, open, onOpenChange, onPlaytestEvent]);
   if (!active) return null;
   return <div className="valley-navigation">
     {direction && !open && !direction.arrived && <div className={`valley-direction ${direction.subdued ? 'is-subdued' : ''}`} aria-label={`Direccion hacia ${target.label}`}>
@@ -77,7 +81,9 @@ export default function WorldNavigation({ adventure, pose, active, onOpenChange 
         <footer>
           <div className="valley-map-legend"><span className="map-pending">Pendiente</span><span><Check size={14}/>Completado</span></div>
           {target && <p>{target.label} · {Math.round(Math.hypot(target.position.x-pose.position.x,target.position.z-pose.position.z))} m</p>}
-          <label><Compass size={16}/> Orientacion <input type="checkbox" checked={assisted} onChange={event => setAssisted(event.target.checked)} aria-label="Ayuda de orientacion" /></label>
+          <label><Compass size={16}/> Orientacion <input type="checkbox" checked={assisted} onChange={event => {
+            setAssisted(event.target.checked); onPlaytestEvent?.('NAVIGATION_TOGGLED', { enabled: event.target.checked });
+          }} aria-label="Ayuda de orientacion" /></label>
         </footer>
       </section>
     </div>,document.body)}

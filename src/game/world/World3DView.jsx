@@ -38,6 +38,7 @@ export default function World3DView({
   adventureState,
   onObjectiveProgress,
   onAdventureDebug,
+  onPlaytestEvent,
   onPlayerTransformChange
 }) {
   const containerRef = useRef(null);
@@ -647,7 +648,7 @@ export default function World3DView({
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-slate-950 select-none">
       <div ref={containerRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing" />
-      {adventureState && !loading && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} onOpenChange={setMapOpen} />}
+      {adventureState && !loading && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} onOpenChange={setMapOpen} onPlaytestEvent={onPlaytestEvent} />}
 
       {loading && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-sky-950/80 backdrop-blur-md">

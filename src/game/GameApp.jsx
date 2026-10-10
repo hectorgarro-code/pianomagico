@@ -14,6 +14,7 @@ import { getValleyProgress } from './adventure/valleyProgression.js';
 import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
 import WorldMusic from './audio/WorldMusic.jsx';
 import ValleyEnding from './adventure/ValleyEnding.jsx';
+import { getDevPlaytest } from './playtest/playtestTelemetry.js';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -27,7 +28,20 @@ export default function GameApp({ userId, onExitApp }) {
   const [worldVisit, setWorldVisit] = useState(0);
   const debugEnabled = import.meta.env.DEV && new URLSearchParams(globalThis.location?.search || '').get('debug') === '1';
   const handleObjective = useCallback((position, distance) => dispatch({ type: 'OBJECTIVE', position, distance }), []);
-  const beginAdventure = () => { dispatch({ type: 'START_ADVENTURE' }); setStartPhase('PLAYING'); };
+  const beginAdventure = () => {
+    getDevPlaytest(userId)?.begin(gameState.adventure.journey.started);
+    dispatch({ type: 'START_ADVENTURE' }); setStartPhase('PLAYING');
+  };
+  const handlePlaytestEvent = useCallback((type, data) => getDevPlaytest(userId)?.record(type, data), [userId]);
+  useEffect(() => {
+    if (startPhase === 'PLAYING') getDevPlaytest(userId)?.observe(flow);
+  }, [userId, startPhase, flow]);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const pause = () => getDevPlaytest(userId)?.pause();
+    window.addEventListener('pagehide', pause);
+    return () => { window.removeEventListener('pagehide', pause); pause(); };
+  }, [userId]);
   const resetAdventure = () => { dispatch({ type: 'RESET_ADVENTURE' }); setWorldVisit(value => value + 1); setStartPhase('ENTRY'); };
   const newAdventure = (confirmed = false) => {
     const phase = getNewAdventurePhase(gameState.adventure, confirmed);
@@ -183,6 +197,7 @@ export default function GameApp({ userId, onExitApp }) {
       </div>}
       {debugEnabled && gameMode === GAME_MODES.WORLD && !flow.discovery && <ValleyProgressDebug
         adventure={gameState.adventure} onEvent={event => dispatch({ type: 'VALLEY_EVENT', event })} onReset={resetAdventure}
+        onExportPlaytest={() => JSON.stringify(getDevPlaytest(userId)?.export(), null, 2)}
       />}
 
       {/* GESTOR DE ESCENAS Y TRANSICIONES CINEMATOGRÁFICAS */}
@@ -216,6 +231,7 @@ export default function GameApp({ userId, onExitApp }) {
               adventureState={gameState.adventure}
               onObjectiveProgress={handleObjective}
               onAdventureDebug={() => setStartPhase('ENTRY')}
+              onPlaytestEvent={handlePlaytestEvent}
             />
           </div>
         )}
