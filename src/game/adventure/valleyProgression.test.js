@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAdventureState, beginAdventureActivity, settleAdventureActivity, getAdventureSummary } from './adventureState.js';
+import { createAdventureState, beginAdventureActivity, settleAdventureActivity, getAdventureSummary, findAdventureObject } from './adventureState.js';
 import { applyValleyEvent as event, getValleyProgress as progress, requirementMet, getPlayableRegionAt, validateWorldGateBindings } from './valleyProgression.js';
 import { REGION_IDS as R, VALLEY_REGIONS, WORLD_GATES } from './valleyBlueprint.js';
 import { FOREST_LESSON_CHESTS } from '../world/composition/forestAdventureComposition.js';
@@ -19,7 +19,7 @@ function prototypeComplete(state, id) {
   state = discover(state, id);
   const region = VALLEY_REGIONS.find(item => item.id === id);
   for (const req of region.regionCompletionRequirements) {
-    const chest=ROUTE_LESSON_CHESTS.find(c=>c.id===req.id);
+    const chest=findAdventureObject(req.id);
     if(chest) state=settleAdventureActivity(beginAdventureActivity(state,chest.id,chest.activityId),chest.id,{activityId:chest.activityId,completed:true});
     else state = event(state, { type: 'MILESTONE_REACHED', id: req.id });
   }

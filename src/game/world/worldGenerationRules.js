@@ -53,7 +53,11 @@ export function calculateTerrainElevation(x,z) {
     const bridgeWeight=(1-smooth((Math.abs(z-BRIDGE.z)-BRIDGE.depth/2)/1.2))*(1-smooth((Math.abs(x-BRIDGE.x)-BRIDGE.width/2)/1.5));
     height=height*(1-bridgeWeight)+(BRIDGE.height+.04)*bridgeWeight;
   }
-  return original*(1-extension)+height*extension;
+  const base = original*(1-extension)+height*extension;
+  // Preserve BUILD 1, then connect both routes to the low ceremonial ruins.
+  const finalBlend = smooth((-z-83)/7);
+  const finalHeight = 1.8 + 6.7*smooth((-z-108)/16);
+  return base*(1-finalBlend)+finalHeight*finalBlend;
 }
 
 export function riverChannelDistance(x,z) {

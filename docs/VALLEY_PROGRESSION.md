@@ -1,5 +1,28 @@
 # Global Valley Progression - SYSTEMS 5
 
+## WORLD BUILD 2: estado actual
+
+Este bloque reemplaza las referencias historicas inferiores a regiones futuras,
+completion pendiente, hitos de prototipo y ausencia de Challenges/final.
+Ver `WORLD_BUILD_2.md` para composicion, coordenadas y deuda del prototipo.
+
+`ALL_ADVENTURE_OBJECTS` agrega dos Lesson Chests de Ruinas (11/12), Challenge 13,
+Challenge final 35 y Secret Reward de Gruta. Ruinas requiere ambos recorridos;
+su completion exige los dos cofres y el resultado real del Challenge. Observatorio
+requiere Ruinas y termina con el Challenge final. Gruta es siempre opcional.
+PianoMagico sigue siendo la unica autoridad de resultados y XP educativos.
+
+Los footprints fisicos incluyen todas las regiones construidas. Las puertas
+`routes_to_ruins` y `ruins_to_observatory` tienen assets y colliders ligados al
+mismo estado derivado. No hay muro invisible perimetral; rodear una puerta no
+permite saltarse requisitos de actividades. La recompensa secreta requiere
+descubrimiento fisico y se reclama una sola vez, sin XP ni economia nueva.
+
+La restauracion schema 2 valida entries/claims y reconstruye los hechos de
+Challenges y Secret Reward conocidos. El final aparece tras el retorno del piano;
+Continuar explorando conserva el mundo y el progreso. Continuar una partida ya
+terminada no repite la pantalla final. La posicion exacta sigue sin persistirse.
+
 ## WORLD BUILD 1
 
 Checkpoint SYSTEMS 5 aprobado: fba5ee4. Rio y Montana ya no usan hitos prototype-complete: requieren sus tres Lesson Chests reales. Primer cofre de cada ruta requiere los tres del Bosque; posteriores requieren el anterior de su propia ruta. No hay dependencia cruzada ni XP adicional. Registro ALL_LESSON_CHESTS conserva IDs/claims anteriores y restaura los seis nuevos con el mismo contrato v2.

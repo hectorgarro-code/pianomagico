@@ -61,7 +61,9 @@ export function getValleyProgress(adventure) {
 
 function getCurrentObjective(adventure, completed, discovered, valleyCompleted) {
   if (valleyCompleted) return { id: 'VALLEY_COMPLETED', text: 'Has completado el Valle de las Notas' };
+  if (discovered.includes(REGION_IDS.OBSERVATORY)) return { id: 'FINAL_CHALLENGE', text: 'Interpreta el desafio final del Observatorio' };
   if (completed.has(REGION_IDS.RUINS)) return { id: 'REACH_OBSERVATORY', text: 'Llega al Observatorio Musical' };
+  if (discovered.includes(REGION_IDS.RUINS)) return { id: 'COMPLETE_RUINS', text: 'Completa las dos voces y el desafio del Gran Pentagrama' };
   if (completed.has(REGION_IDS.RIVER) && completed.has(REGION_IDS.MOUNTAIN)) return { id: 'REACH_RUINS', text: 'Alcanza el antiguo Pentagrama' };
   if (completed.has(REGION_IDS.RIVER) || completed.has(REGION_IDS.MOUNTAIN)) return {id:'EXPLORE_REMAINING_ROUTE',text:completed.has(REGION_IDS.RIVER)?'Explora la ruta restante: Montana de las Melodias':'Explora la ruta restante: Rio del Ritmo'};
   if (completed.has(REGION_IDS.FOREST) && adventure.valley.currentRegion===REGION_IDS.RIVER) return {id:'EXPLORE_RIVER',text:'Explora el Rio del Ritmo. Completa sus tres cofres'};
@@ -76,8 +78,8 @@ export function applyValleyEvent(adventure, event) {
   const progress = getValleyProgress(adventure), facts = adventure.valley;
   let next = facts;
   const add = (field, id) => {
-    if (typeof id !== 'string' || !id.length || id.length >= 160 || facts[field].includes(id)) return;
-    next = { ...next, [field]: [...facts[field], id] };
+    if (typeof id !== 'string' || !id.length || id.length >= 160 || next[field].includes(id)) return;
+    next = { ...next, [field]: [...next[field], id] };
   };
   switch (event?.type) {
     case 'REGION_DISCOVERED': {
@@ -102,10 +104,12 @@ export function applyValleyEvent(adventure, event) {
   return next === facts ? adventure : { ...adventure, valley: next };
 }
 
-// Only the already-authored Plaza and Forest are physically detectable today.
+// Authored physical footprints, independent of debug controls.
 export function getPlayableRegionAt(position) {
   if (!Number.isFinite(position?.x) || !Number.isFinite(position?.z)) return null;
-  if (Math.hypot(position.x+19,position.z+54)<2) return REGION_IDS.GROTTO;
+  if (Math.hypot(position.x+19,position.z+54)<2 || (position.x>=-39 && position.x<=-24 && position.z>=-62 && position.z<=-48)) return REGION_IDS.GROTTO;
+  if (position.z<=-120 && position.z>=-138 && Math.abs(position.x)<=11) return REGION_IDS.OBSERVATORY;
+  if (position.z<=-90 && position.z>=-109 && Math.abs(position.x)<=12) return REGION_IDS.RUINS;
   if(position.z<=-57 && position.z>=-83) {
     if(position.x<=-18 && position.x>=-43) return REGION_IDS.RIVER;
     if(position.x>=18 && position.x<=43) return REGION_IDS.MOUNTAIN;

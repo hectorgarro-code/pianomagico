@@ -24,7 +24,10 @@ import { RIVER_COMPOSITION, RIVER_CHANNEL, BRIDGE } from './composition/riverCom
 import { MOUNTAIN_COMPOSITION } from './composition/mountainComposition.js';
 import { GROTTO_ENTRANCE_COMPOSITION } from './composition/grottoEntranceComposition.js';
 import { validateWorldGateBindings } from '../adventure/valleyProgression.js';
-const COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION];
+import { GROTTO_COMPOSITION } from './composition/grottoComposition.js';
+import { RUINS_COMPOSITION } from './composition/ruinsComposition.js';
+import { OBSERVATORY_COMPOSITION } from './composition/observatoryComposition.js';
+const COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION,GROTTO_COMPOSITION,RUINS_COMPOSITION,OBSERVATORY_COMPOSITION];
 
 export class WorldGenerator {
   constructor(seed = 'VALLE_DE_LAS_NOTAS_V1') {
@@ -135,9 +138,9 @@ export class WorldGenerator {
   buildTerrain() {
     const size = 110;
     const segments = PLAZA_COMPOSITION.constructionPhase ? Math.ceil(size*2) : 56;
-    const geo = new THREE.PlaneGeometry(size, 150, segments, 300);
+    const geo = new THREE.PlaneGeometry(size, 200, segments, 400);
     geo.rotateX(-Math.PI / 2);
-    geo.translate(0,0,-20);
+    geo.translate(0,0,-45);
 
     const pos = geo.attributes.position;
     const colors = [];
@@ -270,6 +273,8 @@ export class WorldGenerator {
       if (obj) {
         obj.rotation.set(...item.rotation);
         obj.userData.compositionId = item.id;
+        const gate = (composition.gates || []).find(binding => binding.instanceId === item.id);
+        if (gate) obj.userData.gateId = gate.gateId;
       }
     }
     group.add(plazaRoot);
@@ -279,8 +284,11 @@ export class WorldGenerator {
       if(!instance)continue;
       const collider=materializeCollider(instance,item,this.models.get(item.assetUrl),composition.regionId);
       if(collider) {
+        if(instance.userData.gateId) collider.gateId=instance.userData.gateId;
         this.colliders.push(collider);
-        this.collisionDebug.add(createCollisionOutline(collider,collider.shape==='circle'?0x22e68d:0x36bfff,calculateTerrainElevation));
+        const outline=createCollisionOutline(collider,collider.shape==='circle'?0x22e68d:0x36bfff,calculateTerrainElevation);
+        if(collider.gateId) outline.userData.gateId=collider.gateId;
+        this.collisionDebug.add(outline);
       }
     }
     for(const station of composition.stations) {
@@ -297,6 +305,14 @@ export class WorldGenerator {
       const p = instance.getWorldPosition(new THREE.Vector3());
       this.interactionObjects.push({ ...object, position: { x: p.x, y: p.y, z: p.z } });
       this.collisionDebug.add(createCollisionOutline({ shape: 'circle', x: p.x, z: p.z, radius: object.interaction.radius }, 0xffc247, calculateTerrainElevation));
+    }
+    for (const definition of composition.lights || []) {
+      const light = new THREE.PointLight(definition.color, definition.intensity, definition.distance);
+      const [x,y,z] = definition.position;
+      light.position.set(x, calculateTerrainElevation(x,z)+y, z);
+      light.name = definition.id;
+      // Local accent lights have no shadow maps; the existing sun owns shadows.
+      plazaRoot.add(light);
     }
   }
 

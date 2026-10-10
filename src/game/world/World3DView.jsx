@@ -13,6 +13,7 @@ import { restoreWorldContext } from '../state/worldActivityFlow.js';
 import { ADVENTURE_STATES } from '../adventure/adventureState.js';
 import { getPlayableRegionAt } from '../adventure/valleyProgression.js';
 import { ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
+import { getActiveWorldColliders, updateGateModels } from './worldGates.js';
 
 function updateChestLids(models, state) {
   for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED ? -1.15 : 0);
@@ -100,12 +101,20 @@ export default function World3DView({
   activeRef.current = active;
   const interactionLockedRef = useRef(false);
   const collisionWorldRef = useRef(null);
+  const allCollidersRef = useRef([]);
+  const gateModelsRef = useRef([]);
   const terrainHeightRef = useRef(() => 0);
   const adventureModelsRef = useRef(new Map());
   const adventureStateRef = useRef(adventureState);
   adventureStateRef.current = adventureState;
   const [interactionObjects, setInteractionObjects] = useState([]);
   useEffect(() => { updateChestLids(adventureModelsRef.current, adventureState); }, [adventureState]);
+  useEffect(() => {
+    if (!collisionWorldRef.current || !adventureState) return;
+    collisionWorldRef.current = new CollisionWorld(getActiveWorldColliders(allCollidersRef.current, adventureState));
+    updateGateModels(gateModelsRef.current, adventureState);
+    updateGateModels(debugGroupRef.current?.getObjectByName('Collision_Debug')?.children.filter(node=>node.userData.gateId) || [], adventureState);
+  }, [adventureState]);
 
   useEffect(() => {
     for (const key of Object.keys(keysRef.current)) keysRef.current[key] = false;
@@ -132,7 +141,7 @@ export default function World3DView({
   // Notificar al estado del juego al interactuar
   const handleTriggerLesson = (station) => {
     if (!station || !activeRef.current || interactionLockedRef.current || loading) return;
-    if (station.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST && !onDiscoverAdventure) return;
+    if (station.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION && !onDiscoverAdventure) return;
     interactionLockedRef.current = true;
     const context = {
       position: { ...playerPosRef.current }, rotation: playerRotYRef.current,
@@ -142,7 +151,7 @@ export default function World3DView({
     if (onPlayerTransformChange) {
       onPlayerTransformChange(context);
     }
-    if (station.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST) {
+    if (station.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION) {
       onDiscoverAdventure(station.id, context);
     } else if (onEnterLesson && station.song) {
       onEnterLesson(station.song, 'solo', context);
@@ -328,8 +337,12 @@ export default function World3DView({
       }
       getTerrainHeight = heightAt;
       terrainHeightRef.current = heightAt;
-      collisionWorld = new CollisionWorld(colliders);
+      allCollidersRef.current = colliders;
+      collisionWorld = new CollisionWorld(getActiveWorldColliders(colliders, adventureStateRef.current));
       collisionWorldRef.current = collisionWorld;
+      gateModelsRef.current = [];
+      sceneGroup.traverse(obj => { if(obj.userData.gateId) gateModelsRef.current.push(obj); });
+      updateGateModels(gateModelsRef.current, adventureStateRef.current);
       const safeSpawn=collisionWorld.move(playerPosRef.current,{x:0,z:0});
       Object.assign(playerPosRef.current,safeSpawn);
       scene.add(sceneGroup);
@@ -339,10 +352,11 @@ export default function World3DView({
       scene.add(debugGroup);
       debugGroupRef.current = debugGroup;
       collisionDebug=debugGroup.getObjectByName('Collision_Debug');
+      updateGateModels(collisionDebug.children.filter(node=>node.userData.gateId), adventureStateRef.current);
       playerColliderDebug=createCollisionOutline({shape:'circle',x:0,z:0,radius:PLAYER_COLLIDER.radius,y:.1},0xff6580);
       collisionDebug.add(playerColliderDebug);
 
-      setWorldMetrics(stats);
+      setWorldMetrics({...stats,solidColliders:collisionWorld.colliders.length});
 
       for (const object of generatedObjects) {
         const song = object.lessonRef === 'first-song'
@@ -350,7 +364,7 @@ export default function World3DView({
           : songs.find(item => String(item.id) === String(object.activityId ?? object.lessonRef));
         let instance = null;
         sceneGroup.traverse(obj => { if (obj.userData.compositionId === object.instanceId) instance = obj; });
-        if (object.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST && instance) {
+        if (object.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION && instance) {
           const lid = instance.getObjectByName('chest_lid');
           if (lid) adventureModelsRef.current.set(object.id, { node: lid, closedRotation: lid.rotation.x });
         }
@@ -456,6 +470,7 @@ export default function World3DView({
       }
 
       let isMoving=false;
+      collisionWorld = collisionWorldRef.current;
       if (isInputActive && collisionWorld) {
         const beforeX=playerPosRef.current.x,beforeZ=playerPosRef.current.z;
         const next=collisionWorld.move(playerPosRef.current,{x:moveDir.x*baseSpeed*delta,z:moveDir.z*baseSpeed*delta});
@@ -574,7 +589,7 @@ export default function World3DView({
       if(debugEnabled) {
         metricsFrames++;
         if(now-metricsTime>=1000) {
-          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,solidColliders:collisionWorld.colliders.length};
           renderer.domElement.dataset.renderMetrics=JSON.stringify(metrics);
           setWorldMetrics(previous=>previous?{...previous,...metrics}:previous);
           metricsFrames=0;metricsTime=now;
@@ -631,8 +646,8 @@ export default function World3DView({
             className="bg-slate-900/85 hover:bg-slate-900 active:scale-95 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase shadow-xl border border-sky-400/40 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all hover:border-sky-400"
           >
             <Sparkles size={14} className="text-amber-400 fill-amber-400" />
-            <span className="text-slate-200">{nearbyStation.type === ADVENTURE_OBJECT_TYPES.LESSON_CHEST
-              ? `${adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.COMPLETED ? 'Completado · E - Practicar' : adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.LOCKED ? 'E - Examinar · Completa la lección anterior' : 'E - Abrir'}: ${nearbyStation.label}`
+            <span className="text-slate-200">{nearbyStation.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION
+              ? `${adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.COMPLETED ? nearbyStation.type === ADVENTURE_OBJECT_TYPES.SECRET_REWARD ? 'Descubierto · E - Ver' : 'Completado · E - Practicar' : adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.LOCKED ? 'E - Examinar · Completa la lección anterior' : 'E - Abrir'}: ${nearbyStation.label}`
               : <>{completedStationIds.includes(nearbyStation.id) ? 'Completada · ' : ''}<span className="text-sky-300 font-black">E</span> - Practicar: <strong className="text-white">{nearbyStation.song.title}</strong></>}</span>
             <Play size={13} fill="white" className="text-white" />
           </button>

@@ -1,7 +1,7 @@
 import { INITIAL_GAME_STATE } from './GameState.js';
-import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObject, settleAdventureActivity } from '../adventure/adventureState.js';
+import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObject, settleAdventureActivity, collectAdventureSecret } from '../adventure/adventureState.js';
 import { createAdventureState } from '../adventure/adventureState.js';
-import { applyValleyEvent, getPlayableRegionAt } from '../adventure/valleyProgression.js';
+import { applyValleyEvent, getPlayableRegionAt, getValleyProgress } from '../adventure/valleyProgression.js';
 import { REGION_IDS } from '../adventure/valleyBlueprint.js';
 
 export const GAME_MODES = Object.freeze({
@@ -12,7 +12,8 @@ export const GAME_MODES = Object.freeze({
 export function createWorldActivityState(adventure) {
   const game = structuredClone(INITIAL_GAME_STATE);
   if (adventure) game.adventure = { ...adventure, valley: { ...adventure.valley, currentRegion: REGION_IDS.PLAZA } };
-  return { mode: GAME_MODES.WORLD, game, activity: null, context: null, lastResult: null, discovery: null };
+  return { mode: GAME_MODES.WORLD, game, activity: null, context: null, lastResult: null, discovery: null,
+    endingAcknowledged: getValleyProgress(game.adventure).valleyCompleted };
 }
 
 export function restoreWorldContext(context, collisionWorld, heightAt) {
@@ -41,7 +42,7 @@ export function worldActivityReducer(state, action) {
     }
     case 'RESET_ADVENTURE': {
       if (state.mode !== GAME_MODES.WORLD) return state;
-      return { ...state, context: null, discovery: null, activity: null, lastResult: null,
+      return { ...state, context: null, discovery: null, activity: null, lastResult: null, endingAcknowledged: false,
         game: { ...state.game, adventure: createAdventureState(), player: { ...state.game.player, position: structuredClone(INITIAL_GAME_STATE.player.position), rotation: INITIAL_GAME_STATE.player.rotation, checkpoint: null, lastInteractionObject: null }, world: structuredClone(INITIAL_GAME_STATE.world) } };
     }
     case 'DISCOVER_ADVENTURE': {
@@ -52,6 +53,15 @@ export function worldActivityReducer(state, action) {
     }
     case 'CLOSE_DISCOVERY':
       return state.mode === GAME_MODES.WORLD ? { ...state, discovery: null } : state;
+    case 'CLAIM_SECRET': {
+      if (state.mode !== GAME_MODES.WORLD || state.discovery?.objectId !== action.objectId) return state;
+      const adventure = collectAdventureSecret(state.game.adventure, action.objectId);
+      if (adventure === state.game.adventure) return state;
+      return { ...state, discovery: null, game: { ...state.game, adventure } };
+    }
+    case 'ACK_ENDING':
+      return state.mode === GAME_MODES.WORLD && getValleyProgress(state.game.adventure).valleyCompleted
+        ? { ...state, endingAcknowledged: true } : state;
     case 'ACK_REWARD':
       return { ...state, game: { ...state.game, adventure: { ...state.game.adventure, lastReward: null } } };
     case 'PROFILE':

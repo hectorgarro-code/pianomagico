@@ -13,6 +13,7 @@ import { hasAdventureProgress, getNewAdventurePhase } from './adventure/adventur
 import { getValleyProgress } from './adventure/valleyProgression.js';
 import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
 import WorldMusic from './audio/WorldMusic.jsx';
+import ValleyEnding from './adventure/ValleyEnding.jsx';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -55,6 +56,7 @@ export default function GameApp({ userId, onExitApp }) {
   const discoveredSong = songs.find(song => String(song.id) === String(discoveredObject?.activityId));
   const adventureSummary = getAdventureSummary(gameState.adventure);
   const valleyProgress = getValleyProgress(gameState.adventure);
+  const showEnding = gameMode === GAME_MODES.WORLD && valleyProgress.valleyCompleted && !flow.endingAcknowledged;
 
   // Cargar datos del usuario desde la capa progressService
   const loadUserData = useCallback(async () => {
@@ -200,7 +202,7 @@ export default function GameApp({ userId, onExitApp }) {
             <World3DView
               key={worldVisit}
               debugEnabled={debugEnabled}
-              active={gameMode === GAME_MODES.WORLD && !flow.discovery}
+              active={gameMode === GAME_MODES.WORLD && !flow.discovery && !showEnding}
               returnContext={flow.context}
               completedStationIds={Object.keys(gameState.world.stationResults)}
               songs={songs}
@@ -222,7 +224,9 @@ export default function GameApp({ userId, onExitApp }) {
           object={discoveredObject} song={discoveredSong} state={gameState.adventure.entries[discoveredObject.id].state}
           onClose={() => dispatch({ type: 'CLOSE_DISCOVERY' })}
           onStart={() => handleEnterLesson(discoveredSong, 'solo', flow.context)}
+          onClaimSecret={() => dispatch({ type: 'CLAIM_SECRET', objectId: discoveredObject.id })}
         />}
+        {showEnding && <ValleyEnding onContinue={() => dispatch({ type: 'ACK_ENDING' })} />}
         {gameMode === GAME_MODES.WORLD && gameState.adventure.lastReward && !flow.discovery && <div role="status" className="absolute bottom-16 left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border border-emerald-400 bg-zinc-900 px-4 py-3 text-sm">
           <span>Recompensa: {gameState.adventure.lastReward.label}</span>
           <button onClick={() => dispatch({ type: 'ACK_REWARD' })} title="Cerrar recompensa" aria-label="Cerrar recompensa"><X size={16}/></button>
