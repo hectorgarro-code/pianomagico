@@ -1,0 +1,29 @@
+.valley-navigation { position:absolute; inset:0; pointer-events:none; z-index:45; letter-spacing:0; }
+.valley-navigation button { cursor:pointer; }
+.valley-minimap { position:absolute; bottom:18px; right:18px; width:180px; height:220px; padding:8px; background:#18181beb; border:1px solid #ffffff40; border-radius:8px; pointer-events:auto; color:#f4f4f5; }
+.valley-map-caption { display:flex; align-items:center; gap:6px; font-size:10px; line-height:14px; text-align:left; height:30px; }
+.valley-minimap svg[role=img] { width:100%; height:172px; }
+.valley-mobile-map { display:none; }
+.valley-direction { position:absolute; left:12px; top:94px; display:flex; align-items:center; gap:7px; padding:6px 9px; max-width:220px; border-radius:6px; background:#18181bd9; color:#ffd16c; font-size:11px; line-height:15px; }
+.valley-direction svg { flex-shrink:0; }
+.valley-direction.is-subdued { opacity:.4; }
+.valley-map-backdrop { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; background:#09090bad; pointer-events:auto; }
+.valley-map-panel { display:flex; flex-direction:column; width:500px; max-width:calc(100% - 32px); height:min(90dvh,850px); background:#18181b; border:1px solid #71717a; border-radius:8px; box-shadow:0 8px 35px #0008; overflow:hidden; color:#f4f4f5; }
+.valley-map-panel header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #3f3f46; }
+.valley-map-panel h2 { font-size:16px; margin:0; }
+.valley-map-panel button { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:6px; }
+.valley-map-panel button:hover { background:#3f3f46; }
+.valley-map-content { min-height:0; flex:1; padding:4px; }
+.valley-map-content svg { width:100%; height:100%; }
+.valley-map-panel footer { padding:10px 16px; border-top:1px solid #3f3f46; font-size:12px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; }
+.valley-map-panel footer p { flex-basis:100%; margin:0; color:#ffd16c; }
+.valley-map-panel label,.valley-map-legend,.valley-map-legend span { display:flex; gap:6px; align-items:center; }
+.map-pending { color:#ffd16c; }
+.valley-map-panel input { width:18px; height:18px; accent-color:#64cf9b; }
+@media(max-width:767px) {
+  .valley-minimap { display:none; }
+  .valley-mobile-map { display:flex; position:absolute; bottom:18px; right:14px; pointer-events:auto; width:44px; height:44px; align-items:center; justify-content:center; color:#f4f4f5; background:#18181be8; border:1px solid #ffffff40; border-radius:8px; }
+  .valley-map-panel { max-width:none; width:100%; height:100%; border-radius:0; }
+  .valley-direction { top:auto; bottom:18px; max-width:calc(100% - 86px); min-height:44px; font-size:10px; }
+  .valley-map-panel button { width:44px; height:44px; }
+}

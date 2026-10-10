@@ -14,6 +14,9 @@ import { ADVENTURE_STATES } from '../adventure/adventureState.js';
 import { getPlayableRegionAt } from '../adventure/valleyProgression.js';
 import { ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
 import { getActiveWorldColliders, updateGateModels } from './worldGates.js';
+import WorldNavigation from '../navigation/WorldNavigation.jsx';
+import { resolveObjectiveTarget } from '../navigation/valleyNavigation.js';
+import { createChestSignals } from './chestSignals.js';
 
 function updateChestLids(models, state) {
   for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED ? -1.15 : 0);
@@ -45,6 +48,13 @@ export default function World3DView({
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [worldMetrics, setWorldMetrics] = useState(null);
+  const [mapOpen, setMapOpen] = useState(false);
+  const mapOpenRef = useRef(false);
+  mapOpenRef.current = mapOpen;
+  useEffect(() => {
+    for (const key of Object.keys(keysRef.current)) keysRef.current[key] = false;
+    isDraggingMouseRef.current = false;
+  }, [mapOpen]);
 
   // Compute unlock progress defensivamente
   const perfsArray = Array.isArray(userPerformances) ? userPerformances : [];
@@ -76,6 +86,8 @@ export default function World3DView({
   const playerVelYRef = useRef(0);
   const isGroundedRef = useRef(true);
   const playerRotYRef = useRef(initialRotation ?? PLAZA_COMPOSITION.spawn.rotation[1]);
+  const [navigationPose, setNavigationPose] = useState({ position: { ...playerPosRef.current },
+    rotation: playerRotYRef.current, cameraYaw: PLAZA_COMPOSITION.camera.yaw });
 
   // Camera Orbit / Rotation Controls con Damping suave y Anti-Clipping
   const cameraAngleRef = useRef({
@@ -140,7 +152,7 @@ export default function World3DView({
 
   // Notificar al estado del juego al interactuar
   const handleTriggerLesson = (station) => {
-    if (!station || !activeRef.current || interactionLockedRef.current || loading) return;
+    if (!station || !activeRef.current || mapOpenRef.current || interactionLockedRef.current || loading) return;
     if (station.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION && !onDiscoverAdventure) return;
     interactionLockedRef.current = true;
     const context = {
@@ -161,7 +173,7 @@ export default function World3DView({
   // Keyboard Event Listeners (WASD + Shift + Space + E)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!activeRef.current || e.repeat || e.target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (!activeRef.current || mapOpenRef.current || e.repeat || e.target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
       if (e.code === 'KeyW' || e.code === 'ArrowUp') keysRef.current.forward = true;
       if (e.code === 'KeyS' || e.code === 'ArrowDown') keysRef.current.backward = true;
       if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysRef.current.left = true;
@@ -212,7 +224,7 @@ export default function World3DView({
   // Arrastre con ratón para rotación orbital con amortiguación (Damping)
   useEffect(() => {
     const handleMouseDown = (e) => {
-      if (!activeRef.current) return;
+      if (!activeRef.current || mapOpenRef.current) return;
       if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
       isDraggingMouseRef.current = true;
       mousePosRef.current = { x: e.clientX, y: e.clientY };
@@ -234,7 +246,7 @@ export default function World3DView({
     };
 
     const handleWheel = (e) => {
-      if (!activeRef.current) return;
+      if (!activeRef.current || mapOpenRef.current) return;
       cameraAngleRef.current.targetDistance = Math.max(8.5, Math.min(22.0, cameraAngleRef.current.targetDistance + e.deltaY * 0.012));
     };
 
@@ -329,6 +341,7 @@ export default function World3DView({
     let collisionWorld = null;
     let playerColliderDebug = null;
     let collisionDebug = null;
+    let chestSignals = null;
 
     generator.buildSection1().then(async ({ sceneGroup, debugGroup, heightAt, stats, colliders, interactionObjects: generatedObjects }) => {
       if (!isMounted) {
@@ -373,6 +386,7 @@ export default function World3DView({
       }
       setInteractionObjects(levelPositions);
       updateChestLids(adventureModelsRef.current, adventureStateRef.current);
+      chestSignals = createChestSignals(scene, generatedObjects, heightAt);
 
       // 6. Spawn del Héroe
       const charInfo = getCharacterModel(profile.avatarId);
@@ -425,6 +439,8 @@ export default function World3DView({
     // 8. Bucle de Render y Movimiento de Aventura con Damping de Cámara y Prevención de Clipping
     let lastTime = performance.now();
     let metricsTime=lastTime, metricsFrames=0;
+    let navigationTime=0;
+    const targetProjection=new THREE.Vector3();
 
     const animate = () => {
       animFrameId = requestAnimationFrame(animate);
@@ -448,7 +464,7 @@ export default function World3DView({
       if (keysRef.current.left) inputX -= 1;
       if (keysRef.current.right) inputX += 1;
 
-      const isInputActive = inputX !== 0 || inputZ !== 0;
+      const isInputActive = !mapOpenRef.current && (inputX !== 0 || inputZ !== 0);
 
       // Calcular dirección de movimiento orientada según el azimut de la cámara
       let moveDir = new THREE.Vector3(0, 0, 0);
@@ -585,13 +601,25 @@ export default function World3DView({
       camera.position.lerp(targetCamPos, Math.min(1.0, 8.5 * delta));
       camera.lookAt(targetLookAt);
 
+      chestSignals?.update(now / 1000, playerPosRef.current, adventureStateRef.current);
+      if (now-navigationTime>=200) {
+        navigationTime=now;
+        const target=resolveObjectiveTarget(adventureStateRef.current);
+        let projected=null;
+        if(target) {
+          targetProjection.set(target.position.x,getTerrainHeight(target.position.x,target.position.z)+1,target.position.z).project(camera);
+          projected={x:targetProjection.x,y:targetProjection.y,z:targetProjection.z};
+        }
+        setNavigationPose({position:{...playerPosRef.current},rotation:playerRotYRef.current,cameraYaw:angles.currentYaw,projected});
+      }
+
       renderer.render(scene, camera);
-      if(debugEnabled) {
+      if(import.meta.env.DEV) {
         metricsFrames++;
         if(now-metricsTime>=1000) {
-          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,solidColliders:collisionWorld.colliders.length};
+          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,solidColliders:collisionWorld.colliders.length,sampledAt:Math.round(now),foreground:document.visibilityState==='visible' && document.hasFocus()};
           renderer.domElement.dataset.renderMetrics=JSON.stringify(metrics);
-          setWorldMetrics(previous=>previous?{...previous,...metrics}:previous);
+          if(debugEnabled)setWorldMetrics(previous=>previous?{...previous,...metrics}:previous);
           metricsFrames=0;metricsTime=now;
         }
       }
@@ -607,6 +635,7 @@ export default function World3DView({
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      chestSignals?.dispose();
       if(collisionDebug)disposeCollisionDebug(collisionDebug);
       debugGroupRef.current=null;
       collisionWorldRef.current=null;
@@ -618,6 +647,7 @@ export default function World3DView({
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-slate-950 select-none">
       <div ref={containerRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing" />
+      {adventureState && !loading && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} onOpenChange={setMapOpen} />}
 
       {loading && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-sky-950/80 backdrop-blur-md">
