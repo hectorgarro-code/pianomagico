@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
-import { GAME_MODES, createWorldActivityState, worldActivityReducer } from './state/worldActivityFlow.js';
+import { GAME_MODES, createWorldActivityState, worldActivityReducer, findWorldActivityObject } from './state/worldActivityFlow.js';
 import { progressService } from './services/progressService';
 import World3DView from './world/World3DView';
 import PianoStageView from './piano/PianoStageView';
@@ -7,7 +7,7 @@ import GameTransitionManager from './transitions/GameTransitionManager';
 import { Zap, X } from 'lucide-react';
 import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
 import AdventureDiscovery from './adventure/AdventureDiscovery.jsx';
-import { findAdventureObject, getAdventureSummary } from './adventure/adventureState.js';
+import { getAdventureSummary } from './adventure/adventureState.js';
 import AdventureStart from './adventure/AdventureStart.jsx';
 import { hasAdventureProgress, getNewAdventurePhase } from './adventure/adventureStart.js';
 import { getValleyProgress } from './adventure/valleyProgression.js';
@@ -15,6 +15,7 @@ import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
 import WorldMusic from './audio/WorldMusic.jsx';
 import ValleyEnding from './adventure/ValleyEnding.jsx';
 import { getDevPlaytest } from './playtest/playtestTelemetry.js';
+import { saveEquipment } from './presentation/characterEquipment.js';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -66,8 +67,8 @@ export default function GameApp({ userId, onExitApp }) {
   // Lección seleccionada para el desafío musical
   const selectedSong = flow.activity?.song;
   const selectedMode = flow.activity?.mode;
-  const discoveredObject = findAdventureObject(flow.discovery?.objectId);
-  const discoveredSong = songs.find(song => String(song.id) === String(discoveredObject?.activityId));
+  const discoveredObject = findWorldActivityObject(flow.discovery?.objectId);
+  const discoveredSong = songs.find(song => String(song.id) === String(discoveredObject?.activityId ?? flow.context?.activityId));
   const adventureSummary = getAdventureSummary(gameState.adventure);
   const valleyProgress = getValleyProgress(gameState.adventure);
   const showEnding = gameMode === GAME_MODES.WORLD && valleyProgress.valleyCompleted && !flow.endingAcknowledged;
@@ -139,9 +140,10 @@ export default function GameApp({ userId, onExitApp }) {
     phase={startPhase} profile={profile} canContinue={hasAdventureProgress(gameState.adventure)}
     onPhase={setStartPhase} onBegin={beginAdventure} onContinue={beginAdventure}
     onNewAdventure={newAdventure} debugEnabled={debugEnabled}
-    onCharacter={async avatarId => {
+    onCharacter={async (avatarId, equipment) => {
       const saved = await progressService.selectCharacter(userId, avatarId);
       if (!saved || saved.avatarId !== avatarId) throw new Error('Character not confirmed');
+      saveEquipment(userId, avatarId, equipment);
       setProfile(saved); dispatch({ type: 'PROFILE', profile: saved });
     }}
     onExit={onExitApp} onReset={resetAdventure}
@@ -151,7 +153,7 @@ export default function GameApp({ userId, onExitApp }) {
     <div className="relative w-full h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 select-none">
       {/* HUD SUPERIOR DEL VIDEOJUEGO (Solo visible en WORLD) */}
       {(
-        <div className={`fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start ${gameMode !== GAME_MODES.WORLD ? 'hidden' : ''}`}>
+        <div className={`valley-world-hud fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start ${gameMode !== GAME_MODES.WORLD ? 'hidden' : ''}`}>
           {/* HUD Izquierda: Avatar y Nombre */}
           <div className="pointer-events-auto flex items-center gap-2 bg-slate-900/80 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-2xl">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-sm shadow-md border border-white/20 text-white">
@@ -172,7 +174,7 @@ export default function GameApp({ userId, onExitApp }) {
 
           {/* HUD Derecha: XP y Salir */}
           <div className="pointer-events-auto flex items-center gap-2">
-            <WorldMusic active={gameMode === GAME_MODES.WORLD} immediatePause={gameMode === GAME_MODES.PIANO} />
+            <WorldMusic active={gameMode === GAME_MODES.WORLD && !flow.discovery} immediatePause={gameMode === GAME_MODES.PIANO || !!flow.discovery} />
             <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md border border-amber-400/30 px-3 py-1.5 rounded-full shadow-2xl">
               <Zap size={15} className="text-amber-400 fill-amber-400" />
               <span className="text-xs font-black text-amber-300 tracking-wider">
@@ -192,7 +194,7 @@ export default function GameApp({ userId, onExitApp }) {
           </div>
         </div>
       )}
-      {gameMode === GAME_MODES.WORLD && !flow.discovery && <div role="status" className="absolute top-14 left-3 z-40 max-w-[calc(100%-6rem)] rounded-lg bg-zinc-950/80 px-3 py-2 text-xs pointer-events-none">
+      {gameMode === GAME_MODES.WORLD && !flow.discovery && <div role="status" className="valley-world-objective absolute top-14 left-3 z-40 max-w-[calc(100%-6rem)] rounded-lg bg-zinc-950/80 px-3 py-2 text-xs pointer-events-none">
         {valleyProgress.currentObjective.text}
       </div>}
       {debugEnabled && gameMode === GAME_MODES.WORLD && !flow.discovery && <ValleyProgressDebug
@@ -237,7 +239,7 @@ export default function GameApp({ userId, onExitApp }) {
         )}
 
         {gameMode === GAME_MODES.WORLD && discoveredObject && <AdventureDiscovery
-          object={discoveredObject} song={discoveredSong} state={gameState.adventure.entries[discoveredObject.id].state}
+          object={discoveredObject} song={discoveredSong} state={gameState.adventure.entries[discoveredObject.id]?.state || (gameState.world.stationResults[discoveredObject.id]?.completed ? 'COMPLETED' : 'AVAILABLE')}
           onClose={() => dispatch({ type: 'CLOSE_DISCOVERY' })}
           onStart={() => handleEnterLesson(discoveredSong, 'solo', flow.context)}
           onClaimSecret={() => dispatch({ type: 'CLAIM_SECRET', objectId: discoveredObject.id })}

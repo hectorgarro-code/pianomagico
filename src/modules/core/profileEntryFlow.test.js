@@ -9,15 +9,33 @@ import { getNewAdventurePhase, hasAdventureProgress } from '../../game/adventure
 import { createWorldActivityState, worldActivityReducer } from '../../game/state/worldActivityFlow.js';
 import { createAdventurePersistence } from '../../game/services/adventurePersistence.js';
 
-let server, LoginScreen, AdventureStart;
+let server, LoginScreen, AdventureStart, ValleyLessonEntry, pianoHelpers;
 before(async () => {
   server = await createServer({ server: { middlewareMode: true }, optimizeDeps: { noDiscovery: true, include: [] }, appType: 'custom', logLevel: 'error' });
   LoginScreen = (await server.ssrLoadModule('/src/modules/core/LoginScreen.jsx')).default;
   AdventureStart = (await server.ssrLoadModule('/src/game/adventure/AdventureStart.jsx')).default;
+  ValleyLessonEntry = (await server.ssrLoadModule('/src/game/piano/ValleyLessonEntry.jsx')).default;
+  pianoHelpers = await server.ssrLoadModule('/src/modules/piano-magico/PianoMagico.jsx');
 });
 after(async () => { await server?.close(); });
 const profile = { id: 2, avatarId: 2, name: 'SOPHIA', total_score: 2500 };
 const renderEntry = props => renderToStaticMarkup(React.createElement(AdventureStart, { phase: 'ENTRY', profile, canContinue: false, ...props }));
+
+test('Valley preparation renders real notes and one configurable practice/challenge/final card', () => {
+  for (const [object, label] of [[{id:'practice',type:'PRACTICE_STATION'},'Practica libre'],[{id:'challenge',type:'CHALLENGE'},'Desafio musical'],[{id:'observatory-final-challenge',type:'CHALLENGE'},'Desafio final del Valle']]) {
+    const html = renderToStaticMarkup(React.createElement(ValleyLessonEntry, {object,song:{id:2,title:'2. Subiendo la Escalera',sequence:['C4','D4','E4']}}));
+    assert.match(html, new RegExp(label)); assert.match(html, /Escuchar ejemplo/); assert.match(html, /Comenzar leccion/);
+    for (const note of ['DO4','RE4','MI4']) assert.match(html,new RegExp(note));
+    assert.doesNotMatch(html,/2\. 2\./);
+  }
+});
+test('preview uses existing solfege, frequency and legacy speed semantics unchanged', () => {
+  assert.deepEqual(pianoHelpers.getSequenceArray('DO4 RE4:2 SILENCIO:1'),['C4:1','D4:2','R:1']);
+  assert.equal(pianoHelpers.getIntervalMs(1300),1300);
+  assert.equal(pianoHelpers.getIntervalMs(120),500);
+  assert.equal(pianoHelpers.getIntervalMs(null),600);
+  assert.equal(pianoHelpers.getNoteFrequency('A4'),440);
+});
 
 test('profile selection enters Valle directly; exit and refresh return only to profiles', () => {
   assert.equal(getEntryScreen(null), 'PROFILE');

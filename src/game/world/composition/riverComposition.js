@@ -8,7 +8,7 @@ export const RIVER_COMPOSITION = composition('RIO_DEL_RITMO','River',[
 ],[
   instance('river-west-canopy','Tree_2_A_Color1',-39,-62,1.3,'trees'),
   instance('river-south-tree','Tree_2_A_Color1',-39,-75,1.1,'trees'),
-  instance('river-north-tree','Tree_2_A_Color1',-32,-84,1.2,'trees'),
+  instance('river-north-tree','Tree_2_A_Color1',-35.5,-84,1.2,'trees'),
   instance('river-island-bush','Bush_2_A_Color1',-26.5,-74,.45,'bushes'),
   instance('river-east-bank-rock','Rock_1_D_Color1',-24,-69,1.2),
   instance('river-west-bank-rock','Rock_1_D_Color1',-37,-73,1.4),

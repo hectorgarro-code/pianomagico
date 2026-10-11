@@ -60,3 +60,10 @@ deploy.config.json
 /public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/mage_texture.png
 /public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/ranger_texture.png
 /public/models/characters/KayKit_Adventurers_2.0_FREE/KayKit_Adventurers_2.0_FREE/Characters/gltf/rogue_texture.png
+
+# Audited packs: auxiliary presentations and alternate-format texture copies.
+/public/models/characters/kenney_cube-pets_1.0/Models/OBJ format/
+/public/models/characters/kenney_cube-pets_1.0/Overview.html
+/public/models/characters/kenney_cube-pets_1.0/Preview.png
+/public/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/characters/gltf/skeleton_texture.png
+/public/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/texture/

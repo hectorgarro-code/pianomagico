@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { Play, Sparkles, Compass, Database, Eye } from 'lucide-react';
 import { getCharacterModel } from '../../modules/core/utils/characterModels';
-import { ASSET_MANIFEST, loadCachedModel } from '../assets/assetManifest';
 import { WorldGenerator } from './WorldGenerator';
 import AssetDiagnosticModal from '../assets/AssetDiagnosticModal';
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
@@ -17,6 +16,9 @@ import { getActiveWorldColliders, updateGateModels } from './worldGates.js';
 import WorldNavigation from '../navigation/WorldNavigation.jsx';
 import { resolveObjectiveTarget } from '../navigation/valleyNavigation.js';
 import { createChestSignals } from './chestSignals.js';
+import { createCharacterAnimator } from '../presentation/characterActions.js';
+import { loadCharacterPresentation, applyEquipment, readEquipment, getEquipment } from '../presentation/characterEquipment.js';
+import { assistedCameraYaw } from './cameraAssist.js';
 
 function updateChestLids(models, state) {
   for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED ? -1.15 : 0);
@@ -45,7 +47,6 @@ export default function World3DView({
   const [nearbyStation, setNearbyStation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState('Iniciando...');
-  const [showTutorial, setShowTutorial] = useState(true);
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [worldMetrics, setWorldMetrics] = useState(null);
@@ -71,7 +72,6 @@ export default function World3DView({
     else break;
   }
 
-  const tutorialVisibleRef = useRef(true);
   const walkedDistanceRef = useRef(0);
   const objectiveCallbackRef = useRef(onObjectiveProgress);
   objectiveCallbackRef.current = onObjectiveProgress;
@@ -108,7 +108,9 @@ export default function World3DView({
   const characterMeshRef = useRef(null);
   const characterMixerRef = useRef(null);
   const characterActionsRef = useRef({});
-  const activeActionNameRef = useRef('Idle');
+  const expressionRef = useRef(null);
+  const lastManualCameraRef = useRef(-Infinity);
+  const movementBasisRef = useRef({ signature: '', yaw: 0 });
   const debugGroupRef = useRef(null);
   const activeRef = useRef(active);
   activeRef.current = active;
@@ -153,18 +155,19 @@ export default function World3DView({
 
   // Notificar al estado del juego al interactuar
   const handleTriggerLesson = (station) => {
-    if (!station || !activeRef.current || mapOpenRef.current || interactionLockedRef.current || loading) return;
+    if (!station || !activeRef.current || mapOpenRef.current || expressionRef.current?.locked || interactionLockedRef.current || loading) return;
     if (station.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION && !onDiscoverAdventure) return;
     interactionLockedRef.current = true;
     const context = {
       position: { ...playerPosRef.current }, rotation: playerRotYRef.current,
       stationId: station.id, regionId: station.regionId,
+      activityId: station.song?.id ?? station.activityId,
       worldId: 'valle_notas', camera: { ...cameraAngleRef.current }
     };
     if (onPlayerTransformChange) {
       onPlayerTransformChange(context);
     }
-    if (station.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION) {
+    if (onDiscoverAdventure) {
       onDiscoverAdventure(station.id, context);
     } else if (onEnterLesson && station.song) {
       onEnterLesson(station.song, 'solo', context);
@@ -183,6 +186,7 @@ export default function World3DView({
 
       // Salto / Interactuar
       if (e.code === 'Space') {
+        if (expressionRef.current?.locked) return;
         e.preventDefault();
         if (nearbyStation && !keysRef.current.space) {
           handleTriggerLesson(nearbyStation);
@@ -199,6 +203,8 @@ export default function World3DView({
       if (e.code === 'KeyE' && nearbyStation) {
         e.preventDefault();
         handleTriggerLesson(nearbyStation);
+      } else if ((e.code === 'KeyQ' || e.code === 'KeyE') && isGroundedRef.current) {
+        e.preventDefault(); expressionRef.current?.express(e.code.slice(-1));
       }
     };
 
@@ -228,6 +234,7 @@ export default function World3DView({
       if (!activeRef.current || mapOpenRef.current) return;
       if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
       isDraggingMouseRef.current = true;
+      lastManualCameraRef.current = performance.now();
       mousePosRef.current = { x: e.clientX, y: e.clientY };
     };
 
@@ -239,6 +246,7 @@ export default function World3DView({
       mousePosRef.current = { x: e.clientX, y: e.clientY };
 
       cameraAngleRef.current.targetYaw -= dx * 0.0048;
+      lastManualCameraRef.current = performance.now();
       cameraAngleRef.current.targetPitch = Math.max(0.08, Math.min(0.85, cameraAngleRef.current.targetPitch + dy * 0.0035));
     };
 
@@ -248,6 +256,7 @@ export default function World3DView({
 
     const handleWheel = (e) => {
       if (!activeRef.current || mapOpenRef.current) return;
+      lastManualCameraRef.current = performance.now();
       cameraAngleRef.current.targetDistance = Math.max(8.5, Math.min(22.0, cameraAngleRef.current.targetDistance + e.deltaY * 0.012));
     };
 
@@ -391,27 +400,26 @@ export default function World3DView({
 
       // 6. Spawn del Héroe
       const charInfo = getCharacterModel(profile.avatarId);
-      const heroModelUrl = charInfo.file || ASSET_MANIFEST.characters.knight;
 
       try {
-        const heroGltf = await loadCachedModel(heroModelUrl);
+        const heroGltf = await loadCharacterPresentation(charInfo.id);
         if (heroGltf && heroGltf.scene && isMounted) {
           const charMesh = SkeletonUtils.clone(heroGltf.scene);
           charMesh.scale.set(1.15, 1.15, 1.15);
           charMesh.position.set(playerPosRef.current.x, playerPosRef.current.y, playerPosRef.current.z);
           charMesh.rotation.y = playerRotYRef.current;
           charMesh.traverse(c => { if (c.isMesh) c.castShadow = true; });
+          const equipment = getEquipment(charInfo.id, readEquipment(profile.user_id ?? profile.id, charInfo.id));
+          await applyEquipment(charMesh, charInfo.id, equipment.id);
+          if (!isMounted) return;
           scene.add(charMesh);
           characterMeshRef.current = charMesh;
 
           if (heroGltf.animations && heroGltf.animations.length > 0) {
             const mixer = new THREE.AnimationMixer(charMesh);
             characterMixerRef.current = mixer;
-            heroGltf.animations.forEach((clip) => {
-              characterActionsRef.current[clip.name] = mixer.clipAction(clip);
-            });
-            const initialClip = characterActionsRef.current['Idle'] || characterActionsRef.current[heroGltf.animations[0].name];
-            if (initialClip) initialClip.play();
+            expressionRef.current = createCharacterAnimator(mixer, heroGltf.animations, charInfo.id, equipment);
+            characterActionsRef.current = expressionRef.current.actions;
           }
         }
       } catch (e) {
@@ -434,6 +442,8 @@ export default function World3DView({
       const h = container.clientHeight || window.innerHeight;
       fitCamera(w, h);
       renderer.setSize(w, h);
+      // A paused lesson backdrop must survive resize without advancing the world.
+      if (!activeRef.current) renderer.render(scene,camera);
     };
     window.addEventListener('resize', handleResize);
 
@@ -465,13 +475,16 @@ export default function World3DView({
       if (keysRef.current.left) inputX -= 1;
       if (keysRef.current.right) inputX += 1;
 
-      const isInputActive = !mapOpenRef.current && (inputX !== 0 || inputZ !== 0);
+      const isInputActive = !mapOpenRef.current && !expressionRef.current?.locked && (inputX !== 0 || inputZ !== 0);
 
       // Calcular dirección de movimiento orientada según el azimut de la cámara
       let moveDir = new THREE.Vector3(0, 0, 0);
       if (isInputActive) {
         const normInput = new THREE.Vector2(inputX, inputZ).normalize();
-        const camYaw = cameraAngleRef.current.currentYaw;
+        const signature = `${inputX}:${inputZ}`;
+        const basis = movementBasisRef.current;
+        if (basis.signature !== signature || isDraggingMouseRef.current) { basis.signature = signature; basis.yaw = cameraAngleRef.current.currentYaw; }
+        const camYaw = basis.yaw;
         const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
         const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
 
@@ -484,7 +497,7 @@ export default function World3DView({
         while (diff < -Math.PI) diff += Math.PI * 2;
         while (diff > Math.PI) diff -= Math.PI * 2;
         playerRotYRef.current += diff * Math.min(1.0, 12 * delta);
-      }
+      } else movementBasisRef.current.signature = '';
 
       let isMoving=false;
       collisionWorld = collisionWorldRef.current;
@@ -495,7 +508,6 @@ export default function World3DView({
         isMoving=Math.hypot(next.x-beforeX,next.z-beforeZ)>1e-5;
         if (isMoving) {
           walkedDistanceRef.current += Math.hypot(next.x-beforeX,next.z-beforeZ);
-          if (tutorialVisibleRef.current) { tutorialVisibleRef.current = false; setShowTutorial(false); }
           const journey = adventureStateRef.current?.journey;
           const event = `${getPlayableRegionAt(next) || 'TRANSITION'}:${walkedDistanceRef.current >= 3 || next.z < -10 ? 'WALKED' : 'START'}`;
           if (journey?.started && event && event !== reportedObjectiveRef.current) {
@@ -526,18 +538,7 @@ export default function World3DView({
         desiredAnim = isShift ? 'Running_A' : 'Walking_A';
       }
 
-      if (desiredAnim !== activeActionNameRef.current) {
-        const currentAction = characterActionsRef.current[activeActionNameRef.current];
-        const nextAction = characterActionsRef.current[desiredAnim] ||
-          characterActionsRef.current['Walking_A'] ||
-          characterActionsRef.current['Idle'];
-
-        if (nextAction && currentAction && nextAction !== currentAction) {
-          currentAction.fadeOut(0.2);
-          nextAction.reset().fadeIn(0.2).play();
-          activeActionNameRef.current = desiredAnim;
-        }
-      }
+      expressionRef.current?.locomotion(desiredAnim);
 
       if (characterMeshRef.current) {
         characterMeshRef.current.position.set(
@@ -567,6 +568,8 @@ export default function World3DView({
       // CÁMARA TERCERA PERSONA CON DAMPING SUAVE Y ANTI-CLIPPING
       // ==========================================
       const angles = cameraAngleRef.current;
+      angles.targetYaw = assistedCameraYaw({ yaw: angles.targetYaw, rotation: playerRotYRef.current, moving: isMoving,
+        dragging: isDraggingMouseRef.current, sinceManual: (now - lastManualCameraRef.current) / 1000, delta });
       const dampSpeed = Math.min(1.0, 9.0 * delta);
       angles.currentYaw += (angles.targetYaw - angles.currentYaw) * dampSpeed;
       angles.currentPitch += (angles.targetPitch - angles.currentPitch) * dampSpeed;
@@ -618,8 +621,9 @@ export default function World3DView({
       if(import.meta.env.DEV) {
         metricsFrames++;
         if(now-metricsTime>=1000) {
-          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,solidColliders:collisionWorld.colliders.length,sampledAt:Math.round(now),foreground:document.visibilityState==='visible' && document.hasFocus()};
+          const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,solidColliders:collisionWorld?.colliders.length ?? 0,sampledAt:Math.round(now),foreground:document.visibilityState==='visible' && document.hasFocus()};
           renderer.domElement.dataset.renderMetrics=JSON.stringify(metrics);
+          renderer.domElement.dataset.characterAction=expressionRef.current?.name || 'Idle';
           if(debugEnabled)setWorldMetrics(previous=>previous?{...previous,...metrics}:previous);
           metricsFrames=0;metricsTime=now;
         }
@@ -636,6 +640,7 @@ export default function World3DView({
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
+      expressionRef.current?.dispose(); expressionRef.current = null;
       chestSignals?.dispose();
       if(collisionDebug)disposeCollisionDebug(collisionDebug);
       debugGroupRef.current=null;
@@ -661,16 +666,7 @@ export default function World3DView({
         </div>
       )}
 
-      {showTutorial && (
-        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-40 w-max max-w-[calc(100%-2rem)] animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-none">
-          <div className="bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-white/90 text-xs font-bold shadow-xl flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-            <span>WASD / flechas: mover · Shift: correr · E: interactuar</span>
-          </div>
-        </div>
-      )}
-
-      {active && nearbyStation && !showTutorial && (
+      {active && nearbyStation && (
         <div className="absolute top-28 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto w-max max-w-[calc(100%-2rem)]">
           <button
             onClick={() => handleTriggerLesson(nearbyStation)}
@@ -744,12 +740,6 @@ export default function World3DView({
           <div className="text-[10px] text-amber-200/80 mt-1">Centro: {PLAZA_COMPOSITION.openZones[0].radius} m</div>
         </div>
       )}
-
-      {!onObjectiveProgress && <div className="absolute bottom-4 left-5 z-20 pointer-events-none hidden sm:flex items-center gap-2 bg-slate-950/45 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-white/70 shadow-lg">
-        <span className="text-[10px] font-medium text-slate-300">
-          <span className="text-amber-300 font-bold">WASD</span> Mover • <span className="text-amber-300 font-bold">Shift</span> Correr • <span className="text-amber-300 font-bold">Espacio</span> Saltar • <span className="text-amber-300 font-bold">Arrastrar</span> Mirar
-        </span>
-      </div>}
 
       {/* Modal de Diagnóstico de Assets */}
       <AssetDiagnosticModal

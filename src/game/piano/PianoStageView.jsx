@@ -23,6 +23,7 @@ export default function PianoStageView({
         initialSong={initialSong}
         initialMode={initialMode}
         initialView="game"
+        preparationComplete
         onExit={() => {
           if (onExitStage) onExitStage();
         }}

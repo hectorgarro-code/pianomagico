@@ -23,13 +23,13 @@ const trees = [
   ['east-09','Tree_2_A_Color1',19,-35.5,1.45,2.5],
   ['east-10','Tree_1_A_Color1',23,-39.5,1.8,0.9],
   ['north-01','Tree_3_A_Color1',-15,-49,1.6,0.4],
-  ['north-02','Tree_1_A_Color1',-10,-52,1.6,1.2],
-  ['north-03','Tree_2_A_Color1',-13,-54,1.5,2.1],
-  ['north-04','Tree_3_A_Color1',16,-53,1.7,0.7],
+  ['north-02','Tree_1_A_Color1',-10,-48,1.6,1.2],
+  ['north-03','Tree_2_A_Color1',-13,-48,1.5,2.1],
+  ['north-04','Tree_3_A_Color1',24,-50,1.7,0.7],
   ['north-05','Tree_1_A_Color1',17,-50,1.6,1.8],
-  ['north-06','Tree_1_A_Color1',-8,-54,1.85,2.8],
-  ['north-07','Tree_2_A_Color1',-17,-53,1.25,0.9],
-  ['north-08','Tree_1_A_Color1',12.5,-56.5,1.85,1.3],
+  ['north-06','Tree_1_A_Color1',-9,-49,1.85,2.8],
+  ['north-07','Tree_2_A_Color1',-21,-50,1.25,0.9],
+  ['north-08','Tree_1_A_Color1',15,-65,1.85,1.3],
   ['north-09','Tree_3_A_Color1',20,-54,1.25,2.4]
 ];
 const reservation = (id,center,radius,purpose) => ({id,shape:'circle',center,radius,purpose});

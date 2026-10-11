@@ -85,6 +85,8 @@ Plaza fue aprobada visualmente por el usuario el 2026-10-06 y queda congelada; c
 Si la tarea pide una sola region, DETENERSE al terminarla. No anticipar la siguiente ni interpretar el build como permiso para expandir.
 
 ## Git y alcance
+PRESENTATION & PLAYABILITY PASS 1 autorizado despues de `434ceb0 - Gameplay UX map navigation and chest signals`: referencia humana provisional para perfiles, menus, selector, intro, preparacion de piano y HUD. Autoriza solo despejes puntuales de vegetacion/props, asistencia suave de camara, showcase unico con clips reales Q/E y capa visual reusable. Ver `docs/PRESENTATION_PLAYABILITY_PASS_1.md`. No autoriza nuevas regiones, progresion, combate, backend ni polish general. E conserva interaccion junto a cofres. Preview comparte sintesis existente; preparacion embebida no se duplica dentro de PianoMagico. No commit final ni push; detenerse tras validacion y esperar aprobacion humana, sin iniciar Game Design Pass.
+
 Antes de cambios estructurales importantes revisar `git status` e identificar archivos afectados. Respetar cambios existentes, incluidos archivos sin rastrear.
 No hacer resets destructivos ni eliminar trabajo existente sin autorizacion explicita. No realizar commits, staging masivo ni limpieza como efecto secundario de otra tarea.
 La auditoria encontro `src/game/`, `public/models/` y el Master Plan sin rastrear; verificar su estado actual antes de asumir que estan respaldados en Git.

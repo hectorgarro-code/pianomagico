@@ -3,6 +3,15 @@ import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObjec
 import { createAdventureState } from '../adventure/adventureState.js';
 import { applyValleyEvent, getPlayableRegionAt, getValleyProgress } from '../adventure/valleyProgression.js';
 import { REGION_IDS } from '../adventure/valleyBlueprint.js';
+import { PLAZA_COMPOSITION } from '../world/composition/plazaComposition.js';
+import { ADVENTURE_OBJECT_TYPES } from '../world/composition/forestAdventureComposition.js';
+
+export function findWorldActivityObject(id) {
+  const object = findAdventureObject(id);
+  if (object) return object;
+  const station = PLAZA_COMPOSITION.stations.find(item => item.id === id);
+  return station ? { ...station, type: ADVENTURE_OBJECT_TYPES.PRACTICE_STATION, regionId: PLAZA_COMPOSITION.regionId, label: 'Practica de la Plaza' } : null;
+}
 
 export const GAME_MODES = Object.freeze({
   WORLD: 'WORLD', PIANO: 'PIANO', PAUSE: 'PAUSE',
@@ -47,7 +56,7 @@ export function worldActivityReducer(state, action) {
     }
     case 'DISCOVER_ADVENTURE': {
       if (state.mode !== GAME_MODES.WORLD || state.discovery) return state;
-      const object = findAdventureObject(action.objectId);
+      const object = findWorldActivityObject(action.objectId);
       if (!object || action.context?.stationId !== object.id) return state;
       return { ...state, context: structuredClone(action.context), discovery: { objectId: object.id } };
     }

@@ -1,0 +1,73 @@
+:root { --valley-ink:#193d34; --valley-gold:#f8cc60; --valley-green:#237846; --valley-paper:#fff9e9; }
+.valley-menu { position:relative; isolation:isolate; min-height:100dvh; color:var(--valley-ink); overflow:hidden; font-family:inherit; letter-spacing:0; }
+.valley-scene { position:absolute; inset:0; z-index:-2; background:#91d6e7; }
+.valley-scene canvas { display:block; width:100%; height:100%; }
+.valley-scene-error { position:absolute; bottom:12px; left:12px; background:white; padding:8px; color:#7b2033; }
+.valley-menu::before { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(180deg,rgba(19,56,47,.12),transparent 38%,rgba(12,44,40,.58)); }
+.valley-title { display:flex; align-items:center; justify-content:center; gap:18px; margin:0; color:#fff6d5; font-family:Georgia,serif; font-weight:900; font-size:54px; line-height:.9; text-align:center; text-shadow:0 3px 0 #20493c,2px 0 0 #20493c,-2px 0 0 #20493c,0 5px 12px #15372e; letter-spacing:0; }
+.valley-title>svg { color:var(--valley-gold); width:36px; height:36px; }
+.valley-title-small { display:block; font-size:18px; line-height:1.35; }
+.valley-menu-heading { text-align:center; color:white; text-shadow:0 2px 5px #143b2e; font-size:22px; font-weight:800; margin:24px 0 16px; }
+.valley-profile-layout { min-height:100dvh; display:flex; flex-direction:column; justify-content:center; padding:40px 24px; }
+.valley-profiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; width:min(780px,100%); margin:0 auto; }
+.valley-profile { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; min-height:172px; padding:22px 12px; color:#fff9e6; background:rgba(25,63,52,.92); border:3px solid #d5b266; border-radius:8px; box-shadow:0 5px 0 #153c32,0 12px 26px #142a2a55; }
+.valley-profile:hover,.valley-profile:focus-visible { border-color:#9ce88c; outline:3px solid #80ce80; outline-offset:3px; }
+.valley-profile-avatar { width:64px; height:64px; display:grid; place-items:center; font-size:42px; }
+.valley-profile-name { font-size:18px; font-weight:900; overflow-wrap:anywhere; text-align:center; }
+.valley-profile-score { display:flex; gap:6px; align-items:center; color:var(--valley-gold); font-size:14px; }
+.valley-button { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:48px; padding:14px 24px; border:2px solid #f0d88c; border-radius:8px; color:white; font-size:18px; font-weight:800; background:#237846; box-shadow:0 4px 0 #153d30,0 6px 18px #183d2940; cursor:pointer; letter-spacing:0; }
+.valley-button:hover { filter:brightness(1.1); }
+.valley-button:disabled { opacity:.55; cursor:default; }
+.valley-button-gold { background:#b57423; }.valley-button-violet { background:#6554a9; }.valley-button-dark { background:#24433e; }
+.valley-panel { border:3px solid #c29e55; border-radius:8px; background:var(--valley-paper); color:var(--valley-ink); box-shadow:0 5px 0 #45503c,0 16px 44px #172f294d; padding:30px; }
+.valley-entry-layout { min-height:100dvh; display:flex; flex-direction:column; justify-content:center; align-items:flex-end; gap:22px; padding:40px max(24px,8%); }
+.valley-entry-layout>.valley-title { margin-right:40px; }
+.valley-entry-options { width:min(410px,100%); display:flex; flex-direction:column; gap:16px; }
+.valley-entry-profile { color:white; font-size:20px; font-weight:800; text-shadow:0 2px 4px #19372a; }
+.valley-entry-options .valley-button { width:100%; min-height:76px; font-size:24px; }
+.valley-exit { position:absolute; right:16px; top:16px; z-index:5; width:44px; height:44px; display:grid; place-items:center; color:white; border:1px solid #eedaa8; background:#24433edd; border-radius:8px; }
+.valley-center-layout { min-height:100dvh; padding:32px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; }
+.valley-intro { width:min(520px,100%); text-align:center; font-size:17px; line-height:1.55; }
+.valley-intro p { margin:0 0 16px; }.valley-intro .valley-button { width:100%; margin-top:8px; }
+.valley-character-layout { min-height:100dvh; display:grid; grid-template-rows:auto 1fr auto; padding:24px; pointer-events:none; }
+.valley-character-layout h2 { justify-self:center; margin:0; color:#fff9dd; font-family:Georgia,serif; font-size:30px; text-shadow:0 3px 3px #1e4535; text-align:center; }
+.valley-character-layout button { pointer-events:auto; }
+.valley-character-options { align-self:center; justify-self:end; width:190px; display:grid; gap:18px; }
+.valley-character-options .valley-character-list { width:100%; }
+.valley-equipment { pointer-events:auto; display:grid; gap:6px; color:#fff9dd; font-size:14px; font-weight:700; text-shadow:0 1px 3px #193d34; }
+.valley-equipment select { width:100%; min-height:44px; border:2px solid #c6ad68; border-radius:6px; background:#244c43; color:white; padding:8px; font:inherit; }
+.valley-character-list { align-self:center; justify-self:end; display:grid; gap:10px; width:130px; }
+.valley-character-list button { border:2px solid #c6ad68; border-radius:8px; background:#244c43e8; color:white; min-height:54px; font-size:15px; font-weight:800; padding:8px; }
+.valley-character-list button[aria-checked=true] { background:#28663b; border-color:#a8ef96; box-shadow:0 0 0 3px #b5ed7455; }
+.valley-character-footer { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.valley-character-tools { display:flex; gap:8px; }.valley-character-tools button { width:44px; height:44px; display:grid; place-items:center; background:#244b40ec; border:1px solid #ecc974; border-radius:8px; color:white; }
+.valley-scene.is-showcase { z-index:-1; touch-action:none; }
+.valley-character-menu::before { z-index:-2; }
+.valley-menu-error { color:#fff; background:#8c354a; border-radius:6px; padding:10px; }
+.valley-dev { color:white; padding:10px; background:#203f36; position:relative; z-index:6; }
+.valley-lesson-backdrop { position:absolute; inset:0; z-index:60; display:grid; place-items:center; background:#142d3355; backdrop-filter:blur(5px); padding:20px; }
+.valley-lesson { width:min(560px,100%); position:relative; }
+.valley-lesson-close { position:absolute; right:12px; top:12px; width:36px; height:36px; display:grid; place-items:center; border-radius:6px; }
+.valley-lesson-kicker { display:flex; align-items:center; gap:8px; color:#53745b; font-size:13px; margin:0 30px 12px 0; font-weight:700; }
+.valley-lesson h2 { font-family:Georgia,serif; font-size:26px; margin:0 0 16px; line-height:1.2; overflow-wrap:anywhere; }
+.valley-lesson-notes { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:22px 0; }
+.valley-note { display:grid; place-items:center; min-width:58px; height:66px; padding:10px; border-radius:6px; background:#e7efda; border-bottom:4px solid #80a786; font-weight:800; }
+.valley-lesson-actions { display:flex; gap:12px; flex-wrap:wrap; }.valley-lesson-actions button { flex:1; font-size:16px; min-width:150px; }
+.valley-world-hud { letter-spacing:0; }
+.valley-world-hud>div:first-child,.valley-world-hud>div:nth-child(2),.valley-world-hud>div:last-child>div { background:#203e35ed; border-color:#d3b869; border-radius:8px; }
+.valley-world-hud>div:last-child>button { background:#29483e; border-color:#d3b869; border-radius:8px; }
+.valley-world-hud span { letter-spacing:0; }
+.valley-world-objective { background:#203e35ed; border:1px solid #d3b869; color:#fff3c9; }
+@media(max-width:700px) {
+ .valley-title { font-size:42px; gap:12px; }.valley-title>svg { width:26px; height:26px; }.valley-title-small { font-size:16px; }
+ .valley-profile-layout { padding:24px 18px; }.valley-profiles { grid-template-columns:1fr; max-width:340px; gap:12px; }
+ .valley-profile { flex-direction:row; min-height:100px; padding:12px; gap:14px; }.valley-profile-name { font-size:17px; }.valley-profile-avatar { width:50px; height:50px; font-size:34px; }
+ .valley-entry-layout { justify-content:flex-end; align-items:center; padding:28px 18px 44px; }.valley-entry-layout>.valley-title { margin:0 0 14px; }
+ .valley-panel { padding:24px 20px; }.valley-intro { font-size:16px; }
+ .valley-character-layout { padding:18px 12px; grid-template-rows:auto 1fr auto auto; }.valley-character-layout h2 { font-size:24px; padding:0 36px; }
+ .valley-character-options { align-self:end; justify-self:stretch; width:auto; gap:10px; margin-bottom:14px; }
+ .valley-character-list { grid-template-columns:repeat(5,minmax(0,1fr)); width:auto; gap:6px; }.valley-character-list button { font-size:11px; min-height:44px; padding:3px; }
+ .valley-equipment { grid-template-columns:auto minmax(0,1fr); align-items:center; }
+ .valley-character-footer { justify-content:center; gap:10px; }.valley-character-footer>.valley-button { padding:10px 14px; font-size:15px; }.valley-character-tools { order:-1; width:100%; justify-content:center; }
+ .valley-lesson h2 { font-size:22px; }.valley-lesson-actions { flex-direction:column; }
+}

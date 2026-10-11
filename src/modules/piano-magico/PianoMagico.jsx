@@ -14,6 +14,7 @@ import MicSettingsModal from '../core/components/MicSettingsModal';
 import Model3DViewer from '../core/components/Model3DViewer';
 import { getCharacterModel, CHARACTER_MODELS } from '../core/utils/characterModels';
 import AdventurePath3D from './components/AdventurePath3D';
+import { playPianoTone } from './pianoTone.js';
 
 // --- CONSTANTES DE RANGO ---
 const RANKS = [
@@ -126,7 +127,7 @@ const parseTextToSequence = (rawText) => {
   return result;
 };
 
-const getSequenceArray = (seq) => {
+export const getSequenceArray = (seq) => {
   if (!seq) return [];
   if (Array.isArray(seq)) return seq;
   if (typeof seq === 'string') {
@@ -140,7 +141,7 @@ const getSequenceArray = (seq) => {
   return [];
 };
 
-const getNoteFrequency = (noteStr) => {
+export const getNoteFrequency = (noteStr) => {
   if (!noteStr || noteStr === 'R') return 0;
   const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
   if (!match) return 261.63;
@@ -162,7 +163,7 @@ const getNoteColor = (noteStr) => {
   return BASE_NOTE_COLORS[pitchClass] || '#EF4444';
 };
 
-const getNoteDisplayName = (noteStr) => {
+export const getNoteDisplayName = (noteStr) => {
   if (!noteStr) return '';
   const match = String(noteStr).match(/^([A-G]#?)(\d+)?$/);
   if (!match) return String(noteStr);
@@ -195,6 +196,11 @@ const NOTE_COLORS = new Proxy({}, { get: (_, prop) => getNoteColor(prop) });
 const NOTE_NAMES = new Proxy({}, { get: (_, prop) => getNoteDisplayName(prop) });
 
 const API_URL = 'backend/api.php';
+export const getIntervalMs = speedValue => {
+  if (!speedValue) return 600;
+  const val = Number(speedValue);
+  return val > 300 ? val : 60000 / val;
+};
 
 export default function PianoMagico({
   userId,
@@ -202,6 +208,7 @@ export default function PianoMagico({
   initialSong = null,
   initialMode = 'solo',
   initialView = 'menu',
+  preparationComplete = false,
   onFinishLesson
 }) {
   const embeddedActivity = initialView === 'game' && !!initialSong;
@@ -322,12 +329,6 @@ export default function PianoMagico({
   // --- HELPER SPEED ALGORITHM ---
   // If speed is > 300, we assume it's legacy data in milliseconds (e.g., 800).
   // Otherwise, it's BPM, so we convert it to the ms-interval per beat.
-  const getIntervalMs = (speedValue) => {
-    if (!speedValue) return 600; // Default fallback to 100 BPM (60000/100 = 600)
-    const val = Number(speedValue);
-    if (val > 300) return val;
-    return 60000 / val;
-  };
 
   // Parses a note string like "C4:0.5" into { pitch: "C4", duration: 0.5 }
   const parseNote = (noteStr) => {
@@ -774,14 +775,8 @@ export default function PianoMagico({
   const playSynth = (freq, type = 'triangle', gainVal = 0.2, decay = 0.8) => {
     if (!freq || freq === 0) return;
     initAudio();
-    const osc = audioCtx.current.createOscillator();
-    const g = audioCtx.current.createGain();
     const finalGain = isCalmMode ? gainVal * 0.5 : gainVal;
-    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.current.currentTime);
-    g.gain.setValueAtTime(finalGain, audioCtx.current.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.current.currentTime + decay);
-    osc.connect(g); g.connect(audioCtx.current.destination);
-    osc.start(); osc.stop(audioCtx.current.currentTime + decay);
+    playPianoTone(audioCtx.current, freq, type, finalGain, decay);
   };
 
   // --- DRUM MACHINE INTEGRATION ---
@@ -1361,7 +1356,7 @@ export default function PianoMagico({
     setPerformanceLog([]); setStartTime(Date.now()); setIsRecordingPerformance(true);
     setView('game'); initAudio(); setMemoryIntegrity(memoryMode);
 
-    if (!isRetry && (m === 'solo' || m === 'duo' || m === 'boss')) {
+    if (!isRetry && !(embeddedActivity && preparationComplete) && (m === 'solo' || m === 'duo' || m === 'boss')) {
       setShowListenFirstModal(true);
     } else {
       setShowListenFirstModal(false);

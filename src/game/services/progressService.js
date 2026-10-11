@@ -10,7 +10,7 @@ const API_BASE = 'backend/api.php';
 
 export const progressService = {
   async selectCharacter(userId, avatarId) {
-    if (!userId || ![1, 2, 3, 4].includes(avatarId)) throw new Error('Invalid character');
+    if (!userId || ![1, 2, 3, 4, 5].includes(avatarId)) throw new Error('Invalid character');
     const res = await fetch(`${API_BASE}?action=update_profile`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, avatarId, avatarOnly: true })

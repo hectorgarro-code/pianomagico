@@ -43,6 +43,17 @@ export const CHARACTER_MODELS = {
     color: '#FF9600',
     role: 'Ágil Melodista'
   },
+  5: {
+    id: 5,
+    name: 'Explorador',
+    file: '/models/characters/Characters/gltf/Ranger.glb',
+    scale: 1.1,
+    yOffset: -0.9,
+    defaultAnim: 'Idle',
+    celebrateAnim: 'Jump_Full_Short',
+    color: '#4DAF8C',
+    role: 'Explorador Musical'
+  },
   // Default fallback for other avatar IDs
   default: {
     id: 1,
@@ -80,6 +91,7 @@ export const CHARACTER_MODELS = {
 };
 
 export const getCharacterModel = (avatarId) => {
+  if (Number(avatarId) === 5) return CHARACTER_MODELS[5];
   const normalizedId = ((Number(avatarId) - 1) % 4) + 1;
   return CHARACTER_MODELS[normalizedId] || CHARACTER_MODELS.default;
 };
