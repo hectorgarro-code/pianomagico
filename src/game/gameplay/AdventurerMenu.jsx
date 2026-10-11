@@ -6,8 +6,8 @@ import { getGameplayContent } from './gameplayContent.js';
 import AssetStage from './AssetStage.jsx';
 import { readMusicSettings, saveMusicSettings } from '../audio/worldMusic.js';
 
-export default function AdventurerMenu({profile,gameplay,onClose,onApply,onMap,onExit}) {
-  const [tab,setTab]=useState('MENU'),[character,setCharacter]=useState(profile.avatarId),[pet,setPet]=useState(gameplay.equippedPetId);
+export default function AdventurerMenu({profile,gameplay,onClose,onApply,onMap,onExit,initialTab='MENU'}) {
+  const [tab,setTab]=useState(initialTab.toUpperCase()),[character,setCharacter]=useState(profile.avatarId),[pet,setPet]=useState(gameplay.equippedPetId);
   const [equipment,setEquipment]=useState(()=>readEquipment(profile.user_id??profile.id,profile.avatarId)),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [music,setMusic]=useState(()=>readMusicSettings(globalThis.localStorage));
   const changeMusic=value=>{const next={...music,...value};setMusic(next);saveMusicSettings(globalThis.localStorage,next);window.dispatchEvent(new Event('valley-music-settings'));};

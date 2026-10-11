@@ -11,7 +11,7 @@ import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
 import { CollisionWorld, PLAYER_COLLIDER } from './collision/CollisionWorld.js';
 import { createCollisionOutline, disposeCollisionDebug } from './collision/collisionDebug.js';
 import { restoreWorldContext } from '../state/worldActivityFlow.js';
-import { ADVENTURE_STATES } from '../adventure/adventureState.js';
+import { ADVENTURE_STATES, createAdventureState } from '../adventure/adventureState.js';
 import { getPlayableRegionAt } from '../adventure/valleyProgression.js';
 import { ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
 import { getActiveWorldColliders, updateGateModels } from './worldGates.js';
@@ -21,10 +21,12 @@ import { createChestSignals } from './chestSignals.js';
 import { createCharacterAnimator } from '../presentation/characterActions.js';
 import { loadCharacterPresentation, applyEquipment, readEquipment, getEquipment } from '../presentation/characterEquipment.js';
 import { assistedCameraYaw } from './cameraAssist.js';
+import { titleCamera } from '../entry/entryExperience.js';
 
 function updateChestLids(models, state) {
   for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED ? -1.15 : 0);
 }
+const EMPTY_GAMEPLAY = { completedMinigames: [], equippedPetId: null };
 
 export default function World3DView({
   debugEnabled = false,
@@ -46,11 +48,16 @@ export default function World3DView({
   onPlayerTransformChange,
   gameplayState,
   equipmentVersion = 0,
+  presentation = false,
+  sessionKey = null,
   onGameplayReward,
   onMinigame,
   mapRequest = 0
 }) {
   const containerRef = useRef(null);
+  const songsRef = useRef(songs); songsRef.current = songs;
+  const presentationRef = useRef(presentation), sessionRef = useRef(sessionKey), prepareSessionRef = useRef(null);
+  presentationRef.current = presentation; sessionRef.current = sessionKey;
   const [nearbyStation, setNearbyStation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState('Iniciando...');
@@ -119,10 +126,19 @@ export default function World3DView({
   const expressionRef = useRef(null);
   const gameplayRef = useRef(null), gameplayStateRef = useRef(gameplayState), profileRef = useRef(profile), loadHeroRef = useRef(null), restoredContextRef = useRef(null);
   const callbacksRef = useRef({onGameplayReward,onMinigame});callbacksRef.current={onGameplayReward,onMinigame};
-  gameplayStateRef.current=gameplayState;profileRef.current=profile;
+  gameplayStateRef.current=gameplayState || EMPTY_GAMEPLAY;profileRef.current=profile;
   const [nearbyGate,setNearbyGate]=useState(null);
   useEffect(()=>{void gameplayRef.current?.setPet(gameplayState?.equippedPetId).catch(console.error);},[gameplayState?.equippedPetId]);
   useEffect(()=>{void loadHeroRef.current?.().catch(console.error);},[profile.avatarId,equipmentVersion]);
+  useEffect(() => {
+    if (!sessionKey) return;
+    Object.assign(playerPosRef.current, initialPosition || { x: PLAZA_COMPOSITION.spawn.position[0], y: PLAZA_COMPOSITION.spawn.position[1], z: PLAZA_COMPOSITION.spawn.position[2] });
+    playerRotYRef.current = initialRotation ?? PLAZA_COMPOSITION.spawn.rotation[1];
+    playerVelYRef.current = 0; isGroundedRef.current = true; restoredContextRef.current = null;
+    walkedDistanceRef.current = 0; reportedObjectiveRef.current = null; setMapOpen(false);
+    Object.assign(cameraAngleRef.current, { targetYaw: PLAZA_COMPOSITION.camera.yaw, currentYaw: PLAZA_COMPOSITION.camera.yaw, targetPitch: PLAZA_COMPOSITION.camera.pitch, currentPitch: PLAZA_COMPOSITION.camera.pitch });
+    void prepareSessionRef.current?.().then(() => loadHeroRef.current?.()).catch(console.error);
+  }, [sessionKey]);
   const lastManualCameraRef = useRef(-Infinity);
   const movementBasisRef = useRef({ signature: '', yaw: 0 });
   const debugGroupRef = useRef(null);
@@ -135,7 +151,9 @@ export default function World3DView({
   const terrainHeightRef = useRef(() => 0);
   const adventureModelsRef = useRef(new Map());
   const adventureStateRef = useRef(adventureState);
-  adventureStateRef.current = adventureState;
+  const presentationAdventure = useRef(null);
+  if (!presentationAdventure.current) presentationAdventure.current = createAdventureState();
+  adventureStateRef.current = adventureState || presentationAdventure.current;
   const [interactionObjects, setInteractionObjects] = useState([]);
   useEffect(() => { updateChestLids(adventureModelsRef.current, adventureState); }, [adventureState]);
   useEffect(() => {
@@ -322,7 +340,7 @@ export default function World3DView({
     const camera = new THREE.PerspectiveCamera(44, width / height, 0.3, 500);
     const fitCamera = (w, h) => {
       camera.aspect = w / h;
-      camera.fov = camera.aspect < 1
+      camera.fov = presentationRef.current ? (camera.aspect < 1 ? 48 : 44) : camera.aspect < 1
         ? Math.min(100, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(22)) / camera.aspect)))
         : 44;
       const nextDistance = camera.aspect < 1
@@ -348,6 +366,7 @@ export default function World3DView({
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
+    renderer.domElement.dataset.worldInstance = crypto.randomUUID();
 
     // 2. Iluminación Cálida Estilizada
     const hemiLight = new THREE.HemisphereLight(0xfffdf0, 0x477839, 1.2);
@@ -379,6 +398,14 @@ export default function World3DView({
     let playerColliderDebug = null;
     let collisionDebug = null;
     let chestSignals = null;
+    const titleHidden = [];
+    let titleStarted = performance.now(), wasPresentation = presentationRef.current, sessionToken = 0;
+    const resetTitle = () => { if (presentationRef.current) titleStarted = performance.now(); };
+    window.addEventListener('pointerdown', resetTitle); window.addEventListener('keydown', resetTitle);
+    const moteGeometry = new THREE.BufferGeometry();
+    moteGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(72), 3));
+    const moteMaterial = new THREE.PointsMaterial({ color: 0xffe7a0, size: .07, transparent: true, opacity: .55, depthWrite: false });
+    const motes = new THREE.Points(moteGeometry, moteMaterial); scene.add(motes);
 
     generator.buildSection1().then(async ({ sceneGroup, debugGroup, heightAt, stats, colliders, interactionObjects: generatedObjects }) => {
       if (!isMounted) {
@@ -418,7 +445,7 @@ export default function World3DView({
           const lid = instance.getObjectByName('chest_lid');
           if (lid) adventureModelsRef.current.set(object.id, { node: lid, closedRotation: lid.rotation.x });
         }
-        if (!song && object.type === ADVENTURE_OBJECT_TYPES.PRACTICE_STATION) continue;
+        if (instance) titleHidden.push(instance);
         object.song = song;
         levelPositions.push({ ...object, ...object.position, song, interactionRadius: object.interaction.radius });
       }
@@ -426,19 +453,23 @@ export default function World3DView({
       updateChestLids(adventureModelsRef.current, adventureStateRef.current);
       chestSignals = createChestSignals(scene, generatedObjects, heightAt);
 
-      if(gameplayStateRef.current) {
+      prepareSessionRef.current = async () => {
+        if (!sessionRef.current || !profileRef.current.avatarId) return;
+        const token = ++sessionToken;
+        gameplayRef.current?.dispose(); gameplayRef.current = null;
         const runtime=await createWorldGameplay(scene,heightAt,{
           state:()=>gameplayStateRef.current,player:()=>playerPosRef.current,
           onReward:id=>callbacksRef.current.onGameplayReward?.(id),
           onColliders:extra=>{collisionWorldRef.current=new CollisionWorld([...getActiveWorldColliders(allCollidersRef.current,adventureStateRef.current),...extra]);}
         });
-        if(!isMounted){runtime.dispose();return;}gameplayRef.current=runtime;
+        if(!isMounted || token !== sessionToken || !sessionRef.current){runtime.dispose();return;}gameplayRef.current=runtime;
         await runtime.setPet(gameplayStateRef.current.equippedPetId);
-      }
+      };
 
       // 6. Spawn del Héroe
       let heroToken=0;
       const loadHero=async()=>{
+        if (!profileRef.current.avatarId) return;
         const token=++heroToken;
         const charInfo = getCharacterModel(profileRef.current.avatarId);
         const heroGltf = await loadCharacterPresentation(charInfo.id);
@@ -465,7 +496,7 @@ export default function World3DView({
         }
       };
       loadHeroRef.current=loadHero;
-      try {await loadHero();} catch (e) {
+      try {await prepareSessionRef.current(); await loadHero();} catch (e) {
         console.warn('Error cargando héroe:', e);
       }
 
@@ -501,6 +532,32 @@ export default function World3DView({
       const now = performance.now();
       const delta = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
+      const presenting = presentationRef.current;
+      if (wasPresentation !== presenting) { fitCamera(container.clientWidth, container.clientHeight); wasPresentation = presenting; }
+      motes.visible = presenting;
+      for (const object of titleHidden) object.visible = !presenting;
+      const gameplayGroup = scene.getObjectByName('Gameplay_Content');
+      if (gameplayGroup) gameplayGroup.visible = !presenting;
+      if (characterMeshRef.current) characterMeshRef.current.visible = !presenting;
+      if (presenting) {
+        if (document.hidden) { titleStarted += delta * 1000; return; }
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.entryMotion === 'reduced';
+        const shot = titleCamera((now - titleStarted) / 1000, camera.aspect < 1, reduced);
+        camera.position.lerp(new THREE.Vector3(...shot.position), Math.min(1, delta * 2));
+        camera.lookAt(...shot.target);
+        const positions = moteGeometry.attributes.position;
+        for (let i = 0; i < positions.count; i++) positions.setXYZ(i, 2 + Math.sin(i * 2.4) * 7, 1 + (i * .3 + (reduced ? 0 : now / 8000)) % 4, -2 + Math.cos(i * 2.4) * 8);
+        positions.needsUpdate = true; renderer.render(scene, camera);
+        renderer.domElement.dataset.entryCamera = JSON.stringify({ shot: shot.shot, position: camera.position.toArray(), mobile: camera.aspect < 1 });
+        if (import.meta.env.DEV) {
+          metricsFrames++;
+          if (now - metricsTime >= 1000) {
+            renderer.domElement.dataset.renderMetrics = JSON.stringify({ fps: Math.round(metricsFrames * 1000 / (now - metricsTime)), drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, presentation: true, foreground: document.hasFocus() });
+            metricsFrames = 0; metricsTime = now;
+          }
+        }
+        return;
+      }
       if (!activeRef.current) {metricsTime=now;metricsFrames=0;return;}
 
       if (characterMixerRef.current) {
@@ -599,6 +656,7 @@ export default function World3DView({
       // Detección de proximidad a estaciones
       let detected = null;
       for (let pos of levelPositions) {
+        pos.song = pos.lessonRef === 'first-song' ? songsRef.current[0] : songsRef.current.find(song => String(song.id) === String(pos.activityId ?? pos.lessonRef));
         const dx = playerPosRef.current.x - pos.x;
         const dz = playerPosRef.current.z - pos.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
@@ -688,6 +746,9 @@ export default function World3DView({
       renderer.dispose();
       expressionRef.current?.dispose(); expressionRef.current = null;
       gameplayRef.current?.dispose();gameplayRef.current=null;loadHeroRef.current=null;
+      sessionToken++; prepareSessionRef.current = null;
+      window.removeEventListener('pointerdown', resetTitle); window.removeEventListener('keydown', resetTitle);
+      moteGeometry.dispose(); moteMaterial.dispose();
       chestSignals?.dispose();
       if(collisionDebug)disposeCollisionDebug(collisionDebug);
       debugGroupRef.current=null;
@@ -700,7 +761,7 @@ export default function World3DView({
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-slate-950 select-none">
       <div ref={containerRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing" />
-      {adventureState && !loading && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} requestedOpen={mapOpen} onOpenChange={setMapOpen} onPlaytestEvent={onPlaytestEvent} />}
+      {!presentation && adventureState && !loading && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} requestedOpen={mapOpen} onOpenChange={setMapOpen} onPlaytestEvent={onPlaytestEvent} />}
       {active && !loading && <div className="world-action-controls"><button title="Accion primaria" aria-label="Accion primaria" onClick={()=>performWorldAction('Q')}><Swords/></button><button title="Accion secundaria / interactuar" aria-label="Accion secundaria / interactuar" onClick={()=>performWorldAction('E')}><WandSparkles/></button></div>}
       {active && nearbyGate && <button className="absolute top-28 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100%-2rem)] rounded-lg bg-emerald-950 px-4 py-3 border border-emerald-300" onClick={()=>performWorldAction('E')}>Desafio musical · E - Jugar<br/><span className="text-xs">{getGameplayContent().minigames.find(m=>m.id===nearbyGate.minigameId)?.name}</span></button>}
 
@@ -724,7 +785,7 @@ export default function World3DView({
             <Sparkles size={14} className="text-amber-400 fill-amber-400" />
             <span className="text-slate-200">{nearbyStation.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION
               ? `${adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.COMPLETED ? nearbyStation.type === ADVENTURE_OBJECT_TYPES.SECRET_REWARD ? 'Descubierto · E - Ver' : 'Completado · E - Practicar' : adventureState?.entries[nearbyStation.id]?.state === ADVENTURE_STATES.LOCKED ? 'E - Examinar · Completa la lección anterior' : 'E - Abrir'}: ${nearbyStation.label}`
-              : <>{completedStationIds.includes(nearbyStation.id) ? 'Completada · ' : ''}<span className="text-sky-300 font-black">E</span> - Practicar: <strong className="text-white">{nearbyStation.song.title}</strong></>}</span>
+              : <>{completedStationIds.includes(nearbyStation.id) ? 'Completada · ' : ''}<span className="text-sky-300 font-black">E</span> - Practicar: <strong className="text-white">{nearbyStation.song?.title || nearbyStation.label}</strong></>}</span>
             <Play size={13} fill="white" className="text-white" />
           </button>
         </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 import { GAME_MODES, createWorldActivityState, worldActivityReducer, findWorldActivityObject } from './state/worldActivityFlow.js';
 import { progressService } from './services/progressService';
-import World3DView from './world/World3DView';
+import SharedWorld from './entry/SharedWorld.jsx';
+import { entrySummary } from './entry/entryExperience.js';
 import PianoStageView from './piano/PianoStageView';
 import GameTransitionManager from './transitions/GameTransitionManager';
 import { Zap, X, Menu } from 'lucide-react';
@@ -26,12 +27,12 @@ import { saveEquipment } from './presentation/characterEquipment.js';
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
 
-export default function GameApp({ userId, onExitApp }) {
+export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
   // Estado General del Juego (WORLD vs PIANO vs TRANSITION)
   const [flow, dispatch] = useReducer(worldActivityReducer, userId, id => createWorldActivityState(progressService.loadAdventure(id)));
   const gameMode = flow.mode;
   const gameState = flow.game;
-  const [startPhase, setStartPhase] = useState('ENTRY');
+  const [startPhase, setStartPhase] = useState(() => hasAdventureProgress(progressService.loadAdventure(userId)) ? 'ENTRY' : 'CHARACTER');
   const [worldVisit, setWorldVisit] = useState(0);
   const [gameplay,setGameplay]=useState(()=>gameplayPersistence().load(userId));
   const gameplayRef=useRef(gameplay);gameplayRef.current=gameplay;
@@ -153,7 +154,7 @@ export default function GameApp({ userId, onExitApp }) {
   }, []);
 
   if (!profile) return (
-    <div className="h-[100dvh] flex flex-col items-center justify-center gap-4 bg-slate-950 text-white">
+    <div className={`h-[100dvh] flex flex-col items-center justify-center gap-4 text-white ${sharedEntry ? 'entry-loading' : 'bg-slate-950'}`}>
       <p role={loadError ? 'alert' : 'status'}>{loadError || 'Cargando tu aventura...'}</p>
       {loadError && <button onClick={loadUserData} className="px-4 py-2 border rounded">Reintentar</button>}
     </div>
@@ -161,6 +162,12 @@ export default function GameApp({ userId, onExitApp }) {
 
   if (startPhase !== 'PLAYING') return <AdventureStart
     phase={startPhase} profile={profile} canContinue={hasAdventureProgress(gameState.adventure)}
+    sharedEntry={sharedEntry} summary={entrySummary(gameState.adventure)} gameplay={gameplay}
+    onPersonalize={() => setMenuOpen(true)}
+    personalization={menuOpen ? <AdventurerMenu profile={profile} gameplay={gameplay} initialTab="character" onClose={() => setMenuOpen(false)} onExit={onExitApp} onMap={() => setMenuOpen(false)} onApply={async (character, equipment, pet) => {
+      if (character !== profile.avatarId) { const saved = await progressService.selectCharacter(userId, character); if (saved?.avatarId !== character) throw Error('Character not confirmed'); setProfile(saved); dispatch({ type: 'PROFILE', profile: saved }); }
+      saveEquipment(userId, character, equipment); updateGameplay(equipPet(gameplayRef.current, pet)); setEquipmentVersion(value => value + 1);
+    }}/> : null}
     onPhase={setStartPhase} onBegin={beginAdventure} onContinue={beginAdventure}
     onNewAdventure={newAdventure} debugEnabled={debugEnabled}
     onCharacter={async (avatarId, equipment) => {
@@ -173,7 +180,7 @@ export default function GameApp({ userId, onExitApp }) {
   />;
 
   return (
-    <div className="relative w-full h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 select-none">
+    <div className={`relative w-full h-[100dvh] overflow-hidden ${sharedEntry ? 'shared-game-ui' : 'bg-slate-950'} text-slate-100 select-none`}>
       {/* HUD SUPERIOR DEL VIDEOJUEGO (Solo visible en WORLD) */}
       {(
         <div className={`valley-world-hud fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start ${gameMode !== GAME_MODES.WORLD ? 'hidden' : ''}`}>
@@ -239,8 +246,9 @@ export default function GameApp({ userId, onExitApp }) {
         {/* VISTA 1: MUNDO 3D (Desacoplado del motor musical) */}
         {(
           <div className={`absolute inset-0 w-full h-full ${gameMode === GAME_MODES.PIANO || gameMode === GAME_MODES.TRANSITION_TO_WORLD ? 'invisible pointer-events-none' : ''}`}>
-            <World3DView
-              key={worldVisit}
+            <SharedWorld
+              sessionKey={`${userId}:${worldVisit}`}
+              hidden={gameMode === GAME_MODES.PIANO || gameMode === GAME_MODES.TRANSITION_TO_WORLD}
               debugEnabled={debugEnabled}
               active={gameMode === GAME_MODES.WORLD && !flow.discovery && !showEnding && !menuOpen && !miniId && !activityResult}
               returnContext={flow.context}

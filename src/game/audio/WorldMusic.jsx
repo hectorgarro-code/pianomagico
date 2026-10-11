@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Music2, Volume2, VolumeX, X } from 'lucide-react';
 import { createWorldMusic, readMusicSettings, saveMusicSettings } from './worldMusic.js';
 
-export default function WorldMusic({ active, immediatePause }) {
+export default function WorldMusic({ active, immediatePause, unlockOnEntry = false }) {
   const audioRef = useRef(null);
   const controllerRef = useRef(null);
   const panelRef = useRef(null);
@@ -28,14 +28,17 @@ export default function WorldMusic({ active, immediatePause }) {
         document.hidden || state.immediatePause);
     };
     const unlock = () => void controller.resume();
+    const enter = () => { if (unlockOnEntry) { controller.update(latest.current.settings, true); void controller.resume(); } };
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
+    window.addEventListener('valley-entry-unlock', enter);
     sync();
     return () => {
       document.removeEventListener('visibilitychange', sync);
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
+      window.removeEventListener('valley-entry-unlock', enter);
       controller.dispose();
       controllerRef.current = null;
     };

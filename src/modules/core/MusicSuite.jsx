@@ -1,10 +1,18 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useMemo } from 'react';
 import LoginScreen from './LoginScreen';
 import GameApp from '../../game/GameApp';
-import { profileEntryReducer, getEntryScreen } from './profileEntryFlow.js';
+import { initialEntry, entryReducer, entrySummary } from '../../game/entry/entryExperience.js';
+import { SharedWorldProvider } from '../../game/entry/SharedWorld.jsx';
+import TitleScreen from '../../game/entry/TitleScreen.jsx';
+import WorldMusic from '../../game/audio/WorldMusic.jsx';
+import { progressService } from '../../game/services/progressService.js';
+import { gameplayPersistence } from '../../game/gameplay/gameplayState.js';
+import { normalizeGameProfile } from '../../game/services/profileAdapter.js';
+import '../../game/entry/entryExperience.css';
 
 export default function MusicSuite() {
-    const [userId, dispatch] = useReducer(profileEntryReducer, null);
+    const [entry, dispatch] = useReducer(entryReducer, undefined, initialEntry);
+    const userId = entry.userId;
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -26,12 +34,19 @@ export default function MusicSuite() {
         return () => controller.abort();
     }, [retry, userId]);
 
-    if (getEntryScreen(userId) === 'PROFILE') return <LoginScreen
-        users={users} loading={loading} error={error} onRetry={() => setRetry(value => value + 1)}
+    const profiles = useMemo(() => users.map(user => {
+        const summary = entrySummary(progressService.loadAdventure(user.id));
+        const gameplay = gameplayPersistence().load(user.id);
+        let preferred; try { preferred = localStorage.getItem(`user_avatar_${user.id}`); } catch { /* Optional local preference. */ }
+        return { ...user, avatarId: normalizeGameProfile(user, preferred)?.avatarId ?? 1, summary, petId: gameplay.equippedPetId };
+    }), [users, userId]);
+    return <SharedWorldProvider presentation={false}>
+    {entry.screen === 'TITLE' ? <TitleScreen onEnter={() => { window.dispatchEvent(new Event('valley-entry-unlock')); dispatch({ type: 'ENTER' }); }}/> : entry.screen === 'PROFILES' ? <LoginScreen
+        users={profiles} loading={loading} error={error} onRetry={() => setRetry(value => value + 1)} onBack={() => dispatch({ type: 'BACK' })}
         onLogin={id => {
-            if (users.some(user => Number(user.id) === Number(id))) dispatch({ type: 'SELECT_PROFILE', userId: id });
+            if (users.some(user => Number(user.id) === Number(id))) dispatch({ type: 'PROFILE', userId: id });
         }}
-    />;
-
-    return <GameApp key={userId} userId={userId} onExitApp={() => dispatch({ type: 'EXIT_VALLE' })} />;
+    /> : <GameApp key={userId} sharedEntry userId={userId} onExitApp={() => dispatch({ type: 'EXIT' })} />}
+    {userId === null && <div className="entry-sound"><WorldMusic unlockOnEntry active={entry.screen !== 'TITLE'} immediatePause={entry.screen === 'TITLE'}/></div>}
+    </SharedWorldProvider>;
 }

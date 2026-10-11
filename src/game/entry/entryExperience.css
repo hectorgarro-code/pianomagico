@@ -1,0 +1,61 @@
+.entry-world { position:fixed; inset:0; z-index:0; background:#9bd8ff; }
+.entry-world-hidden { visibility:hidden; pointer-events:none; }
+.entry-loading { position:relative; z-index:2; background:#10293744; }.entry-loading p { padding:12px 18px; background:#102937dd; border-radius:8px; }
+.entry-screen,.entry-adventure-screen,.entry-profiles-screen { position:relative; z-index:2; min-height:100dvh; color:#fff5de; }
+.entry-screen::before { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,#10262418,transparent 30%,#091e2ad1); }
+.entry-title-screen { display:grid; place-items:center; padding:40px 24px 88px; }
+.entry-title-content { position:relative; display:flex; flex-direction:column; align-items:center; gap:22px; text-align:center; animation:entry-reveal .6s ease both; }
+.entry-title-content .valley-title { font-size:88px; gap:24px; line-height:.95; filter:drop-shadow(0 6px 6px #081d26aa); }
+.entry-title-content .valley-title>span { padding:22px 38px; }
+.entry-title-content .valley-title-small { font-size:24px; }
+.entry-title-content>p { font-size:22px; font-weight:700; margin:0; text-shadow:0 2px 5px #152b27; }
+.entry-title-content>.valley-button { margin-top:16px; min-width:310px; min-height:68px; background:#ec710c; border-color:#ffd057; box-shadow:0 5px 0 #86400f,0 12px 30px #152d2855; text-transform:uppercase; }
+.entry-secondary { position:absolute; bottom:24px; left:84px; display:flex; gap:12px; }
+.entry-secondary>button,.entry-sound button { width:46px; height:46px; display:grid; place-items:center; background:#102a32eb; border:1px solid #b9c1a0; border-radius:8px; color:#fff4db; }
+.entry-sound { position:fixed; left:24px; bottom:24px; z-index:20; }
+.entry-profiles-screen~.entry-sound { left:auto; right:20px; top:20px; bottom:auto; }
+.entry-profiles-screen~.entry-sound #world-music-settings { left:auto; right:20px; top:76px; bottom:auto; }
+.entry-sound #world-music-settings { position:fixed; top:auto; bottom:82px; left:24px; right:auto; }
+.entry-settings { position:absolute; width:min(380px,calc(100% - 32px)); padding:26px; background:#102a32f5; border:1px solid #c9b379; border-radius:8px; z-index:5; }
+.entry-settings>button { float:right; width:40px; height:40px; }.entry-settings h2 { font-size:22px; }.entry-settings label { display:flex; gap:12px; align-items:center; }
+.entry-back { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:10px 14px; border:1px solid #b8bca0; border-radius:8px; color:#fff5e4; background:#15313bdc; }
+.entry-profiles-screen>.entry-back { position:absolute; top:20px; left:20px; z-index:3; }
+.entry-profiles-screen .valley-profile-layout { justify-content:center; padding:70px 28px 90px; }
+.entry-profiles-screen .valley-menu-heading { font-size:32px; margin:0 0 12px; text-transform:uppercase; }
+.entry-profile-subtitle { text-align:center; font-size:15px; color:#ffe194; margin:0 0 28px; }
+.entry-profile-grid { position:relative; width:min(1080px,100%); grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:18px; }
+.entry-profile-grid .valley-profile { min-height:300px; gap:12px; padding:20px 12px 18px; background:#112c37e8; border:1px solid #91a4a0; box-shadow:0 6px 18px #0e202a55; }
+.entry-profile-portrait { display:grid; place-items:center; width:100%; height:178px; }
+.entry-profile-state { display:flex; justify-content:center; align-items:center; gap:8px; background:#237b3d; padding:12px 10px; border:1px solid #87c767; border-radius:6px; font-size:14px; font-weight:800; width:100%; }
+.entry-portraits { position:absolute; inset:0; pointer-events:none; z-index:1; }.entry-portraits canvas { display:block; width:100%; height:100%; }
+.entry-profile-name,.entry-profile-state { position:relative; z-index:2; }
+.entry-resume-layout { min-height:100dvh; display:grid; grid-template-columns:minmax(260px,440px) minmax(280px,420px); justify-content:center; align-items:center; gap:48px; padding:48px 28px; }
+.entry-profiles-screen .valley-profile-layout,.entry-resume-layout,.entry-adventure-screen .valley-center-layout { animation:entry-reveal .4s ease both; }
+.entry-resume-model .gameplay-stage { height:440px; }
+.entry-resume-info { background:#102936e8; padding:28px; border:1px solid #9caa9a; border-radius:8px; }
+.entry-resume-info h1 { font-size:30px; margin:0 0 18px; }.entry-resume-info h1 span { color:#ffd677; }.entry-resume-info h2 { font-size:22px; margin:6px 0 18px; }.entry-resume-info>p { margin:0; font-size:15px; }
+.entry-resume-info .entry-objective { border-top:1px solid #ffffff26; padding-top:18px; line-height:1.5; }
+.entry-resume-info>.valley-button { width:100%; margin:22px 0 14px; }
+.entry-resume-secondary { display:flex; gap:10px; }.entry-resume-secondary .valley-button { flex:1; padding:10px; font-size:13px; min-width:0; }
+.entry-resume-info .entry-back { margin-top:16px; }
+.entry-progress { margin-top:18px; }.entry-progress label { display:flex; justify-content:space-between; gap:12px; font-size:13px; }.entry-progress progress { width:100%; height:10px; accent-color:#4bd2ed; }
+.entry-adventure-screen .entry-character-model { position:absolute; inset:95px 220px 130px 120px; pointer-events:auto; touch-action:none; }
+.entry-character-model .gameplay-stage { height:100%; min-height:250px; }
+.entry-adventure-screen .valley-character-layout h2 { font-family:inherit; font-size:30px; font-weight:900; text-transform:uppercase; }
+.entry-adventure-screen .valley-character-options { position:relative; z-index:3; }
+.entry-adventure-screen .valley-intro { background:#fff0ccf5; color:#3c3824; box-shadow:0 9px 35px #08263266; border-color:#b4a165; }
+.shared-game-ui { position:relative; z-index:3; pointer-events:none; }.shared-game-ui button,.shared-game-ui input,.shared-game-ui select,.shared-game-ui .gameplay-overlay,.shared-game-ui .valley-lesson-backdrop,.shared-game-ui [role=dialog],.shared-game-ui .valley-lesson { pointer-events:auto; }
+.entry-screen button:focus-visible,.entry-adventure-screen button:focus-visible,.entry-profiles-screen button:focus-visible { outline:3px solid #ffe397; outline-offset:4px; }
+@keyframes entry-reveal { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@media(max-width:700px) {
+ .entry-title-content .valley-title { font-size:54px; gap:10px; }.entry-title-content .valley-title>span { padding:20px 24px; }.entry-title-content .valley-title-small { font-size:18px; }.entry-title-content .valley-title>svg { width:22px; }
+ .entry-title-content>p { font-size:18px; }.entry-title-content>.valley-button { min-width:0; width:100%; font-size:17px; padding:16px; }
+ .entry-title-content { width:min(350px,100%); gap:22px; }.entry-title-screen { align-items:center; padding:50px 18px 90px; }
+ .entry-profiles-screen .valley-profile-layout { padding:84px 18px 90px; }.entry-profiles-screen .valley-menu-heading { font-size:24px; }.entry-profile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:500px; gap:12px; }
+ .entry-profile-grid .valley-profile { flex-direction:column; padding:16px 8px; min-height:252px; }.entry-profile-portrait { height:140px; }.entry-profile-grid .valley-profile-name { font-size:15px; }.entry-profile-state { font-size:12px; padding:10px 5px; flex-wrap:wrap; }
+ .entry-resume-layout { display:flex; flex-direction:column; gap:0; padding:50px 18px 26px; }.entry-resume-model { width:100%; }.entry-resume-model .gameplay-stage { height:235px; }.entry-resume-info { width:min(430px,100%); padding:20px; }.entry-resume-info h1 { font-size:25px; }
+ .entry-adventure-screen .entry-character-model { inset:80px 20px 240px; }.entry-character-model .gameplay-stage { min-height:180px; }.entry-adventure-screen .valley-character-layout h2 { font-size:23px; }
+ .entry-adventure-screen .valley-character-options { align-self:end; }.entry-adventure-screen .valley-title { font-size:38px; }
+}
+@media(prefers-reduced-motion:reduce) { .entry-title-content,.entry-profiles-screen .valley-profile-layout,.entry-resume-layout,.entry-adventure-screen .valley-center-layout { animation:none; } }
+@media(max-height:540px) { .entry-title-screen { padding-top:22px; padding-bottom:72px; }.entry-title-content { gap:12px; }.entry-title-content .valley-title { font-size:46px; }.entry-title-content .valley-title>span { padding:8px 20px; }.entry-title-content>p { font-size:17px; }.entry-title-content>.valley-button { min-height:52px; margin-top:4px; } }

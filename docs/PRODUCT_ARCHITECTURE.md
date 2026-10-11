@@ -7,11 +7,12 @@ EDUCATIONAL ENGINE: PIANOMAGICO
 
 ## Flujo oficial
 
-PROFILE -> ADVENTURE -> EXPLORE -> DISCOVER -> PIANO ACTIVITY -> RESULT -> WORLD PROGRESSION.
+TITLE -> PROFILE -> ADVENTURE -> EXPLORE -> DISCOVER -> PIANO ACTIVITY -> RESULT -> WORLD PROGRESSION.
 
-- `main.jsx` monta `MusicSuite`: solo seleccion de perfil y Valle. No existe seleccion de instrumento en el producto.
-- `profileEntryFlow.js` deriva PROFILE o VALLE del perfil seleccionado; Salir del Valle vuelve a perfiles. Recargar vuelve a perfiles, y elegir el mismo perfil ofrece Continuar cuando tiene progreso Adventure.
-- `GameApp` abre `AdventureStart`: Nueva Aventura -> personaje -> intro -> Plaza. Continuar abre directamente el mundo, preservando personaje, cofres y objetivo.
+- ENTRY EXPERIENCE 2 reemplaza la entrada PROFILE-first por portada del mundo real. `main.jsx` monta `MusicSuite`; no existe seleccion de instrumento. Ver `ENTRY_EXPERIENCE_2.md`.
+- `entry/entryExperience.js` controla TITLE/PROFILES/ADVENTURE. Recargar vuelve a TITLE; Salir del Valle vuelve a PROFILES; Volver desde perfiles vuelve a TITLE. `profileEntryFlow.js` queda como helper legacy compatible, no como autoridad de la entrada.
+- `GameApp` abre `AdventureStart`: sin Adventure pasa directamente a personaje -> intro -> Plaza; con Adventure presenta resumen -> Continuar -> mundo. Conserva personaje, cofres y objetivo. Personalizar reutiliza el menu existente sin reiniciar Adventure.
+- `SharedWorldProvider` conserva una escena/renderer World3DView entre portada, perfiles y gameplay. Las pantallas de entrada no copian WorldGenerator. Previews de perfiles usan un solo renderer con scissor y assets compartidos, sin otra copia del Valle.
 - Nueva Aventura con progreso requiere confirmacion antes de reiniciar Adventure. Cancelar no modifica nada. El reinicio no toca usuario, XP, interpretaciones ni medallas.
 - El perfil identifica al alumno y su historial educativo. Knight / Mage / Barbarian / Rogue son su identidad visual de aventura, persistida con el campo avatar existente del perfil; no son clases ni perfiles educativos nuevos.
 - `LoginScreen` selecciona perfiles, nunca personajes. El personaje se elige al crear la aventura o en desarrollo explicito.
@@ -30,7 +31,7 @@ Las referencias galacticas de modulos historicos desconectados no se reinterpret
 
 Las herramientas de AdventureStart y World3DView requieren DEV y `?debug=1`. No aparecen en el flujo normal ni en produccion.
 
-Los botones de caminar automatico y Prueba funcional pertenecen a paginas auxiliares de validacion fuera del repositorio, no al juego. Las capturas de aprobacion del entry flow deben comenzar en perfiles y usar la experiencia normal.
+Los botones de caminar automatico y Prueba funcional pertenecen a paginas auxiliares de validacion fuera del repositorio, no al juego. Las capturas del nuevo entry flow deben comenzar en portada y usar la experiencia normal.
 
 SYSTEMS 4 + ENTRY FLOW 4.5 aprobados; checkpoint `734efe3 - Valle de las Notas new adventure and unified entry flow`. Arquitectura oficial congelada: no reintroducir seleccion de instrumento.
 

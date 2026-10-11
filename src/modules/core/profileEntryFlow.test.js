@@ -9,10 +9,11 @@ import { getNewAdventurePhase, hasAdventureProgress } from '../../game/adventure
 import { createWorldActivityState, worldActivityReducer } from '../../game/state/worldActivityFlow.js';
 import { createAdventurePersistence } from '../../game/services/adventurePersistence.js';
 
-let server, LoginScreen, AdventureStart, ValleyLessonEntry, pianoHelpers;
+let server, LoginScreen, AdventureStart, ValleyLessonEntry, pianoHelpers, TitleScreen;
 before(async () => {
   server = await createServer({ server: { middlewareMode: true }, optimizeDeps: { noDiscovery: true, include: [] }, appType: 'custom', logLevel: 'error' });
   LoginScreen = (await server.ssrLoadModule('/src/modules/core/LoginScreen.jsx')).default;
+  TitleScreen = (await server.ssrLoadModule('/src/game/entry/TitleScreen.jsx')).default;
   AdventureStart = (await server.ssrLoadModule('/src/game/adventure/AdventureStart.jsx')).default;
   ValleyLessonEntry = (await server.ssrLoadModule('/src/game/piano/ValleyLessonEntry.jsx')).default;
   pianoHelpers = await server.ssrLoadModule('/src/modules/piano-magico/PianoMagico.jsx');
@@ -37,7 +38,7 @@ test('preview uses existing solfege, frequency and legacy speed semantics unchan
   assert.equal(pianoHelpers.getNoteFrequency('A4'),440);
 });
 
-test('profile selection enters Valle directly; exit and refresh return only to profiles', () => {
+test('legacy profile reducer remains compatible and ignores instrument selection; entry experience owns fresh load', () => {
   assert.equal(getEntryScreen(null), 'PROFILE');
   const loggedIn = profileEntryReducer(null, { type: 'SELECT_PROFILE', userId: 2 });
   assert.equal(getEntryScreen(loggedIn), 'VALLE');
@@ -47,11 +48,21 @@ test('profile selection enters Valle directly; exit and refresh return only to p
   assert.equal(getEntryScreen(profileEntryReducer(null, { type: 'SELECT_PROFILE', userId: '2' })), 'VALLE');
 });
 
+test('title presents only the game identity and native accessible entry button, never profile or Adventure HUD', () => {
+  const html = renderToStaticMarkup(React.createElement(TitleScreen));
+  assert.match(html, /VALLE DE LAS NOTAS/); assert.match(html, /Una aventura musical/); assert.match(html, /Entrar al Valle/);
+  assert.doesNotMatch(html, /BASTIAN|XP|Debug World|Abrir mapa|Cofre|Elige tu perfil/);
+});
+test('resume presents real profile, derived region/objective and dominant Continue without resetting adventure', () => {
+  const html = renderEntry({sharedEntry:true,canContinue:true,summary:{region:'Rio del Ritmo',objective:'Explora el Rio',completed:2,total:6},gameplay:{equippedPetId:'kenney-cube-pets:animal-deer'}});
+  assert.match(html,/SOPHIA/); assert.match(html,/Rio del Ritmo/); assert.match(html,/Explora el Rio/); assert.match(html,/Continuar aventura/); assert.match(html,/Personalizar/); assert.match(html,/Nueva Aventura/); assert.match(html,/Personaje 3D/);
+});
+
 test('rendered profile screen has real profiles, never instrument selection or character customization', () => {
   const html = renderToStaticMarkup(React.createElement(LoginScreen, { users: [profile] }));
-  assert.match(html, /VALLE DE LAS NOTAS/);
+  assert.match(html, /Quien va a explorar hoy/);
   assert.match(html, /Entrar como SOPHIA/);
-  assert.match(html, /2500/);
+  assert.match(html, /Comenzar aventura/);
   assert.doesNotMatch(html, /Galáctica|Galactic|Instrumento|Uke Hero|Piano Mágico|Personaje Anterior|canvas/i);
 });
 
