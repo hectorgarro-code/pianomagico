@@ -20,6 +20,7 @@ export const GAME_MODES = Object.freeze({
 
 export function createWorldActivityState(adventure) {
   const game = structuredClone(INITIAL_GAME_STATE);
+  game.adventure = createAdventureState();
   if (adventure) game.adventure = { ...adventure, valley: { ...adventure.valley, currentRegion: REGION_IDS.PLAZA } };
   return { mode: GAME_MODES.WORLD, game, activity: null, context: null, lastResult: null, discovery: null,
     endingAcknowledged: getValleyProgress(game.adventure).valleyCompleted };

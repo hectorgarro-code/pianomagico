@@ -6,6 +6,7 @@
 
 import { normalizeGameProfile } from './profileAdapter.js';
 import { adventurePersistence } from './adventurePersistence.js';
+import { loadPianoLessons } from '../content/lessonRepository.js';
 const API_BASE = 'backend/api.php';
 
 export const progressService = {
@@ -52,6 +53,7 @@ export const progressService = {
    * Obtiene el catálogo de canciones/lecciones para el instrumento.
    */
   async getSongs(userId, instrument = 'piano') {
+    if (instrument === 'piano') return loadPianoLessons(userId || '');
     const res = await fetch(`${API_BASE}?action=get_songs&user_id=${userId || ''}&instrument=${instrument}`);
     if (!res.ok) throw new Error('Error al cargar canciones');
     return await res.json();

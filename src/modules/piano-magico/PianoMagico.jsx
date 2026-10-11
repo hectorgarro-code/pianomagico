@@ -9,6 +9,7 @@ import {
 
 import { usePianoMic } from '../../hooks/usePianoMic';
 import { buildLessonResult } from '../../game/piano/lessonResult.js';
+import { loadPianoLessons } from '../../game/content/lessonRepository.js';
 import { normalizeGameProfile } from '../../game/services/profileAdapter.js';
 import MicSettingsModal from '../core/components/MicSettingsModal';
 import Model3DViewer from '../core/components/Model3DViewer';
@@ -195,7 +196,7 @@ const FREQUENCIES = new Proxy({}, { get: (_, prop) => getNoteFrequency(prop) });
 const NOTE_COLORS = new Proxy({}, { get: (_, prop) => getNoteColor(prop) });
 const NOTE_NAMES = new Proxy({}, { get: (_, prop) => getNoteDisplayName(prop) });
 
-const API_URL = 'backend/api.php';
+const API_URL = `${import.meta.env.BASE_URL}backend/api.php`;
 export const getIntervalMs = speedValue => {
   if (!speedValue) return 600;
   const val = Number(speedValue);
@@ -209,6 +210,7 @@ export default function PianoMagico({
   initialMode = 'solo',
   initialView = 'menu',
   preparationComplete = false,
+  adminPreview = false,
   onFinishLesson
 }) {
   const embeddedActivity = initialView === 'game' && !!initialSong;
@@ -455,7 +457,7 @@ export default function PianoMagico({
   });
 
   useEffect(() => {
-    if (!stageExitRef.current && view === 'game' && (embeddedActivity ? localStorage.getItem('piano_mic_auto') === 'true' : localStorage.getItem('piano_mic_auto') !== 'false') && !isListening) {
+    if (!adminPreview && !stageExitRef.current && view === 'game' && (embeddedActivity ? localStorage.getItem('piano_mic_auto') === 'true' : localStorage.getItem('piano_mic_auto') !== 'false') && !isListening) {
       localStorage.setItem('piano_mic_auto', 'true');
       startMic();
     }
@@ -569,6 +571,11 @@ export default function PianoMagico({
 
   // --- CARGA DE DATOS DEPENDIENTE DE USUARIO ---
   useEffect(() => {
+    if (adminPreview) {
+      setProfile({ name: 'PREVIEW', avatarId: 1 });
+      setTotalScore(0); setDataLoaded(true);
+      return;
+    }
     if (!userId) return;
     let live = true;
 
@@ -583,8 +590,7 @@ export default function PianoMagico({
         if (dataProfile) setTotalScore(dataProfile.total_score);
 
         // Songs
-        const resSongs = await fetch(`${API_URL}?action=get_songs&user_id=${userId}&instrument=piano`);
-        const userSongs = await resSongs.json();
+        const userSongs = await loadPianoLessons(userId);
         if (!live) return;
 
         if (Array.isArray(userSongs)) {
@@ -633,7 +639,7 @@ export default function PianoMagico({
   }, []);
 
   const updateProfileOnServer = async (newProfile, newScore) => {
-    if (!userId) return;
+    if (adminPreview || !userId) return;
     try {
       await fetch(`${API_URL}?action=update_profile`, {
         method: 'POST',
@@ -644,7 +650,7 @@ export default function PianoMagico({
   };
 
   const unlockStickerOnServer = async (stickerId) => {
-    if (!userId) return;
+    if (adminPreview || !userId) return;
     try {
       await fetch(`${API_URL}?action=unlock_sticker`, {
         method: 'POST',
@@ -655,7 +661,7 @@ export default function PianoMagico({
   };
 
   const unlockMedalOnServer = async (songId) => {
-    if (!userId) return;
+    if (adminPreview || !userId) return;
     try {
       await fetch(`${API_URL}?action=unlock_medal`, {
         method: 'POST',
@@ -666,7 +672,7 @@ export default function PianoMagico({
   };
 
   const addSongOnServer = async (song) => {
-    if (!userId) return null;
+    if (adminPreview || !userId) return null;
     try {
       const res = await fetch(`${API_URL}?action=add_song`, {
         method: 'POST',
@@ -678,7 +684,7 @@ export default function PianoMagico({
   };
 
   const persistPerformance = async (songId, log, finalScore) => {
-    if (!userId) return;
+    if (adminPreview || !userId) return;
     try {
       const res = await fetch(`${API_URL}?action=save_performance`, {
         method: 'POST',
@@ -1362,7 +1368,7 @@ export default function PianoMagico({
       setShowListenFirstModal(false);
     }
 
-    if (localStorage.getItem('piano_mic_auto') === 'true' && !isListening) {
+    if (!adminPreview && localStorage.getItem('piano_mic_auto') === 'true' && !isListening) {
       startMic();
     }
 
@@ -2318,14 +2324,7 @@ export default function PianoMagico({
               <input type="number" value={parentMath.result} onChange={(e) => setParentMath({ ...parentMath, result: e.target.value })} className="w-full bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl text-center text-3xl font-black outline-none mb-6 focus:border-[#1CB0F6]" autoFocus />
               <button onClick={async () => {
                 if (parseInt(parentMath.result) === parentMath.v1 + parentMath.v2) {
-                  // Refresh users to have latest data in admin panel
-                  try {
-                    const res = await fetch(`${API_URL}?action=get_users`);
-                    const data = await res.json();
-                    setUsers(data || []);
-                    await fetchAdminSongs();
-                  } catch (e) { console.error(e); }
-                  setView('admin');
+                  window.location.assign(new URL('valle-admin', new URL(import.meta.env.BASE_URL, window.location.origin)).pathname);
                 } else {
                   setParentMath({ ...parentMath, result: '' });
                 }

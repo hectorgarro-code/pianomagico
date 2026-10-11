@@ -6,6 +6,8 @@
  */
 
 import * as THREE from 'three';
+import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import contentAssetUrls from '../content/assetReferences.json' with { type: 'json' };
 import { createRNG } from './worldSeed';
 import {
   GENERATION_RULES,
@@ -28,6 +30,7 @@ import { GROTTO_COMPOSITION } from './composition/grottoComposition.js';
 import { RUINS_COMPOSITION } from './composition/ruinsComposition.js';
 import { OBSERVATORY_COMPOSITION } from './composition/observatoryComposition.js';
 const COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION,GROTTO_COMPOSITION,RUINS_COMPOSITION,OBSERVATORY_COMPOSITION];
+const REGISTERED_ASSETS = [...collectAssetUrls(KAYKIT_ASSETS), ...contentAssetUrls];
 
 export class WorldGenerator {
   constructor(seed = 'VALLE_DE_LAS_NOTAS_V1') {
@@ -95,7 +98,7 @@ export class WorldGenerator {
   spawnInstance(url, scale = 1, castShadow = true, receiveShadow = true) {
     const proto = this.models.get(url);
     if (!proto) return null;
-    const instance = proto.clone(true);
+    const instance = cloneSkeleton(proto);
 
     if (scale !== 1) {
       if (typeof scale === 'number') {
@@ -296,14 +299,14 @@ export class WorldGenerator {
       if(!instance)continue;
       const p=instance.getWorldPosition(new THREE.Vector3());
       this.interactionObjects.push({ ...station, type: ADVENTURE_OBJECT_TYPES.PRACTICE_STATION, regionId: composition.regionId,
-        position: { x: p.x, y: p.y, z: p.z }, interaction: { radius: station.interactionRadius } });
+        position: { x: p.x, y: p.y, z: p.z }, interaction: composition.instances.find(i => i.id === station.instanceId)?.interaction || { radius: station.interactionRadius } });
       this.collisionDebug.add(createCollisionOutline({shape:'circle',x:p.x,z:p.z,radius:station.interactionRadius},0xffc247,calculateTerrainElevation));
     }
     for (const object of composition.adventureObjects || []) {
       const instance = plazaRoot.children.find(item => item.userData.compositionId === object.instanceId);
       if (!instance) throw new Error(`Adventure object failed to materialize: ${object.id}`);
       const p = instance.getWorldPosition(new THREE.Vector3());
-      this.interactionObjects.push({ ...object, position: { x: p.x, y: p.y, z: p.z } });
+      this.interactionObjects.push({ ...object, interaction: composition.instances.find(i => i.id === object.instanceId)?.interaction || object.interaction, position: { x: p.x, y: p.y, z: p.z } });
       this.collisionDebug.add(createCollisionOutline({ shape: 'circle', x: p.x, z: p.z, radius: object.interaction.radius }, 0xffc247, calculateTerrainElevation));
     }
     for (const definition of composition.lights || []) {
@@ -472,14 +475,14 @@ export class WorldGenerator {
    */
   async buildSection1() {
     for(const composition of COMPOSITIONS.slice(2)) {
-      const result=validateComposition(composition,{registeredAssets:collectAssetUrls(KAYKIT_ASSETS),worldBlueprint:WORLD_BLUEPRINT});
+      const result=validateComposition(composition,{registeredAssets:REGISTERED_ASSETS,worldBlueprint:WORLD_BLUEPRINT});
       const gateErrors=validateWorldGateBindings(composition);
       if(!result.valid || gateErrors.length) throw new Error(`Invalid ${composition.groupName}: ${JSON.stringify([result.errors,gateErrors])}`);
     }
-    const forestValidation=validateComposition(FOREST_COMPOSITION,{registeredAssets:collectAssetUrls(KAYKIT_ASSETS),worldBlueprint:WORLD_BLUEPRINT});
+    const forestValidation=validateComposition(FOREST_COMPOSITION,{registeredAssets:REGISTERED_ASSETS,worldBlueprint:WORLD_BLUEPRINT});
     if(!forestValidation.valid) throw new Error(`Invalid Forest composition: ${JSON.stringify(forestValidation.errors)}`);
     const validation = validateComposition(PLAZA_COMPOSITION, {
-      registeredAssets: collectAssetUrls(KAYKIT_ASSETS),
+      registeredAssets: REGISTERED_ASSETS,
       worldBlueprint: WORLD_BLUEPRINT
     });
     for (const warning of validation.warnings) console.warn('[CompositionBlueprint]', warning);

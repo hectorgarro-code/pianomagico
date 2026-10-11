@@ -1,0 +1,5470 @@
+{
+  "compositions": [
+    {
+      "id": "Region_Plaza_de_las_Notas",
+      "regionId": "PLAZA_DE_LAS_NOTAS",
+      "protectedIds": [
+        "plaza-lesson-chest",
+        "atrium-base-west",
+        "atrium-base-east",
+        "atrium-column-front-west",
+        "atrium-column-front-east",
+        "atrium-column-back-west",
+        "atrium-column-back-east",
+        "atrium-lintel-front",
+        "atrium-lintel-back",
+        "atrium-lintel-west",
+        "atrium-lintel-east",
+        "atrium-banner"
+      ]
+    },
+    {
+      "id": "Region_Bosque_Medium",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "protectedIds": [
+        "forest-chest-01-model",
+        "forest-chest-02-model",
+        "forest-chest-03-model",
+        "forest-master-tree",
+        "forest-west-01",
+        "forest-west-02",
+        "forest-west-03",
+        "forest-west-04",
+        "forest-west-05",
+        "forest-west-06",
+        "forest-west-07",
+        "forest-west-08",
+        "forest-west-09",
+        "forest-fold-01",
+        "forest-fold-02",
+        "forest-fold-03",
+        "forest-fold-04",
+        "forest-east-01",
+        "forest-east-02",
+        "forest-east-03",
+        "forest-east-04",
+        "forest-east-05",
+        "forest-east-06",
+        "forest-east-07",
+        "forest-east-08",
+        "forest-east-09",
+        "forest-east-10",
+        "forest-north-01",
+        "forest-north-02",
+        "forest-north-03",
+        "forest-north-04",
+        "forest-north-05",
+        "forest-north-06",
+        "forest-north-07",
+        "forest-north-08",
+        "forest-north-09"
+      ]
+    },
+    {
+      "id": "Junction",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "protectedIds": []
+    },
+    {
+      "id": "River",
+      "regionId": "RIO_DEL_RITMO",
+      "protectedIds": [
+        "river-chest-01-model",
+        "river-chest-02-model",
+        "river-chest-03-model",
+        "river-bridge-deck",
+        "river-bridge-support-west",
+        "river-bridge-support-east"
+      ]
+    },
+    {
+      "id": "Mountain",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "protectedIds": [
+        "mountain-chest-01-model",
+        "mountain-chest-02-model",
+        "mountain-chest-03-model"
+      ]
+    },
+    {
+      "id": "Grotto_Entrance",
+      "regionId": "GRUTA_DEL_ECO",
+      "protectedIds": []
+    },
+    {
+      "id": "Grotto",
+      "regionId": "GRUTA_DEL_ECO",
+      "protectedIds": [
+        "grotto-echo-reward-model",
+        "grotto-altar"
+      ]
+    },
+    {
+      "id": "Ruins",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "protectedIds": [
+        "ruins-chest-01-model",
+        "ruins-chest-02-model",
+        "ruins-challenge-model",
+        "ruins-staff-0-west",
+        "ruins-staff-0-east",
+        "ruins-staff-1-west",
+        "ruins-staff-1-east",
+        "ruins-staff-2-west",
+        "ruins-staff-2-east",
+        "ruins-staff-3-west",
+        "ruins-staff-3-east",
+        "ruins-staff-4-west",
+        "ruins-staff-4-east",
+        "ruins-entry-gate"
+      ]
+    },
+    {
+      "id": "Observatory",
+      "regionId": "OBSERVATORIO_MUSICAL",
+      "protectedIds": [
+        "observatory-final-challenge-model",
+        "observatory-column-0",
+        "observatory-column-1",
+        "observatory-column-2",
+        "observatory-column-3",
+        "observatory-column-4",
+        "observatory-column-5",
+        "observatory-ascent-gate"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "existing:/models/props/Assets/gltf/wall.gltf",
+      "url": "/models/props/Assets/gltf/wall.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_arched.gltf",
+      "url": "/models/props/Assets/gltf/wall_arched.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_archedwindow_gated.gltf",
+      "url": "/models/props/Assets/gltf/wall_archedwindow_gated.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_archedwindow_gated_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_archedwindow_gated_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_archedwindow_open.gltf",
+      "url": "/models/props/Assets/gltf/wall_archedwindow_open.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_broken.gltf",
+      "url": "/models/props/Assets/gltf/wall_broken.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_corner.gltf",
+      "url": "/models/props/Assets/gltf/wall_corner.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_corner_gated.gltf",
+      "url": "/models/props/Assets/gltf/wall_corner_gated.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_corner_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_corner_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_corner_small.gltf",
+      "url": "/models/props/Assets/gltf/wall_corner_small.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_cracked.gltf",
+      "url": "/models/props/Assets/gltf/wall_cracked.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_crossing.gltf",
+      "url": "/models/props/Assets/gltf/wall_crossing.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_doorway.gltf",
+      "url": "/models/props/Assets/gltf/wall_doorway.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_doorway_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_doorway_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_doorway_sides.gltf",
+      "url": "/models/props/Assets/gltf/wall_doorway_sides.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_doorway_Tsplit.gltf",
+      "url": "/models/props/Assets/gltf/wall_doorway_Tsplit.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_endcap.gltf",
+      "url": "/models/props/Assets/gltf/wall_endcap.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_gated.gltf",
+      "url": "/models/props/Assets/gltf/wall_gated.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_half.gltf",
+      "url": "/models/props/Assets/gltf/wall_half.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_half_endcap.gltf",
+      "url": "/models/props/Assets/gltf/wall_half_endcap.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_half_endcap_sloped.gltf",
+      "url": "/models/props/Assets/gltf/wall_half_endcap_sloped.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_open_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_open_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_pillar.gltf",
+      "url": "/models/props/Assets/gltf/wall_pillar.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_shelves.gltf",
+      "url": "/models/props/Assets/gltf/wall_shelves.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_sloped.gltf",
+      "url": "/models/props/Assets/gltf/wall_sloped.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_Tsplit.gltf",
+      "url": "/models/props/Assets/gltf/wall_Tsplit.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_Tsplit_sloped.gltf",
+      "url": "/models/props/Assets/gltf/wall_Tsplit_sloped.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_window_closed.gltf",
+      "url": "/models/props/Assets/gltf/wall_window_closed.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_window_closed_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_window_closed_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_window_open.gltf",
+      "url": "/models/props/Assets/gltf/wall_window_open.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/wall_window_open_scaffold.gltf",
+      "url": "/models/props/Assets/gltf/wall_window_open_scaffold.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_large.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_large.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_large_rocky.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_large_rocky.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_small_A.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_small_A.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_small_B.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_small_B.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_small_C.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_small_C.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_small_corner.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_small_corner.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_small_D.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_small_D.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_dirt_small_weeds.gltf",
+      "url": "/models/props/Assets/gltf/floor_dirt_small_weeds.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_foundation_allsides.gltf",
+      "url": "/models/props/Assets/gltf/floor_foundation_allsides.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_foundation_corner.gltf",
+      "url": "/models/props/Assets/gltf/floor_foundation_corner.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_foundation_diagonal_corner.gltf",
+      "url": "/models/props/Assets/gltf/floor_foundation_diagonal_corner.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_foundation_front.gltf",
+      "url": "/models/props/Assets/gltf/floor_foundation_front.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_foundation_front_and_back.gltf",
+      "url": "/models/props/Assets/gltf/floor_foundation_front_and_back.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_foundation_front_and_sides.gltf",
+      "url": "/models/props/Assets/gltf/floor_foundation_front_and_sides.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_big_grate.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_big_grate.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_big_grate_open.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_big_grate_open.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_big_spikes.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_big_spikes.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_extralarge_grates.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_extralarge_grates.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_extralarge_grates_open.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_extralarge_grates_open.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_grate.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_grate.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_grate_open.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_grate_open.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_large.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_large.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_large_rocks.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_large_rocks.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small_broken_A.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small_broken_A.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small_broken_B.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small_broken_B.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small_corner.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small_corner.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small_decorated.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small_decorated.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small_weeds_A.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small_weeds_A.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_tile_small_weeds_B.gltf",
+      "url": "/models/props/Assets/gltf/floor_tile_small_weeds_B.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_wood_large.gltf",
+      "url": "/models/props/Assets/gltf/floor_wood_large.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_wood_large_dark.gltf",
+      "url": "/models/props/Assets/gltf/floor_wood_large_dark.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_wood_small.gltf",
+      "url": "/models/props/Assets/gltf/floor_wood_small.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/floor_wood_small_dark.gltf",
+      "url": "/models/props/Assets/gltf/floor_wood_small_dark.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrier.gltf",
+      "url": "/models/props/Assets/gltf/barrier.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrier_column.gltf",
+      "url": "/models/props/Assets/gltf/barrier_column.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrier_colum_half.gltf",
+      "url": "/models/props/Assets/gltf/barrier_colum_half.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrier_corner.gltf",
+      "url": "/models/props/Assets/gltf/barrier_corner.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrier_half.gltf",
+      "url": "/models/props/Assets/gltf/barrier_half.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/column.gltf",
+      "url": "/models/props/Assets/gltf/column.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/pillar.gltf",
+      "url": "/models/props/Assets/gltf/pillar.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/pillar_decorated.gltf",
+      "url": "/models/props/Assets/gltf/pillar_decorated.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs.gltf",
+      "url": "/models/props/Assets/gltf/stairs.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_long.gltf",
+      "url": "/models/props/Assets/gltf/stairs_long.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_long_modular_center.gltf",
+      "url": "/models/props/Assets/gltf/stairs_long_modular_center.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_long_modular_left.gltf",
+      "url": "/models/props/Assets/gltf/stairs_long_modular_left.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_long_modular_right.gltf",
+      "url": "/models/props/Assets/gltf/stairs_long_modular_right.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_modular_center.gltf",
+      "url": "/models/props/Assets/gltf/stairs_modular_center.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_modular_left.gltf",
+      "url": "/models/props/Assets/gltf/stairs_modular_left.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_modular_right.gltf",
+      "url": "/models/props/Assets/gltf/stairs_modular_right.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_narrow.gltf",
+      "url": "/models/props/Assets/gltf/stairs_narrow.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_walled.gltf",
+      "url": "/models/props/Assets/gltf/stairs_walled.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_wall_left.gltf",
+      "url": "/models/props/Assets/gltf/stairs_wall_left.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_wall_right.gltf",
+      "url": "/models/props/Assets/gltf/stairs_wall_right.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_wide.gltf",
+      "url": "/models/props/Assets/gltf/stairs_wide.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_wood.gltf",
+      "url": "/models/props/Assets/gltf/stairs_wood.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stairs_wood_decorated.gltf",
+      "url": "/models/props/Assets/gltf/stairs_wood_decorated.gltf",
+      "category": "ARCHITECTURE",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_1_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_1_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_1_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_1_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_1_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_1_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_2_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_2_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_2_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_2_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_2_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_2_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_2_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_2_D_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_2_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_2_E_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_3_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_3_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_3_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_3_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_3_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_3_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_4_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_4_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_4_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_4_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_4_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_4_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_Bare_1_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_Bare_1_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_Bare_1_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_Bare_1_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_Bare_1_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_Bare_1_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_Bare_2_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_Bare_2_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_Bare_2_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_Bare_2_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Tree_Bare_2_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Tree_Bare_2_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_D_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_E_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_F_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_F_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_1_G_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_1_G_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_2_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_2_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_2_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_2_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_2_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_2_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_2_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_2_D_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_2_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_2_E_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_2_F_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_2_F_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_3_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_3_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_3_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_3_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_3_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_3_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_4_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_4_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_4_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_4_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_4_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_4_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_4_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_4_D_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_4_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_4_E_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Bush_4_F_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Bush_4_F_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_A_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_A_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_B_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_B_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_C_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_C_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_D_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_D_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_D_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_Mesh.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_Mesh.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_1_SingleSided_Mesh.gltf",
+      "url": "/models/props/Assets/gltf/Grass_1_SingleSided_Mesh.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_A_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_A_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_A_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_B_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_B_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_B_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_C_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_C_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_C_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_D_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_D_Singlesided_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_D_Singlesided_Color1.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_Mesh.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_Mesh.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Grass_2_SingleSided_Mesh.gltf",
+      "url": "/models/props/Assets/gltf/Grass_2_SingleSided_Mesh.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_large_A.gltf",
+      "url": "/models/props/Assets/gltf/trunk_large_A.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_large_B.gltf",
+      "url": "/models/props/Assets/gltf/trunk_large_B.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_large_C.gltf",
+      "url": "/models/props/Assets/gltf/trunk_large_C.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_medium_A.gltf",
+      "url": "/models/props/Assets/gltf/trunk_medium_A.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_medium_B.gltf",
+      "url": "/models/props/Assets/gltf/trunk_medium_B.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_medium_C.gltf",
+      "url": "/models/props/Assets/gltf/trunk_medium_C.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_small_A.gltf",
+      "url": "/models/props/Assets/gltf/trunk_small_A.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_small_B.gltf",
+      "url": "/models/props/Assets/gltf/trunk_small_B.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/trunk_small_C.gltf",
+      "url": "/models/props/Assets/gltf/trunk_small_C.gltf",
+      "category": "VEGETATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_A_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_B_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_C_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_D_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_E_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_F_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_F_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_G_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_G_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_H_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_H_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_I_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_I_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_J_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_J_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_K_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_K_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_L_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_L_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_M_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_M_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_N_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_N_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_O_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_O_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_P_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_P_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_1_Q_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_1_Q_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_A_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_B_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_C_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_D_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_E_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_F_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_F_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_G_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_G_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_2_H_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_2_H_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_A_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_A_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_B_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_B_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_C_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_C_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_D_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_D_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_E_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_E_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_F_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_F_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_G_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_G_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_H_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_H_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_I_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_I_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_J_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_J_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_K_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_K_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_L_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_L_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_M_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_M_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_N_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_N_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_O_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_O_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_P_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_P_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_Q_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_Q_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/Rock_3_R_Color1.gltf",
+      "url": "/models/props/Assets/gltf/Rock_3_R_Color1.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternA_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternA_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternA_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternA_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternA_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternA_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternA_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternA_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternA_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternA_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternA_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternA_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternB_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternB_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternB_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternB_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternB_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternB_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternB_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternB_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternB_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternB_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternB_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternB_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternC_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternC_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternC_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternC_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternC_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternC_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternC_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternC_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternC_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternC_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_patternC_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_patternC_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_shield_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_shield_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_shield_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_shield_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_shield_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_shield_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_shield_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_shield_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_shield_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_shield_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_shield_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_shield_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_thin_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_thin_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_thin_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_thin_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_thin_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_thin_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_thin_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_thin_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_thin_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_thin_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_thin_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_thin_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_triple_blue.gltf",
+      "url": "/models/props/Assets/gltf/banner_triple_blue.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_triple_brown.gltf",
+      "url": "/models/props/Assets/gltf/banner_triple_brown.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_triple_green.gltf",
+      "url": "/models/props/Assets/gltf/banner_triple_green.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_triple_red.gltf",
+      "url": "/models/props/Assets/gltf/banner_triple_red.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_triple_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_triple_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_triple_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_triple_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_white.gltf",
+      "url": "/models/props/Assets/gltf/banner_white.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/banner_yellow.gltf",
+      "url": "/models/props/Assets/gltf/banner_yellow.gltf",
+      "category": "DECORATION",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrel_large.gltf",
+      "url": "/models/props/Assets/gltf/barrel_large.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrel_large_decorated.gltf",
+      "url": "/models/props/Assets/gltf/barrel_large_decorated.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "url": "/models/props/Assets/gltf/barrel_small.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/barrel_small_stack.gltf",
+      "url": "/models/props/Assets/gltf/barrel_small_stack.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/box_large.gltf",
+      "url": "/models/props/Assets/gltf/box_large.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/box_small.gltf",
+      "url": "/models/props/Assets/gltf/box_small.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/box_small_decorated.gltf",
+      "url": "/models/props/Assets/gltf/box_small_decorated.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/box_stacked.gltf",
+      "url": "/models/props/Assets/gltf/box_stacked.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/chest.gltf",
+      "url": "/models/props/Assets/gltf/chest.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/chest_gold.gltf",
+      "url": "/models/props/Assets/gltf/chest_gold.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/crates_stacked.gltf",
+      "url": "/models/props/Assets/gltf/crates_stacked.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/keg.gltf",
+      "url": "/models/props/Assets/gltf/keg.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/keg_decorated.gltf",
+      "url": "/models/props/Assets/gltf/keg_decorated.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_A_brown.gltf",
+      "url": "/models/props/Assets/gltf/bottle_A_brown.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_A_green.gltf",
+      "url": "/models/props/Assets/gltf/bottle_A_green.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_A_labeled_brown.gltf",
+      "url": "/models/props/Assets/gltf/bottle_A_labeled_brown.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_A_labeled_green.gltf",
+      "url": "/models/props/Assets/gltf/bottle_A_labeled_green.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_B_brown.gltf",
+      "url": "/models/props/Assets/gltf/bottle_B_brown.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_B_green.gltf",
+      "url": "/models/props/Assets/gltf/bottle_B_green.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_C_brown.gltf",
+      "url": "/models/props/Assets/gltf/bottle_C_brown.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bottle_C_green.gltf",
+      "url": "/models/props/Assets/gltf/bottle_C_green.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/candle.gltf",
+      "url": "/models/props/Assets/gltf/candle.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/candle_lit.gltf",
+      "url": "/models/props/Assets/gltf/candle_lit.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/candle_melted.gltf",
+      "url": "/models/props/Assets/gltf/candle_melted.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/candle_thin.gltf",
+      "url": "/models/props/Assets/gltf/candle_thin.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/candle_thin_lit.gltf",
+      "url": "/models/props/Assets/gltf/candle_thin_lit.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/candle_triple.gltf",
+      "url": "/models/props/Assets/gltf/candle_triple.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/coin.gltf",
+      "url": "/models/props/Assets/gltf/coin.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/coin_stack_large.gltf",
+      "url": "/models/props/Assets/gltf/coin_stack_large.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/coin_stack_medium.gltf",
+      "url": "/models/props/Assets/gltf/coin_stack_medium.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/coin_stack_small.gltf",
+      "url": "/models/props/Assets/gltf/coin_stack_small.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/key.gltf",
+      "url": "/models/props/Assets/gltf/key.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/keyring.gltf",
+      "url": "/models/props/Assets/gltf/keyring.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/keyring_hanging.gltf",
+      "url": "/models/props/Assets/gltf/keyring_hanging.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/plate.gltf",
+      "url": "/models/props/Assets/gltf/plate.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/plate_food_A.gltf",
+      "url": "/models/props/Assets/gltf/plate_food_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/plate_food_B.gltf",
+      "url": "/models/props/Assets/gltf/plate_food_B.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/plate_small.gltf",
+      "url": "/models/props/Assets/gltf/plate_small.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/plate_stack.gltf",
+      "url": "/models/props/Assets/gltf/plate_stack.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/rubble_half.gltf",
+      "url": "/models/props/Assets/gltf/rubble_half.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/rubble_large.gltf",
+      "url": "/models/props/Assets/gltf/rubble_large.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/shelf_small_candles.gltf",
+      "url": "/models/props/Assets/gltf/shelf_small_candles.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/sword_shield.gltf",
+      "url": "/models/props/Assets/gltf/sword_shield.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/sword_shield_broken.gltf",
+      "url": "/models/props/Assets/gltf/sword_shield_broken.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/sword_shield_gold.gltf",
+      "url": "/models/props/Assets/gltf/sword_shield_gold.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/torch.gltf",
+      "url": "/models/props/Assets/gltf/torch.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/torch_lit.gltf",
+      "url": "/models/props/Assets/gltf/torch_lit.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/torch_mounted.gltf",
+      "url": "/models/props/Assets/gltf/torch_mounted.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bed_decorated.gltf",
+      "url": "/models/props/Assets/gltf/bed_decorated.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bed_floor.gltf",
+      "url": "/models/props/Assets/gltf/bed_floor.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/bed_frame.gltf",
+      "url": "/models/props/Assets/gltf/bed_frame.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/chair.gltf",
+      "url": "/models/props/Assets/gltf/chair.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/shelf_large.gltf",
+      "url": "/models/props/Assets/gltf/shelf_large.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/shelf_small.gltf",
+      "url": "/models/props/Assets/gltf/shelf_small.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/stool.gltf",
+      "url": "/models/props/Assets/gltf/stool.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_long.gltf",
+      "url": "/models/props/Assets/gltf/table_long.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_long_broken.gltf",
+      "url": "/models/props/Assets/gltf/table_long_broken.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_long_decorated_A.gltf",
+      "url": "/models/props/Assets/gltf/table_long_decorated_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_long_decorated_C.gltf",
+      "url": "/models/props/Assets/gltf/table_long_decorated_C.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_long_tablecloth.gltf",
+      "url": "/models/props/Assets/gltf/table_long_tablecloth.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_long_tablecloth_decorated_A.gltf",
+      "url": "/models/props/Assets/gltf/table_long_tablecloth_decorated_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_medium.gltf",
+      "url": "/models/props/Assets/gltf/table_medium.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_medium_broken.gltf",
+      "url": "/models/props/Assets/gltf/table_medium_broken.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_medium_decorated_A.gltf",
+      "url": "/models/props/Assets/gltf/table_medium_decorated_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_medium_tablecloth.gltf",
+      "url": "/models/props/Assets/gltf/table_medium_tablecloth.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_medium_tablecloth_decorated_B.gltf",
+      "url": "/models/props/Assets/gltf/table_medium_tablecloth_decorated_B.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_small.gltf",
+      "url": "/models/props/Assets/gltf/table_small.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_small_decorated_A.gltf",
+      "url": "/models/props/Assets/gltf/table_small_decorated_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/props/Assets/gltf/table_small_decorated_B.gltf",
+      "url": "/models/props/Assets/gltf/table_small_decorated_B.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/arrow_bow.gltf",
+      "url": "/models/characters/Assets/gltf/arrow_bow.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/arrow_bow_bundle.gltf",
+      "url": "/models/characters/Assets/gltf/arrow_bow_bundle.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/arrow_crossbow.gltf",
+      "url": "/models/characters/Assets/gltf/arrow_crossbow.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/arrow_crossbow_bundle.gltf",
+      "url": "/models/characters/Assets/gltf/arrow_crossbow_bundle.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/axe_1handed.gltf",
+      "url": "/models/characters/Assets/gltf/axe_1handed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/axe_2handed.gltf",
+      "url": "/models/characters/Assets/gltf/axe_2handed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/bow.gltf",
+      "url": "/models/characters/Assets/gltf/bow.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/bow_withString.gltf",
+      "url": "/models/characters/Assets/gltf/bow_withString.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/crossbow_1handed.gltf",
+      "url": "/models/characters/Assets/gltf/crossbow_1handed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/crossbow_2handed.gltf",
+      "url": "/models/characters/Assets/gltf/crossbow_2handed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/dagger.gltf",
+      "url": "/models/characters/Assets/gltf/dagger.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/mug_empty.gltf",
+      "url": "/models/characters/Assets/gltf/mug_empty.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/mug_full.gltf",
+      "url": "/models/characters/Assets/gltf/mug_full.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/quiver.gltf",
+      "url": "/models/characters/Assets/gltf/quiver.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_badge.gltf",
+      "url": "/models/characters/Assets/gltf/shield_badge.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_badge_color.gltf",
+      "url": "/models/characters/Assets/gltf/shield_badge_color.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_round.gltf",
+      "url": "/models/characters/Assets/gltf/shield_round.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_round_barbarian.gltf",
+      "url": "/models/characters/Assets/gltf/shield_round_barbarian.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_round_color.gltf",
+      "url": "/models/characters/Assets/gltf/shield_round_color.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_spikes.gltf",
+      "url": "/models/characters/Assets/gltf/shield_spikes.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_spikes_color.gltf",
+      "url": "/models/characters/Assets/gltf/shield_spikes_color.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_square.gltf",
+      "url": "/models/characters/Assets/gltf/shield_square.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/shield_square_color.gltf",
+      "url": "/models/characters/Assets/gltf/shield_square_color.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/smokebomb.gltf",
+      "url": "/models/characters/Assets/gltf/smokebomb.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/spellbook_closed.gltf",
+      "url": "/models/characters/Assets/gltf/spellbook_closed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/spellbook_open.gltf",
+      "url": "/models/characters/Assets/gltf/spellbook_open.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/staff.gltf",
+      "url": "/models/characters/Assets/gltf/staff.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/sword_1handed.gltf",
+      "url": "/models/characters/Assets/gltf/sword_1handed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/sword_2handed.gltf",
+      "url": "/models/characters/Assets/gltf/sword_2handed.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/sword_2handed_color.gltf",
+      "url": "/models/characters/Assets/gltf/sword_2handed_color.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "existing:/models/characters/Assets/gltf/wand.gltf",
+      "url": "/models/characters/Assets/gltf/wand.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "player:1",
+      "url": "/models/characters/Knight.glb",
+      "category": "CHARACTER_PLAYER",
+      "animations": []
+    },
+    {
+      "id": "player:2",
+      "url": "/models/characters/Mage.glb",
+      "category": "CHARACTER_PLAYER",
+      "animations": []
+    },
+    {
+      "id": "player:3",
+      "url": "/models/characters/Barbarian.glb",
+      "category": "CHARACTER_PLAYER",
+      "animations": []
+    },
+    {
+      "id": "player:4",
+      "url": "/models/characters/Rogue.glb",
+      "category": "CHARACTER_PLAYER",
+      "animations": []
+    },
+    {
+      "id": "player:5",
+      "url": "/models/characters/Characters/gltf/Ranger.glb",
+      "category": "CHARACTER_PLAYER",
+      "animations": []
+    },
+    {
+      "id": "kenney-cube-pets:animal-beaver",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-beaver.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right",
+            "body",
+            "tail"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-bee",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-bee.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-bunny",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-bunny.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-cat",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-cat.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-caterpillar",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-caterpillar.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-chick",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-chick.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "body",
+            "wing-left",
+            "wing-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-cow",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-cow.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "Group"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-crab",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-crab.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "Group",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-deer",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-deer.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-back-left",
+            "body",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-dog",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-dog.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-elephant",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-elephant.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-front-left",
+            "leg-back-right",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-fish",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-fish.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 12,
+          "targets": [
+            "root",
+            "body",
+            "wing-right",
+            "wing-left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-fox",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-fox.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-giraffe",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-giraffe.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-hog",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-hog.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-koala",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-koala.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-lion",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-lion.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-monkey",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-monkey.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-left",
+            "leg-front-right",
+            "leg-back-right",
+            "leg-back-left",
+            "body",
+            "tail"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-panda",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-panda.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-parrot",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-parrot.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 24,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "tail",
+            "wing-right",
+            "wing-left",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-penguin",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-penguin.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "wing-left",
+            "wing-right",
+            "leg-front-left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-pig",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-pig.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "body",
+            "Group",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-polar",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-polar.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 18,
+          "targets": [
+            "root",
+            "body",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left",
+            "leg-front-right"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kenney-cube-pets:animal-tiger",
+      "url": "/models/characters/kenney_cube-pets_1.0/Models/GLB format/animal-tiger.glb",
+      "category": "PET",
+      "animations": [
+        {
+          "name": "static",
+          "durationSeconds": 0.1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "idle",
+          "durationSeconds": 1,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "walk",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "run",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "eat",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "dance",
+          "durationSeconds": 0.5,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "gesture-positive",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        },
+        {
+          "name": "gesture-negative",
+          "durationSeconds": 0.25,
+          "channels": 21,
+          "targets": [
+            "root",
+            "leg-front-right",
+            "body",
+            "tail",
+            "leg-back-left",
+            "leg-back-right",
+            "leg-front-left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Mage",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Mage.glb",
+      "category": "WORLD_CREATURE",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Minion",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Minion.glb",
+      "category": "WORLD_CREATURE",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Rogue",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Rogue.glb",
+      "category": "WORLD_CREATURE",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Warrior",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Warrior.glb",
+      "category": "WORLD_CREATURE",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Arrow",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Arrow.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Arrow_Broken",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Arrow_Broken.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Arrow_Broken_Half",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Arrow_Broken_Half.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Arrow_Half",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Arrow_Half.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Axe",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Axe.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Blade",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Crossbow",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Crossbow.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Quiver",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Quiver.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Shield_Large_A",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Shield_Large_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Shield_Large_B",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Shield_Large_B.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Shield_Small_A",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Shield_Small_A.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Shield_Small_B",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Shield_Small_B.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "kaykit-skeletons:Skeleton_Staff",
+      "url": "/models/characters/KayKit_Skeletons_1.1_FREE/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Staff.gltf",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "runtime:chest_wood",
+      "url": "/models/props/chest_wood.glb",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "runtime:chest_gold",
+      "url": "/models/props/chest_gold.glb",
+      "category": "PROP",
+      "animations": []
+    },
+    {
+      "id": "runtime:gate",
+      "url": "/models/props/gate.glb",
+      "category": "ARCHITECTURE",
+      "animations": []
+    }
+  ],
+  "animationNames": [
+    "Death_A",
+    "Death_A_Pose",
+    "Death_B",
+    "Death_B_Pose",
+    "Hit_A",
+    "Hit_B",
+    "Idle_A",
+    "Idle_B",
+    "Interact",
+    "PickUp",
+    "Spawn_Air",
+    "Spawn_Ground",
+    "T-Pose",
+    "Throw",
+    "Use_Item",
+    "Jump_Full_Long",
+    "Jump_Full_Short",
+    "Jump_Idle",
+    "Jump_Land",
+    "Jump_Start",
+    "Running_A",
+    "Running_B",
+    "Walking_A",
+    "Walking_B",
+    "Walking_C"
+  ],
+  "activities": [
+    {
+      "id": "forest-chest-01",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "LESSON_CHEST",
+      "lessonId": 1,
+      "assignmentStatus": "VERIFICADA",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": []
+      },
+      "progressionReward": {
+        "id": "forest-chest-01-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "BOSQUE_DE_LAS_NOTAS",
+        "unlocks": [
+          "forest-chest-02"
+        ],
+        "segmentCompleted": false,
+        "label": "Cofre 02 disponible"
+      }
+    },
+    {
+      "id": "forest-chest-02",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "LESSON_CHEST",
+      "lessonId": 2,
+      "assignmentStatus": "VERIFICADA",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "forest-chest-01"
+        ]
+      },
+      "progressionReward": {
+        "id": "forest-chest-02-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "BOSQUE_DE_LAS_NOTAS",
+        "unlocks": [
+          "forest-chest-03"
+        ],
+        "segmentCompleted": false,
+        "label": "Cofre 03 disponible"
+      }
+    },
+    {
+      "id": "forest-chest-03",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "LESSON_CHEST",
+      "lessonId": 3,
+      "assignmentStatus": "VERIFICADA",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "forest-chest-02"
+        ]
+      },
+      "progressionReward": {
+        "id": "forest-chest-03-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "BOSQUE_DE_LAS_NOTAS",
+        "unlocks": [],
+        "segmentCompleted": true,
+        "label": "Recorrido del Bosque completado"
+      }
+    },
+    {
+      "id": "river-chest-01",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "LESSON_CHEST",
+      "lessonId": 4,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "forest-chest-01",
+          "forest-chest-02",
+          "forest-chest-03"
+        ]
+      },
+      "progressionReward": {
+        "id": "river-chest-01-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "RIO_DEL_RITMO",
+        "unlocks": [
+          "river-chest-02"
+        ],
+        "segmentCompleted": false,
+        "label": "Siguiente cofre disponible"
+      }
+    },
+    {
+      "id": "river-chest-02",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "LESSON_CHEST",
+      "lessonId": 5,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "river-chest-01"
+        ]
+      },
+      "progressionReward": {
+        "id": "river-chest-02-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "RIO_DEL_RITMO",
+        "unlocks": [
+          "river-chest-03"
+        ],
+        "segmentCompleted": false,
+        "label": "Siguiente cofre disponible"
+      }
+    },
+    {
+      "id": "river-chest-03",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "LESSON_CHEST",
+      "lessonId": 6,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "river-chest-02"
+        ]
+      },
+      "progressionReward": {
+        "id": "river-chest-03-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "RIO_DEL_RITMO",
+        "unlocks": [],
+        "segmentCompleted": true,
+        "label": "Ruta completada"
+      }
+    },
+    {
+      "id": "mountain-chest-01",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "LESSON_CHEST",
+      "lessonId": 7,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "forest-chest-01",
+          "forest-chest-02",
+          "forest-chest-03"
+        ]
+      },
+      "progressionReward": {
+        "id": "mountain-chest-01-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "MONTANA_DE_LAS_MELODIAS",
+        "unlocks": [
+          "mountain-chest-02"
+        ],
+        "segmentCompleted": false,
+        "label": "Siguiente cofre disponible"
+      }
+    },
+    {
+      "id": "mountain-chest-02",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "LESSON_CHEST",
+      "lessonId": 9,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "mountain-chest-01"
+        ]
+      },
+      "progressionReward": {
+        "id": "mountain-chest-02-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "MONTANA_DE_LAS_MELODIAS",
+        "unlocks": [
+          "mountain-chest-03"
+        ],
+        "segmentCompleted": false,
+        "label": "Siguiente cofre disponible"
+      }
+    },
+    {
+      "id": "mountain-chest-03",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "LESSON_CHEST",
+      "lessonId": 10,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "mountain-chest-02"
+        ]
+      },
+      "progressionReward": {
+        "id": "mountain-chest-03-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "MONTANA_DE_LAS_MELODIAS",
+        "unlocks": [],
+        "segmentCompleted": true,
+        "label": "Ruta completada"
+      }
+    },
+    {
+      "id": "ruins-chest-01",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "LESSON_CHEST",
+      "lessonId": 11,
+      "assignmentStatus": "VERIFICADA",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "river-chest-01",
+          "river-chest-02",
+          "river-chest-03",
+          "mountain-chest-01",
+          "mountain-chest-02",
+          "mountain-chest-03"
+        ]
+      },
+      "progressionReward": {
+        "id": "ruins-chest-01-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+        "label": "Ruinas - Primera voz completado"
+      }
+    },
+    {
+      "id": "ruins-chest-02",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "LESSON_CHEST",
+      "lessonId": 12,
+      "assignmentStatus": "VERIFICADA",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "ruins-chest-01"
+        ]
+      },
+      "progressionReward": {
+        "id": "ruins-chest-02-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+        "label": "Ruinas - Segunda voz completado"
+      }
+    },
+    {
+      "id": "ruins-challenge",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "CHALLENGE",
+      "lessonId": 13,
+      "assignmentStatus": "VERIFICADA",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "ruins-chest-02"
+        ]
+      },
+      "progressionReward": {
+        "id": "ruins-challenge-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+        "label": "Desafio del Gran Pentagrama completado"
+      }
+    },
+    {
+      "id": "observatory-final-challenge",
+      "regionId": "OBSERVATORIO_MUSICAL",
+      "type": "CHALLENGE",
+      "lessonId": 35,
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": [
+          "ruins-challenge"
+        ]
+      },
+      "progressionReward": {
+        "id": "observatory-final-challenge-progress",
+        "type": "REGION_PROGRESS",
+        "regionId": "OBSERVATORIO_MUSICAL",
+        "label": "Desafio final del Valle completado"
+      }
+    },
+    {
+      "id": "grotto-echo-reward",
+      "regionId": "GRUTA_DEL_ECO",
+      "type": "SECRET_REWARD",
+      "lessonId": null,
+      "assignmentStatus": "NOT_APPLICABLE",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": []
+      },
+      "progressionReward": {
+        "id": "echo-grotto-keepsake",
+        "type": "REGION_PROGRESS",
+        "regionId": "GRUTA_DEL_ECO",
+        "label": "El eco del Valle descubierto"
+      }
+    },
+    {
+      "id": "plaza-first-lesson",
+      "regionId": "PLAZA_DE_LAS_NOTAS",
+      "type": "PRACTICE_STATION",
+      "lessonId": null,
+      "lessonRef": "first-song",
+      "assignmentStatus": "PROVISIONAL",
+      "rewardId": null,
+      "requirements": {
+        "completedObjects": []
+      },
+      "progressionReward": null
+    }
+  ]
+}

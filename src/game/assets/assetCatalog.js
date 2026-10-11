@@ -7,6 +7,9 @@ const groups = { ARCHITECTURE: ['walls', 'floors', 'columns', 'stairs'], VEGETAT
 const existing = Object.entries(groups).flatMap(([category, keys]) => keys.flatMap(key => (kaykit[key] || []).map(url => ({ id: `existing:${url}`, name: url.split('/').pop().replace(/\.(glb|gltf)$/i, ''), category, url, packId: 'existing-kaykit', metadataStatus: 'EXISTING_NOT_REAUDITED' }))));
 const players = [1, 2, 3, 4, 5].map(id => ({ id: `player:${id}`, name: CHARACTER_MODELS[id].file.split('/').pop().replace('.glb', ''), category: 'CHARACTER_PLAYER', url: CHARACTER_MODELS[id].file, packId: 'existing-kaykit', metadataStatus: 'EXISTING_NOT_REAUDITED' }));
 const newAssets = audited.assets.map(asset => asset.id === audited.legacyWarrior.relation.packAssetId ? { ...asset, variants: [audited.legacyWarrior] } : asset);
+const runtimeAssets = ['chest_wood', 'chest_gold', 'gate'].map(name => ({ id: `runtime:${name}`, name,
+  url: `/models/props/${name}.glb`, category: name === 'gate' ? 'ARCHITECTURE' : 'PROP',
+  packId: 'existing-kaykit', metadataStatus: 'EXISTING_NOT_REAUDITED' }));
 // Catalog records describe availability only. No placement or behavior is instantiated.
-export const ASSET_CATALOG = Object.freeze({ schemaVersion: 1, categories: ASSET_CATEGORIES, packs: audited.packs, animationLibraries: audited.animationLibraries, assets: [...new Map([...existing, ...players, ...newAssets].map(asset => [asset.url, asset])).values()] });
+export const ASSET_CATALOG = Object.freeze({ schemaVersion: 1, categories: ASSET_CATEGORIES, packs: audited.packs, animationLibraries: audited.animationLibraries, assets: [...new Map([...existing, ...players, ...newAssets, ...runtimeAssets].map(asset => [asset.url, asset])).values()] });
 export const getCatalogAssets = category => ASSET_CATALOG.assets.filter(asset => asset.category === category);

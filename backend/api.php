@@ -16,6 +16,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
 $input = json_decode(file_get_contents("php://input"));
+require_once __DIR__ . '/content/security.php';
+content_legacy_guard($conn, $action, $input);
 
 try {
     switch ($action) {
@@ -93,7 +95,7 @@ try {
         $userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
         $instrument = isset($_GET['instrument']) ? $_GET['instrument'] : 'piano';
         // Fetch global songs + user-specific songs for the specified instrument
-        $stmt = $conn->prepare("SELECT * FROM songs WHERE (user_id IS NULL OR user_id = :user_id) AND instrument = :instrument ORDER BY order_index ASC, id ASC");
+        $stmt = $conn->prepare("SELECT s.* FROM songs s LEFT JOIN valle_lesson_meta m ON m.lesson_id=s.id WHERE (s.user_id IS NULL OR s.user_id = :user_id) AND s.instrument = :instrument AND COALESCE(m.enabled,1)=1 ORDER BY s.order_index ASC, s.id ASC");
         $stmt->bindParam(':user_id', $userId);
         $stmt->bindParam(':instrument', $instrument);
         $stmt->execute();
@@ -107,6 +109,9 @@ try {
         break;
 
     case 'add_song':
+        if (!(!empty($input->isUserCreated) || !empty($input->is_user_created)) || empty($input->userId)) {
+            http_response_code(410); echo json_encode(['error' => 'Crear lecciones globales desde /valle-admin']); break;
+        }
         $userId = isset($input->userId) ? (int)$input->userId : null;
         $instrument = isset($input->instrument) ? $input->instrument : 'piano';
         $isUserCreated = isset($input->is_user_created) ? (int)$input->is_user_created : (isset($input->isUserCreated) ? ($input->isUserCreated ? 1 : 0) : 0);
@@ -154,6 +159,9 @@ try {
         break;
 
     case 'update_song':
+        http_response_code(410);
+        echo json_encode(['error' => 'Usar /valle-admin para editar lecciones con validacion y revision']);
+        break;
         $songId = isset($input->id) ? (int)$input->id : null;
         if (!$songId) { echo json_encode(["error" => "No song id"]); break; }
         
@@ -177,6 +185,9 @@ try {
         break;
 
     case 'delete_song':
+        http_response_code(410);
+        echo json_encode(['error' => 'Desactivar desde /valle-admin; no eliminar historial educativo']);
+        break;
         $songId = isset($input->id) ? (int)$input->id : null;
         if (!$songId) { echo json_encode(["error" => "No song id"]); break; }
         $stmt = $conn->prepare("DELETE FROM songs WHERE id = :id");
@@ -187,6 +198,9 @@ try {
         break;
 
     case 'reorder_songs':
+        http_response_code(410);
+        echo json_encode(['error' => 'Usar /valle-admin para ordenar con revision']);
+        break;
         if (!isset($input->orders) || !is_array($input->orders)) {
             echo json_encode(["error" => "Invalid orders array"]);
             break;

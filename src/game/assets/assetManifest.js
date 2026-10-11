@@ -5,7 +5,7 @@
  */
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
-import catalog from './kaykitCatalog.json';
+import catalog from './kaykitCatalog.json' with { type: 'json' };
 
 export const ASSET_MANIFEST = {
   characters: {

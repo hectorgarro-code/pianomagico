@@ -392,6 +392,7 @@ export default function World3DView({
           if (lid) adventureModelsRef.current.set(object.id, { node: lid, closedRotation: lid.rotation.x });
         }
         if (!song && object.type === ADVENTURE_OBJECT_TYPES.PRACTICE_STATION) continue;
+        object.song = song;
         levelPositions.push({ ...object, ...object.position, song, interactionRadius: object.interaction.radius });
       }
       setInteractionObjects(levelPositions);
