@@ -39,6 +39,28 @@ Seguridad pendiente fuera de CP1: endpoints legacy de perfiles/progreso siguen u
 - Nuevas tablas y cuenta ADMIN requieren provisionamiento en produccion; no se transfieren por subir archivos. No publicar el frontend nuevo antes de preparar y verificar su backend.
 - 172 tests Node, 14 comprobaciones HTTP locales y 5 pruebas del repositorio local pasan; build correcto con las advertencias conocidas. No equivalen a validacion de produccion ni cierran las pruebas visuales pendientes.
 
+### Despliegue seguro
+
+Usar `powershell -NoProfile -File scripts/DeployValleProduction.ps1` despues de tests y build. Pregunta la contrasena ADMIN oculta y la envia por stdin; no se escribe en archivos. El destino sigue siendo el hosting confirmado, usando los datos FTP existentes de Antigravity. `deploy.js` legacy no es la ruta recomendada: usa FTP sin cifrar y sube archivos auxiliares del backend.
+
+`deployProduction.mjs` verifica FTPS con el certificado Hostinger y TLS 1.2 (el servidor corta sus conexiones de datos con TLS 1.3). Guarda respaldo de archivos activos y DB en `scratch/production-backup-*`, ignorado por Git y nunca publicado. Los respaldos contienen datos privados y deben permanecer locales. No hace push ni copia `dbconfig.php`; conserva la configuracion del hosting.
+
+La preparacion reutiliza `schema.php`, agrega solamente IDs autorizadas 7/12/13 que esten libres y no sobrescribe otras lecciones. Verifica fingerprints de los datos educativos existentes. Un endpoint temporal con token aleatorio, solo HTTPS/POST y caducidad de 30 minutos permite la preparacion; se elimina al finalizar, no constituye una ruta administrativa permanente. Solo se publica el backend runtime, no tests, provisionadores CLI ni SQL. Las reglas web bloquean dbconfig y archivos auxiliares JSON/SQL.
+
+Los modelos publicados son exclusivamente los archivos rastreados de `public/models`; se excluyen FBX/OBJ/MTL/URL. Subidas atomicas evitan activar archivos parciales. Se sube `index.html` al final, despues de comprobar login ADMIN, lecciones requeridas, cookies seguras y rechazo sin autenticacion. Se conservan assets anteriores para rollback; no se borra contenido del hosting ni datos de alumnos. Si fallan comprobaciones posteriores, se restaura el frontend/API anterior desde el respaldo.
+
+### Resultado de publicacion (2026-10-10)
+
+- Commit de Content Platform 1: `c82d927`; publicado directamente por FTPS, sin push a GitHub.
+- Juego: `https://darkseagreen-alligator-732127.hostingersite.com/`; ADMIN: `/valle-admin`.
+- 890 archivos runtime publicados. Frontend y rutas verificados por HTTP; login ADMIN, cookies Secure/HttpOnly/SameSite, referencias de actividades y restricciones de archivos auxiliares comprobados. Endpoint temporal eliminado.
+- Produccion conserva sus 46 lecciones anteriores y agrega exclusivamente 7/12/13 autorizadas: 49 activas. Fingerprints confirman que las filas educativas preexistentes no cambiaron. No sincronizar esta DB con la local ni sustituir las asignaciones por nombre.
+- Respaldo previo: `scratch/production-backup-1791682336724` (ignorado y bloqueado por HTTP local con 403); conserva DB y archivos activos anteriores. Para esta primera publicacion, el `.htaccess` original esta en la raiz del respaldo; futuras copias lo guardan como `root-htaccess-original`, separado de las reglas de proteccion del respaldo.
+- 15 pruebas de seguridad HTTP en produccion aprobadas. Navegador real: perfiles y escena 3D visibles; login ADMIN y lista de 49 lecciones; modelo 3D del catalogo visible; consola sin errores en esas pantallas. Sesion de comprobacion cerrada. Sin editar contenido ni jugar actividades con perfiles reales.
+- La copia antigua observada por FTP en `/public_html` no devolvio un endpoint PHP en su ruta web consultada, sino el fallback HTML; no se modifico ni elimino.
+- Siguen pendientes los recorridos completos de edicion/juego/reversion, movil, microfono fisico y video. La publicacion para pruebas no equivale al cierre funcional de CP1 ni a aprobacion del playtest.
+- Antes de una apertura publica definitiva: rotar los secretos historicos de hosting presentes en el repositorio y auditar la autenticacion legacy de perfiles/progreso. El nuevo ADMIN no resuelve esos riesgos por si solo.
+
 ## Fuente educativa unica
 
 `songs` en MySQL sigue siendo la fuente de verdad. `lessonRepository.loadPianoLessons` sirve tanto PianoMagico como progressService; el endpoint `get_songs` conserva aliases y filtra contenido inactivo. `valle_lesson_meta` agrega enabled/revision/updated_at sin reemplazar ni duplicar secuencias educativas.
