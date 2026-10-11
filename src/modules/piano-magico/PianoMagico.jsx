@@ -211,6 +211,7 @@ export default function PianoMagico({
   initialView = 'menu',
   preparationComplete = false,
   adminPreview = false,
+  valleyResult = false,
   onFinishLesson
 }) {
   const embeddedActivity = initialView === 'game' && !!initialSong;
@@ -1408,6 +1409,9 @@ export default function PianoMagico({
     else { stageExitRef.current = false; setView('menu'); }
   };
   useEffect(() => {
+    if (valleyResult && embeddedActivity && view === 'success') void finishStage();
+  }, [valleyResult, embeddedActivity, view]);
+  useEffect(() => {
     if (!embeddedActivity) return;
     stageExitRef.current = false;
     return () => { stageExitRef.current = true; stopStageResources(); };
@@ -2049,7 +2053,7 @@ export default function PianoMagico({
         )}
 
         {/* ÉXITO / INTENTO */}
-        {view === 'success' && currentSong && (() => {
+        {view === 'success' && currentSong && !valleyResult && (() => {
           const isFailed = sessionErrors >= 3;
           const isPerfect = !isFailed && sessionErrors === 0;
 

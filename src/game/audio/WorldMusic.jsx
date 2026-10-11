@@ -13,6 +13,11 @@ export default function WorldMusic({ active, immediatePause }) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState('idle');
   const latest = useRef({ settings, active, immediatePause });
+  useEffect(()=>{
+    const changed=()=>setSettings(readMusicSettings(window.localStorage));
+    window.addEventListener('valley-music-settings',changed);
+    return()=>window.removeEventListener('valley-music-settings',changed);
+  },[]);
 
   useEffect(() => {
     const controller = createWorldMusic(audioRef.current, { onStatus: setStatus });

@@ -18,6 +18,28 @@ function validate_lesson($data) {
     return ['title' => $title, 'sequence' => array_values($sequence), 'speed' => (int)$data['speed'], 'stickerId' => (int)$data['stickerId'],
         'order_index' => (int)$data['order_index'], 'rhythm' => $data['rhythm'], 'enabled' => $data['enabled']];
 }
+function content_gameplay_placement($record, $registry) {
+    if (!in_array($record['regionId'] ?? '', array_column($registry['compositions'], 'regionId'), true)) throw new InvalidArgumentException('Region gameplay invalida');
+    if (!content_vector($record['position'] ?? null) || !content_vector($record['rotation'] ?? null) || !content_vector($record['scale'] ?? null, true)) throw new InvalidArgumentException('Placement gameplay invalido');
+}
+function content_minigame_configuration($type, $config) {
+    if (!is_array($config)) throw new InvalidArgumentException('Configuracion minigame requerida');
+    if ($type === 'RHYTHM') {
+        if (!is_int($config['bpm'] ?? null) || $config['bpm'] < 40 || $config['bpm'] > 180 || !is_int($config['toleranceMs'] ?? null) || $config['toleranceMs'] < 60 || $config['toleranceMs'] > 500) throw new InvalidArgumentException('Timing invalido');
+        $pattern = $config['pattern'] ?? null;
+        if (!is_array($pattern) || count($pattern) < 4 || count($pattern) > 16 || $pattern[0] !== 0) throw new InvalidArgumentException('Patron invalido');
+        $last = -1;
+        foreach ($pattern as $beat) { if (!is_numeric($beat) || $beat <= $last || $beat > 24) throw new InvalidArgumentException('Pulso invalido'); $last = $beat; }
+    } else {
+        $pool = $config['notePool'] ?? null;
+        if (!is_array($pool) || count($pool) < 2 || count($pool) > 7 || count(array_unique($pool)) !== count($pool)) throw new InvalidArgumentException('Note pool invalido');
+        foreach ($pool as $note) if (!is_string($note) || !preg_match('/^[A-G][3-5]$/D', $note)) throw new InvalidArgumentException('Nota minigame invalida');
+        foreach ($type === 'SEQUENCE' ? ['sequenceLength'=>[2,6],'rounds'=>[1,5]] : ['questionCount'=>[2,10]] as $key=>$range)
+            if (!is_int($config[$key] ?? null) || $config[$key] < $range[0] || $config[$key] > $range[1]) throw new InvalidArgumentException('Longitud minigame invalida');
+        if ($type === 'NOTE_RECOGNITION' && !in_array($config['presentationMode'] ?? '', ['audio','visual'], true)) throw new InvalidArgumentException('Presentacion no implementada');
+        if ($type === 'NOTE_RECOGNITION' && !in_array($config['difficulty'] ?? '', ['easy','normal'], true)) throw new InvalidArgumentException('Dificultad no implementada');
+    }
+}
 function content_identifier($id) {
     return is_string($id) && strlen($id) <= 180 && preg_match('/^[a-zA-Z0-9_.:-]+$/D', $id);
 }
@@ -112,19 +134,46 @@ function validate_game_content($data, $registry, $lessons) {
         if ($target['type'] === 'WORLD_CREATURE' && $target['hitReaction'] !== 'none' && !in_array($target['hitReaction'], $registry['animationNames'], true)) throw new InvalidArgumentException('Clip de reaccion inexistente');
         if ($target['type'] === 'DESTRUCTIBLE' && $target['hitReaction'] !== 'none') throw new InvalidArgumentException('Destructible sin rig: reaccion none');
         if (($target['optionalReward'] ?? null) !== null && !isset($rewards[$target['optionalReward']])) throw new InvalidArgumentException('Reward target inexistente');
-        if (($target['enabledInWorld'] ?? null) !== false) throw new InvalidArgumentException('World Actions no implementado');
+        if (!is_bool($target['enabledInWorld'] ?? null)) throw new InvalidArgumentException('Estado World Action invalido');
+        if ($target['enabledInWorld']) {
+            content_gameplay_placement($target, $registry);
+            if (!in_array($target['behaviorType'], ['stationary','wander'], true) || $target['defeatEffect'] !== 'musical-particles') throw new InvalidArgumentException('Behavior/effect no implementado');
+        }
     }
     $miniIds = [];
     foreach ($data['minigames'] as $mini) {
-        if (!content_identifier($mini['id'] ?? null) || isset($miniIds[$mini['id']]) || !in_array($mini['type'] ?? '', ['NOTE_RECOGNITION', 'MELODY_RECOGNITION', 'RHYTHM', 'SEQUENCE', 'MEMORY', 'PIANO_CHALLENGE'], true) || ($mini['enabled'] ?? null) !== false) throw new InvalidArgumentException('Minigame no implementado o invalido');
+        if (!content_identifier($mini['id'] ?? null) || isset($miniIds[$mini['id']]) || !in_array($mini['type'] ?? '', ['NOTE_RECOGNITION', 'MELODY_RECOGNITION', 'RHYTHM', 'SEQUENCE', 'MEMORY', 'PIANO_CHALLENGE'], true) || !is_bool($mini['enabled'] ?? null)) throw new InvalidArgumentException('Minigame invalido');
+        if ($mini['enabled']) {
+            if (!in_array($mini['type'], ['NOTE_RECOGNITION','SEQUENCE','RHYTHM'], true)) throw new InvalidArgumentException('Motor minigame no implementado');
+            content_minigame_configuration($mini['type'], $mini['configuration'] ?? null);
+            if (!is_string($mini['name'] ?? null) || trim($mini['name']) === '' || strlen($mini['name']) > 160) throw new InvalidArgumentException('Nombre minigame invalido');
+        }
+        if (($mini['rewardId'] ?? null) !== null && !isset($rewards[$mini['rewardId']])) throw new InvalidArgumentException('Reward minigame invalido');
         if (($mini['lessonId'] ?? null) !== null && !isset($lessonIds[$mini['lessonId']])) throw new InvalidArgumentException('Leccion minigame inexistente');
         $miniIds[$mini['id']] = true;
     }
     $gateIds = [];
     foreach ($data['gates'] as $gate) {
-        if (!content_identifier($gate['id'] ?? null) || isset($gateIds[$gate['id']]) || !isset($miniIds[$gate['minigameId'] ?? '']) || ($gate['enabled'] ?? null) !== false) throw new InvalidArgumentException('Gate invalido o no implementado');
+        if (!content_identifier($gate['id'] ?? null) || isset($gateIds[$gate['id']]) || !isset($miniIds[$gate['minigameId'] ?? '']) || !is_bool($gate['enabled'] ?? null)) throw new InvalidArgumentException('Gate invalido');
+        if ($gate['enabled']) {
+            content_gameplay_placement($gate, $registry);
+            $mini = array_values(array_filter($data['minigames'], fn($m) => $m['id'] === $gate['minigameId']))[0];
+            if (!$mini['enabled']) throw new InvalidArgumentException('Gate requiere minigame activo');
+            if (!is_array($gate['requirements'] ?? null)) throw new InvalidArgumentException('Requisitos gate invalidos');
+            foreach ($gate['requirements'] as $id) if (!isset($miniIds[$id]) || $id === $gate['minigameId']) throw new InvalidArgumentException('Requisito gate invalido');
+        }
         if (($gate['instanceId'] ?? null) !== null && !isset($instanceIds[$gate['instanceId']])) throw new InvalidArgumentException('Objeto gate inexistente');
         $gateIds[$gate['id']] = true;
     }
-    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates']));
+    if (isset($data['gameplayVersion'])) {
+        if ($data['gameplayVersion'] !== 1 || !is_array($data['pets'] ?? null) || count($data['pets']) > 100) throw new InvalidArgumentException('Gameplay version invalida');
+        $pets = [];
+        foreach ($data['pets'] as $pet) {
+            if (!content_identifier($pet['id'] ?? null) || isset($pets[$pet['id']]) || !is_bool($pet['enabled'] ?? null) || ($assets[$pet['assetId'] ?? '']['category'] ?? '') !== 'PET'
+                || !is_string($pet['name'] ?? null) || trim($pet['name']) === '' || strlen($pet['name']) > 100) throw new InvalidArgumentException('Pet invalida');
+            $pets[$pet['id']] = true;
+        }
+        foreach ($data['rewards'] as $reward) if ($reward['type'] === 'PET' && !isset($pets[$reward['referenceId']])) throw new InvalidArgumentException('Reward pet fuera de coleccion');
+    }
+    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion']));
 }

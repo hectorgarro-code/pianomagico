@@ -5548,7 +5548,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 1,
       "assignmentStatus": "VERIFICADA",
-      "rewardId": null,
+      "rewardId": "pet-elephant",
       "requirements": {
         "completedObjects": []
       },
@@ -5592,7 +5592,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 3,
       "assignmentStatus": "VERIFICADA",
-      "rewardId": null,
+      "rewardId": "pet-cat",
       "requirements": {
         "completedObjects": [
           "forest-chest-02"
@@ -5661,7 +5661,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 6,
       "assignmentStatus": "PROVISIONAL",
-      "rewardId": null,
+      "rewardId": "pet-dog",
       "requirements": {
         "completedObjects": [
           "river-chest-02"
@@ -5730,7 +5730,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 10,
       "assignmentStatus": "PROVISIONAL",
-      "rewardId": null,
+      "rewardId": "pet-bee",
       "requirements": {
         "completedObjects": [
           "mountain-chest-02"
@@ -5832,7 +5832,7 @@
       "type": "SECRET_REWARD",
       "lessonId": null,
       "assignmentStatus": "NOT_APPLICABLE",
-      "rewardId": null,
+      "rewardId": "pet-panda",
       "requirements": {
         "completedObjects": []
       },
@@ -5857,8 +5857,1113 @@
       "progressionReward": null
     }
   ],
-  "rewards": [],
-  "worldActions": [],
-  "minigames": [],
-  "gates": []
+  "gameplayVersion": 1,
+  "pets": [
+    {
+      "id": "kenney-cube-pets:animal-beaver",
+      "assetId": "kenney-cube-pets:animal-beaver",
+      "name": "beaver",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-bee",
+      "assetId": "kenney-cube-pets:animal-bee",
+      "name": "Abeja Nota",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-bunny",
+      "assetId": "kenney-cube-pets:animal-bunny",
+      "name": "Conejo Armonia",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-cat",
+      "assetId": "kenney-cube-pets:animal-cat",
+      "name": "Gato Magico",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-caterpillar",
+      "assetId": "kenney-cube-pets:animal-caterpillar",
+      "name": "caterpillar",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-chick",
+      "assetId": "kenney-cube-pets:animal-chick",
+      "name": "chick",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-cow",
+      "assetId": "kenney-cube-pets:animal-cow",
+      "name": "cow",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-crab",
+      "assetId": "kenney-cube-pets:animal-crab",
+      "name": "crab",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-deer",
+      "assetId": "kenney-cube-pets:animal-deer",
+      "name": "Ciervo del Valle",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-dog",
+      "assetId": "kenney-cube-pets:animal-dog",
+      "name": "Perrito Sol",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-elephant",
+      "assetId": "kenney-cube-pets:animal-elephant",
+      "name": "Elefante Melodia",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-fish",
+      "assetId": "kenney-cube-pets:animal-fish",
+      "name": "fish",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-fox",
+      "assetId": "kenney-cube-pets:animal-fox",
+      "name": "fox",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-giraffe",
+      "assetId": "kenney-cube-pets:animal-giraffe",
+      "name": "giraffe",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-hog",
+      "assetId": "kenney-cube-pets:animal-hog",
+      "name": "hog",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-koala",
+      "assetId": "kenney-cube-pets:animal-koala",
+      "name": "koala",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-lion",
+      "assetId": "kenney-cube-pets:animal-lion",
+      "name": "lion",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-monkey",
+      "assetId": "kenney-cube-pets:animal-monkey",
+      "name": "monkey",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-panda",
+      "assetId": "kenney-cube-pets:animal-panda",
+      "name": "Panda del Eco",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-parrot",
+      "assetId": "kenney-cube-pets:animal-parrot",
+      "name": "Pajaro Do",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-penguin",
+      "assetId": "kenney-cube-pets:animal-penguin",
+      "name": "penguin",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-pig",
+      "assetId": "kenney-cube-pets:animal-pig",
+      "name": "pig",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-polar",
+      "assetId": "kenney-cube-pets:animal-polar",
+      "name": "polar",
+      "enabled": true
+    },
+    {
+      "id": "kenney-cube-pets:animal-tiger",
+      "assetId": "kenney-cube-pets:animal-tiger",
+      "name": "tiger",
+      "enabled": true
+    }
+  ],
+  "rewards": [
+    {
+      "id": "pet-elephant",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-elephant",
+      "presentation": "Elefante Melodia",
+      "enabled": true
+    },
+    {
+      "id": "pet-cat",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-cat",
+      "presentation": "Gato Magico",
+      "enabled": true
+    },
+    {
+      "id": "pet-dog",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-dog",
+      "presentation": "Perrito Sol",
+      "enabled": true
+    },
+    {
+      "id": "pet-bee",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-bee",
+      "presentation": "Abeja Nota",
+      "enabled": true
+    },
+    {
+      "id": "pet-bunny",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-bunny",
+      "presentation": "Conejo Armonia",
+      "enabled": true
+    },
+    {
+      "id": "pet-panda",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-panda",
+      "presentation": "Panda del Eco",
+      "enabled": true
+    },
+    {
+      "id": "pet-parrot",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-parrot",
+      "presentation": "Pajaro Do",
+      "enabled": true
+    },
+    {
+      "id": "pet-deer",
+      "type": "PET",
+      "referenceId": "kenney-cube-pets:animal-deer",
+      "presentation": "Ciervo del Valle",
+      "enabled": true
+    }
+  ],
+  "worldActions": [
+    {
+      "id": "PLAZA_DE_LAS_NOTAS-break-1",
+      "regionId": "PLAZA_DE_LAS_NOTAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -10,
+        0,
+        3
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "BOSQUE_DE_LAS_NOTAS-break-1",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        10,
+        0,
+        -24
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "BOSQUE_DE_LAS_NOTAS-break-2",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        1,
+        0,
+        -35
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "BOSQUE_DE_LAS_NOTAS-break-3",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -5,
+        0,
+        -43
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "BOSQUE_DE_LAS_NOTAS-creature-1",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Minion",
+      "position": [
+        6,
+        0,
+        -32
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "BOSQUE_DE_LAS_NOTAS-creature-2",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Warrior",
+      "position": [
+        1,
+        0,
+        -44
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-break-1",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -20,
+        0,
+        -61
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-break-2",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -31,
+        0,
+        -66
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-break-3",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -36,
+        0,
+        -73
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-break-4",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -26,
+        0,
+        -84
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-creature-1",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Minion",
+      "position": [
+        -24,
+        0,
+        -61
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-creature-2",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Rogue",
+      "position": [
+        -31,
+        0,
+        -71
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RIO_DEL_RITMO-creature-3",
+      "regionId": "RIO_DEL_RITMO",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Mage",
+      "position": [
+        -23,
+        0,
+        -84
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-break-1",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        25,
+        0,
+        -59
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-break-2",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        33,
+        0,
+        -64
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-break-3",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        26,
+        0,
+        -72
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-break-4",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        15,
+        0,
+        -80
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-creature-1",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Warrior",
+      "position": [
+        29,
+        0,
+        -60
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-creature-2",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Rogue",
+      "position": [
+        30,
+        0,
+        -68
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "MONTANA_DE_LAS_MELODIAS-creature-3",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Mage",
+      "position": [
+        22,
+        0,
+        -77
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "GRUTA_DEL_ECO-break-1",
+      "regionId": "GRUTA_DEL_ECO",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -30,
+        0,
+        -54
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "GRUTA_DEL_ECO-creature-1",
+      "regionId": "GRUTA_DEL_ECO",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Minion",
+      "position": [
+        -35,
+        0,
+        -52
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RUINAS_DEL_GRAN_PENTAGRAMA-break-1",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -8,
+        0,
+        -91
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 1,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RUINAS_DEL_GRAN_PENTAGRAMA-break-2",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        8,
+        0,
+        -97
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RUINAS_DEL_GRAN_PENTAGRAMA-break-3",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "DESTRUCTIBLE",
+      "assetId": "existing:/models/props/Assets/gltf/barrel_small.gltf",
+      "position": [
+        -7,
+        0,
+        -103
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "none",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "stationary",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RUINAS_DEL_GRAN_PENTAGRAMA-creature-1",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Warrior",
+      "position": [
+        -4,
+        0,
+        -92
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 2,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    },
+    {
+      "id": "RUINAS_DEL_GRAN_PENTAGRAMA-creature-2",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "type": "WORLD_CREATURE",
+      "assetId": "kaykit-skeletons:Skeleton_Mage",
+      "position": [
+        4,
+        0,
+        -100
+      ],
+      "rotation": [
+        0,
+        3.141592653589793,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "hitsRequired": 3,
+      "hitReaction": "Hit_A",
+      "defeatEffect": "musical-particles",
+      "behaviorType": "wander",
+      "optionalReward": null,
+      "enabledInWorld": true
+    }
+  ],
+  "minigames": [
+    {
+      "id": "river-rhythm",
+      "name": "El pulso del puente",
+      "type": "RHYTHM",
+      "enabled": true,
+      "configuration": {
+        "bpm": 60,
+        "pattern": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "toleranceMs": 220
+      },
+      "rewardId": "pet-bunny"
+    },
+    {
+      "id": "mountain-memory",
+      "name": "El eco de la cima",
+      "type": "SEQUENCE",
+      "enabled": true,
+      "configuration": {
+        "notePool": [
+          "C4",
+          "D4",
+          "E4",
+          "G4"
+        ],
+        "sequenceLength": 3,
+        "rounds": 3
+      },
+      "rewardId": "pet-parrot"
+    },
+    {
+      "id": "ruins-notes",
+      "name": "Las voces del santuario",
+      "type": "NOTE_RECOGNITION",
+      "enabled": true,
+      "configuration": {
+        "notePool": [
+          "C4",
+          "D4",
+          "E4",
+          "F4",
+          "G4"
+        ],
+        "questionCount": 5,
+        "presentationMode": "visual",
+        "difficulty": "easy"
+      },
+      "rewardId": "pet-deer"
+    },
+    {
+      "id": "grotto-memory",
+      "name": "El eco escondido",
+      "type": "SEQUENCE",
+      "enabled": true,
+      "configuration": {
+        "notePool": [
+          "C4",
+          "E4",
+          "G4"
+        ],
+        "sequenceLength": 3,
+        "rounds": 2
+      },
+      "rewardId": null
+    }
+  ],
+  "gates": [
+    {
+      "id": "river-musical-gate",
+      "regionId": "RIO_DEL_RITMO",
+      "position": [
+        -23,
+        0,
+        -64
+      ],
+      "rotation": [
+        0,
+        1.5707963267948966,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "minigameId": "river-rhythm",
+      "enabled": true,
+      "requirements": []
+    },
+    {
+      "id": "mountain-musical-gate",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "position": [
+        31,
+        0,
+        -66
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "minigameId": "mountain-memory",
+      "enabled": true,
+      "requirements": []
+    },
+    {
+      "id": "ruins-musical-gate",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "position": [
+        0,
+        0,
+        -96
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "minigameId": "ruins-notes",
+      "enabled": true,
+      "requirements": []
+    },
+    {
+      "id": "grotto-musical-gate",
+      "regionId": "GRUTA_DEL_ECO",
+      "position": [
+        -31,
+        0,
+        -52
+      ],
+      "rotation": [
+        0,
+        1.5707963267948966,
+        0
+      ],
+      "scale": [
+        0.75,
+        0.75,
+        0.75
+      ],
+      "minigameId": "grotto-memory",
+      "enabled": true,
+      "requirements": []
+    }
+  ]
 }

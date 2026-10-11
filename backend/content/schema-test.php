@@ -45,4 +45,14 @@ check(!content_admin_authorized(['id'=>7,'role'=>'PLAYER','enabled'=>1],$session
 check(!content_admin_authorized(['id'=>7,'role'=>'ADMIN','enabled'=>0],$session,101),'disabled admin');
 check(!content_admin_authorized($account,$session,30000),'expired session');
 check(!content_admin_authorized($account,['admin_id'=>8,'authenticated_at'=>100],101),'mismatched principal');
+rejects(function(&$d){$d['worldActions'][0]['position']=[INF,0,0];},'invalid active target placement');
+rejects(function(&$d){$d['worldActions'][0]['hitsRequired']=4;},'active target range');
+rejects(function(&$d){$d['minigames'][0]['configuration']['bpm']=0;},'rhythm bpm');
+rejects(function(&$d){$d['minigames'][0]['configuration']['pattern']=[0,0,1,2];},'rhythm duplicate beats');
+rejects(function(&$d){$d['minigames'][1]['configuration']['notePool']=['H4','C4'];},'minigame notes');
+rejects(function(&$d){$d['minigames'][1]['configuration']['rounds']=999;},'minigame length');
+rejects(function(&$d){$d['gates'][0]['requirements']=[$d['gates'][0]['minigameId']];},'gate self lock');
+rejects(function(&$d){$d['minigames'][0]['enabled']=false;},'gate disabled activity');
+rejects(function(&$d){$d['pets'][0]['assetId']='player:1';},'pet must be real PET');
+rejects(function(&$d){$d['pets'][]=$d['pets'][0];},'duplicate pet');
 echo json_encode(['passed'=>$count]);

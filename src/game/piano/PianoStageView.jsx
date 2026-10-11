@@ -24,6 +24,7 @@ export default function PianoStageView({
         initialMode={initialMode}
         initialView="game"
         preparationComplete
+        valleyResult
         onExit={() => {
           if (onExitStage) onExitStage();
         }}

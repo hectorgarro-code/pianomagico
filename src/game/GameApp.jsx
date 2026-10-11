@@ -1,10 +1,16 @@
-import React, { useState, useEffect, useCallback, useReducer } from 'react';
+import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 import { GAME_MODES, createWorldActivityState, worldActivityReducer, findWorldActivityObject } from './state/worldActivityFlow.js';
 import { progressService } from './services/progressService';
 import World3DView from './world/World3DView';
 import PianoStageView from './piano/PianoStageView';
 import GameTransitionManager from './transitions/GameTransitionManager';
-import { Zap, X } from 'lucide-react';
+import { Zap, X, Menu } from 'lucide-react';
+import AdventurerMenu from './gameplay/AdventurerMenu.jsx';
+import ValleyActivityResult from './gameplay/ValleyActivityResult.jsx';
+import MinigameView from './gameplay/MinigameView.jsx';
+import { getGameplayContent } from './gameplay/gameplayContent.js';
+import { gameplayPersistence, claimReward, equipPet, completeMinigame } from './gameplay/gameplayState.js';
+import './gameplay/gameplay.css';
 import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
 import AdventureDiscovery from './adventure/AdventureDiscovery.jsx';
 import { getAdventureSummary } from './adventure/adventureState.js';
@@ -27,6 +33,20 @@ export default function GameApp({ userId, onExitApp }) {
   const gameState = flow.game;
   const [startPhase, setStartPhase] = useState('ENTRY');
   const [worldVisit, setWorldVisit] = useState(0);
+  const [gameplay,setGameplay]=useState(()=>gameplayPersistence().load(userId));
+  const gameplayRef=useRef(gameplay);gameplayRef.current=gameplay;
+  const [menuOpen,setMenuOpen]=useState(false),[activityResult,setActivityResult]=useState(null),[miniId,setMiniId]=useState(null),[equipmentVersion,setEquipmentVersion]=useState(0),[mapRequest,setMapRequest]=useState(0);
+  const [gameplaySaved,setGameplaySaved]=useState(true);
+  const updateGameplay=next=>{gameplayRef.current=next;setGameplay(next);setGameplaySaved(gameplayPersistence().save(userId,next));};
+  const receiveReward=(id,result=null,name='')=>{
+    const claimed=claimReward(gameplayRef.current,id);updateGameplay(claimed.state);
+    if(claimed.pet || result)setActivityResult({result:result || {completed:true},pet:claimed.pet,name});
+  };
+  useEffect(()=>{
+    const key=e=>{if(flow.mode!==GAME_MODES.WORLD || startPhase!=='PLAYING' || flow.discovery || miniId || activityResult || e.target.closest('input,textarea,select') || e.repeat)return;
+      if(e.code==='Tab' || e.code==='Escape'){e.preventDefault();setMenuOpen(value=>!value);}};
+    window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
+  },[flow.mode,startPhase,flow.discovery,miniId,activityResult]);
   const debugEnabled = import.meta.env.DEV && new URLSearchParams(globalThis.location?.search || '').get('debug') === '1';
   const handleObjective = useCallback((position, distance) => dispatch({ type: 'OBJECTIVE', position, distance }), []);
   const beginAdventure = () => {
@@ -43,11 +63,12 @@ export default function GameApp({ userId, onExitApp }) {
     window.addEventListener('pagehide', pause);
     return () => { window.removeEventListener('pagehide', pause); pause(); };
   }, [userId]);
-  const resetAdventure = () => { dispatch({ type: 'RESET_ADVENTURE' }); setWorldVisit(value => value + 1); setStartPhase('ENTRY'); };
+  const resetAdventure = () => { dispatch({ type: 'RESET_ADVENTURE' }); updateGameplay({...gameplayRef.current,completedMinigames:[]});setWorldVisit(value => value + 1); setStartPhase('ENTRY'); };
   const newAdventure = (confirmed = false) => {
     const phase = getNewAdventurePhase(gameState.adventure, confirmed);
     if (phase === 'CHARACTER') {
       dispatch({ type: 'RESET_ADVENTURE' });
+      updateGameplay({...gameplayRef.current,completedMinigames:[]});
       setWorldVisit(value => value + 1);
     }
     setStartPhase(phase);
@@ -121,8 +142,10 @@ export default function GameApp({ userId, onExitApp }) {
   // Lección completada (recargar datos frescos de backend)
   const handleLessonFinished = useCallback(async (result) => {
     dispatch({ type: 'RETURN', result });
+    const object=findWorldActivityObject(flow.context?.stationId);
+    receiveReward(result.completed ? object?.contentRewardId : null,result,selectedSong?.title || object?.label || 'Actividad');
     await loadUserData();
-  }, [loadUserData]);
+  }, [loadUserData,flow.context,selectedSong]);
 
   // Fin de la animación de transición
   const handleTransitionComplete = useCallback((targetMode) => {
@@ -174,7 +197,7 @@ export default function GameApp({ userId, onExitApp }) {
 
           {/* HUD Derecha: XP y Salir */}
           <div className="pointer-events-auto flex items-center gap-2">
-            <WorldMusic active={gameMode === GAME_MODES.WORLD && !flow.discovery} immediatePause={gameMode === GAME_MODES.PIANO || !!flow.discovery} />
+            <WorldMusic active={gameMode === GAME_MODES.WORLD && !flow.discovery && !miniId && !activityResult && !menuOpen} immediatePause={gameMode === GAME_MODES.PIANO || !!flow.discovery || !!miniId || !!activityResult || menuOpen} />
             <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md border border-amber-400/30 px-3 py-1.5 rounded-full shadow-2xl">
               <Zap size={15} className="text-amber-400 fill-amber-400" />
               <span className="text-xs font-black text-amber-300 tracking-wider">
@@ -219,7 +242,7 @@ export default function GameApp({ userId, onExitApp }) {
             <World3DView
               key={worldVisit}
               debugEnabled={debugEnabled}
-              active={gameMode === GAME_MODES.WORLD && !flow.discovery && !showEnding}
+              active={gameMode === GAME_MODES.WORLD && !flow.discovery && !showEnding && !menuOpen && !miniId && !activityResult}
               returnContext={flow.context}
               completedStationIds={Object.keys(gameState.world.stationResults)}
               songs={songs}
@@ -234,6 +257,8 @@ export default function GameApp({ userId, onExitApp }) {
               onObjectiveProgress={handleObjective}
               onAdventureDebug={() => setStartPhase('ENTRY')}
               onPlaytestEvent={handlePlaytestEvent}
+              gameplayState={gameplay} equipmentVersion={equipmentVersion} onGameplayReward={receiveReward}
+              onMinigame={setMiniId} mapRequest={mapRequest}
             />
           </div>
         )}
@@ -242,9 +267,23 @@ export default function GameApp({ userId, onExitApp }) {
           object={discoveredObject} song={discoveredSong} state={gameState.adventure.entries[discoveredObject.id]?.state || (gameState.world.stationResults[discoveredObject.id]?.completed ? 'COMPLETED' : 'AVAILABLE')}
           onClose={() => dispatch({ type: 'CLOSE_DISCOVERY' })}
           onStart={() => handleEnterLesson(discoveredSong, 'solo', flow.context)}
-          onClaimSecret={() => dispatch({ type: 'CLAIM_SECRET', objectId: discoveredObject.id })}
+          onClaimSecret={() => {const next=worldActivityReducer(flow,{type:'CLAIM_SECRET',objectId:discoveredObject.id});if(next===flow)return;dispatch({ type: 'CLAIM_SECRET', objectId: discoveredObject.id });receiveReward(discoveredObject.contentRewardId);}}
         />}
-        {showEnding && <ValleyEnding onContinue={() => dispatch({ type: 'ACK_ENDING' })} />}
+        {showEnding && !activityResult && <ValleyEnding onContinue={() => dispatch({ type: 'ACK_ENDING' })} />}
+        {gameMode===GAME_MODES.WORLD && !flow.discovery && <button className="gameplay-menu-button" onClick={()=>setMenuOpen(true)} title="Menu del aventurero" aria-label="Menu del aventurero"><Menu size={20}/></button>}
+        {menuOpen && <AdventurerMenu profile={profile} gameplay={gameplay} onClose={()=>setMenuOpen(false)} onExit={onExitApp}
+          onMap={()=>{setMenuOpen(false);setMapRequest(value=>value+1);}}
+          onApply={async(character,equipment,pet)=>{
+            if(character!==profile.avatarId){const saved=await progressService.selectCharacter(userId,character);if(saved?.avatarId!==character)throw Error('Character not confirmed');setProfile(saved);dispatch({type:'PROFILE',profile:saved});}
+            saveEquipment(userId,character,equipment);setEquipmentVersion(value=>value+1);updateGameplay(equipPet(gameplayRef.current,pet));
+          }}/>
+        }
+        {miniId && <MinigameView key={miniId} definition={getGameplayContent().minigames.find(m=>m.id===miniId)} onClose={()=>setMiniId(null)} onComplete={id=>{
+          const completion=completeMinigame(gameplayRef.current,id,true);updateGameplay(completion.state);setMiniId(null);if(completion.pet)setActivityResult({pet:completion.pet,result:{completed:true},name:getGameplayContent().minigames.find(m=>m.id===id)?.name});
+        }}/>
+        }
+        {activityResult && <ValleyActivityResult result={activityResult.result} pet={activityResult.pet} activityName={activityResult.name} onContinue={()=>{setActivityResult(null);dispatch({type:'ACK_REWARD'});}} onEquip={()=>{updateGameplay(equipPet(gameplayRef.current,activityResult.pet.id));setActivityResult(null);dispatch({type:'ACK_REWARD'});}}/>}
+        {!gameplaySaved && <p role="alert" className="absolute bottom-12 left-4 z-50 bg-zinc-900 p-3 text-xs">No se pudo guardar tu coleccion en este dispositivo.</p>}
         {gameMode === GAME_MODES.WORLD && gameState.adventure.lastReward && !flow.discovery && <div role="status" className="absolute bottom-16 left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border border-emerald-400 bg-zinc-900 px-4 py-3 text-sm">
           <span>Recompensa: {gameState.adventure.lastReward.label}</span>
           <button onClick={() => dispatch({ type: 'ACK_REWARD' })} title="Cerrar recompensa" aria-label="Cerrar recompensa"><X size={16}/></button>

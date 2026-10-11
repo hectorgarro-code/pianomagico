@@ -8,6 +8,7 @@ import { GROTTO_COMPOSITION } from '../world/composition/grottoComposition.js';
 import { RUINS_COMPOSITION } from '../world/composition/ruinsComposition.js';
 import { OBSERVATORY_COMPOSITION } from '../world/composition/observatoryComposition.js';
 import { ALL_ADVENTURE_OBJECTS } from '../adventure/adventureState.js';
+import { createGameplayContent, ACTIVITY_PET_REWARDS, upgradeGameplayContent, setGameplayContent } from '../gameplay/gameplayContent.js';
 
 export const CONTENT_COMPOSITIONS = [PLAZA_COMPOSITION, FOREST_ADVENTURE_COMPOSITION, JUNCTION_COMPOSITION,
   RIVER_COMPOSITION, MOUNTAIN_COMPOSITION, GROTTO_ENTRANCE_COMPOSITION, GROTTO_COMPOSITION, RUINS_COMPOSITION, OBSERVATORY_COMPOSITION];
@@ -21,15 +22,17 @@ export function createDefaultContent() {
     world: CONTENT_COMPOSITIONS.map(c => ({ id: compositionKey(c), regionId: c.regionId, instances: structuredClone(c.instances) })),
     activities: [...ALL_ADVENTURE_OBJECTS.map(o => ({ id: o.id, regionId: o.regionId, type: o.type,
       lessonId: o.activityId, assignmentStatus: o.type === 'SECRET_REWARD' ? 'NOT_APPLICABLE' : ['river', 'mountain', 'observatory'].some(p => o.id.startsWith(p)) ? 'PROVISIONAL' : 'VERIFICADA',
-      rewardId: null, requirements: structuredClone(o.requirements), progressionReward: structuredClone(o.reward) })),
+      rewardId: ACTIVITY_PET_REWARDS[o.id] || null, requirements: structuredClone(o.requirements), progressionReward: structuredClone(o.reward) })),
     ...PLAZA_COMPOSITION.stations.map(s => ({ id: s.id, regionId: PLAZA_COMPOSITION.regionId,
       type: 'PRACTICE_STATION', lessonId: null, lessonRef: s.lessonRef, assignmentStatus: 'PROVISIONAL',
       rewardId: null, requirements: { completedObjects: [] }, progressionReward: null }))],
-    rewards: [], worldActions: [], minigames: [], gates: [] };
+    ...createGameplayContent() };
 }
 
 export function applyGameContent(content) {
   if (content?.schemaVersion !== 1) throw new Error('Unsupported game content version');
+  content = upgradeGameplayContent(content);
+  setGameplayContent(content);
   for (const definition of content.world) {
     const composition = CONTENT_COMPOSITIONS.find(c => compositionKey(c) === definition.id);
     if (!composition) throw new Error(`Unknown composition: ${definition.id}`);

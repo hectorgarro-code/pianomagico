@@ -34,8 +34,9 @@ function MapDrawing({ model, pose, enlarged }) {
   </svg>;
 }
 
-export default function WorldNavigation({ adventure, pose, active, onOpenChange, onPlaytestEvent }) {
+export default function WorldNavigation({ adventure, pose, active, onOpenChange, onPlaytestEvent, requestedOpen = false }) {
   const [open, setOpen] = useState(false);
+  useEffect(()=>{if(requestedOpen)setOpen(true);},[requestedOpen]);
   const [assisted, setAssisted] = useState(true);
   const target = resolveObjectiveTarget(adventure, assisted);
   const model = getValleyMap(adventure, target);

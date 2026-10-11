@@ -5158,7 +5158,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 1,
       "assignmentStatus": "VERIFICADA",
-      "rewardId": null,
+      "rewardId": "pet-elephant",
       "requirements": {
         "completedObjects": []
       },
@@ -5202,7 +5202,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 3,
       "assignmentStatus": "VERIFICADA",
-      "rewardId": null,
+      "rewardId": "pet-cat",
       "requirements": {
         "completedObjects": [
           "forest-chest-02"
@@ -5271,7 +5271,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 6,
       "assignmentStatus": "PROVISIONAL",
-      "rewardId": null,
+      "rewardId": "pet-dog",
       "requirements": {
         "completedObjects": [
           "river-chest-02"
@@ -5340,7 +5340,7 @@
       "type": "LESSON_CHEST",
       "lessonId": 10,
       "assignmentStatus": "PROVISIONAL",
-      "rewardId": null,
+      "rewardId": "pet-bee",
       "requirements": {
         "completedObjects": [
           "mountain-chest-02"
@@ -5442,7 +5442,7 @@
       "type": "SECRET_REWARD",
       "lessonId": null,
       "assignmentStatus": "NOT_APPLICABLE",
-      "rewardId": null,
+      "rewardId": "pet-panda",
       "requirements": {
         "completedObjects": []
       },
