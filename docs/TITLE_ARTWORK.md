@@ -1,0 +1,46 @@
+# Portada ilustrada del Valle
+
+Solicitada por el usuario como reemplazo visual de la portada 3D. Generada con
+la herramienta integrada image_gen, usando su referencia visual. Pendiente de
+aprobacion humana. No cambia el mundo ni los modelos jugables.
+
+Assets optimizados WebP, calidad 92:
+- `public/images/entry/valley-fantasy-title-v1.webp`
+- `public/images/entry/valley-fantasy-title-portrait-v1.webp`
+
+El titulo/subtitulo pertenecen a la ilustracion. La identidad tambien existe
+como texto accesible. Entrar, configuracion y sonido son controles reales,
+no parte de la imagen. La portada no necesita WebGL.
+
+## Fondo Del Selector
+
+`public/images/entry/character-sanctuary-v1.webp`, generado con image_gen y
+optimizado WebP calidad 92. El personaje, mascota, plataforma y controles NO
+estan dibujados en el fondo: son los modelos y componentes interactivos reales.
+
+Prompt: Create a premium fantasy illustrated BACKGROUND PLATE for the playable character-selection screen of the children's piano adventure VALLE DE LAS NOTAS. Match the attached reference's lush storybook animation-film/game art quality: ancient mossy stone sanctuary courtyard, warm glowing lanterns on old ruined stone arches on left and right, vibrant leafy trees, flowers, soft blue distant valley visible through archways, beautiful afternoon sunlight and occasional little golden musical notes. Wide landscape 16:9. The center foreground, central 55 percent of the image, must be an OPEN EMPTY level stone courtyard, evenly lit, with clear perspective and space for a real 3D hero and real 3D platform composited later. Surround this empty central stage with richly detailed fantasy scenery and depth, not a plain green field. Slight depth-of-field only in distant scenery; foreground stone ground clear. Do NOT draw a hero, person, creature, pet, weapon, platform, pedestal, logo, title, text, menu, frame, panel, parchment, HUD, bars, buttons or icons. Do not reproduce any user interface from the reference. This is only the exquisite fantasy environment behind live 3D characters and functional HTML controls. Maintain a harmonious magical forest-sanctuary setting and readable center suitable for desktop and centrally cropped mobile.
+
+## Seleccion De Perfiles
+
+Arte generado con image_gen y optimizado como WebP:
+- `public/images/entry/profile-valley-v1.webp`: fondo de paisaje.
+- `public/images/entry/profile-pedestal-v1.webp`: pedestal con alpha real.
+- `public/images/entry/profile-heading-v1.webp`: letrero con alpha real.
+
+Nombres, estandartes y botones son dinamicos. Personajes, armas y mascotas son
+los modelos reales del perfil, renderizados con un unico canvas scissored.
+No se asignan personajes ni mascotas para imitar la imagen de referencia.
+
+Prompt del fondo: Create only the fantasy landscape BACKGROUND for the educational piano adventure VALLE DE LAS NOTAS profile selection screen, matching the attached reference's exquisite bright polished animation-film 3D illustration. Wide 16:9. Lush friendly musical forest sanctuary courtyard, trees framing left and right, distant musical ruins and waterfalls, a stone bridge over a clear blue river, warm sunshine, floating occasional golden musical notes, rich blue sky, green foliage and small flowers. Center foreground is an EMPTY wide level stone terrace with room for four character pedestals that will be composited later. Preserve a readable central composition with slightly soft distant depth, not a plain technical green field. Do NOT draw any character, pet, portrait, card, pedestal, banner, title, logo, lettering, button, control, UI, watermark or border. This is the beautiful environment background only; real interactive profile cards and real 3D game characters will appear on top.
+
+Prompt del pedestal: Create ONE reusable isolated fantasy stone character-profile pedestal frame asset for VALLE DE LAS NOTAS. Supporting references: the first image is the user's four-profile selection layout; the second image is the matching fantasy background. Use the first reference only for the design of a SINGLE empty stone profile plinth. Portrait 3:4 proportions, straight-on front view with slight view down onto the horizontal platform top, polished richly textured stylized 3D animation-film art. A chunky weathered stone arch/niche with warm gray stones and soft dark stone back wall, room in the empty center to overlay a REAL 3D hero and pet later. A projecting circular stone platform at about 70% of the frame height, moss and tiny leaves at the base. A beautiful blank carved wooden name plaque across the pedestal front at about 78% height, large enough for dynamic profile names. Lowest 15% is stone pedestal base with room for an actual round play button added later. ALL space around the silhouette must be genuinely transparent alpha. Keep the entire object inside the image with generous small padding. NO character, NO pet, NO banner or emblem, NO name, NO letters, NO numbers, NO button, NO controls, NO other objects, NO watermark. The stone niche back wall is opaque; outside the object is transparent. This is a reusable UI art asset, not a screenshot, not a grid, exactly one pedestal.
+
+Prompt del letrero: One isolated horizontal wooden title sign for the children's musical fantasy game VALLE DE LAS NOTAS, matching polished warm stylized animation-film game art. Wide 4:1 silhouette: gently arched chunky honey-brown carved wood plank, irregular organic edges, small green ivy leaves curling at each end and little gold musical ornament accents. Bold raised beautifully crafted warm cream/golden 3D letters with dark warm wood shadows reading exactly 'ELIGE TU PERFIL'. Centered, perfectly legible Spanish words, all letters included, no additional text. Transparent alpha background outside sign, keep entire sign and leaves within image with padding. No landscape, no people, no UI controls, no button, no frame, no watermark. Production UI heading asset, not a mockup.
+
+## Prompt Horizontal De Portada
+
+Use case: stylized-concept. Create a finished premium illustrated title-screen background for the children's piano adventure game VALLE DE LAS NOTAS, inspired very closely by the attached reference's magical atmosphere and scenic composition. Wide landscape 16:9, richly detailed polished stylized 3D animation-film/game key art, bright clear saturated colors, beautiful lighting, not a flat low-poly technical demo. Foreground left-of-center: an adorable small Knight inspired by the game's KayKit hero, silver steel helmet and armor, large friendly dark eyes, red scarf and cape, sword and gold-accented shield. Beside him a tiny charming orange deer pet with little antlers, white muzzle and belly, friendly large eyes. Stone path and terrace, luminous golden treasure chest in the middle ground, golden musical notes floating around it, leafy trees and flowers framing the edges, a wooden lantern and musical banner at the left. Background: a beautiful blue river, stone bridge, layered green forest valley, waterfalls, ancient musical sanctuary and distant mountain observatory with a thin blue beacon. Depth, spectacle, adventure, welcoming magic, inspectable sharp subjects, harmonious authored composition. Include an ornate wooden-and-leaf sculpted game logo in the upper central area reading exactly 'VALLE' / 'DE LAS' / 'NOTAS', thick beautifully crafted golden cream 3D letters. Below the logo a small wooden subtitle ribbon reading exactly 'Una aventura musical'. Main logo and foreground Knight+deer within the central 65 percent so wide-screen cropping preserves them. Reserve the bottom central band for a real HTML orange Enter button that will be added later: do NOT draw any button, controls, settings, icons, cursor, screenshot frame, captions, borders or watermark into the artwork. This is the background artwork itself, not a screenshot or interface mockup. No extra text. Match the joyful extraordinary fantasy quality of the user's reference.
+
+## Prompt Vertical
+
+Create the portrait smartphone adaptation of this exact finished game title artwork. Vertical 9:16 composition, not a device mockup. Preserve the SAME adorable silver-armored Knight with red cape and scarf, sword and gold shield, SAME orange deer pet, SAME fantasy valley, river, bridge, waterfalls, musical mountain sanctuary, glowing golden musical treasure chest, sunlight, lush leaves and exquisite polished animation-film quality. Recompose intentionally for a narrow phone, do not merely crop the landscape: sculpted wooden golden game logo at the upper center reading exactly 'VALLE' / 'DE LAS' / 'NOTAS', subtitle ribbon exactly 'Una aventura musical'; full Knight and deer together in the lower-middle foreground with both heads and feet entirely visible; golden coffer behind them on the right; scenic valley depth between logo and heroes. Keep the entire logo and heroes in the central 80 percent width. Reserve the lowest 15 percent as beautiful uncluttered stone path for the real orange HTML Enter button that will be overlaid later. NO drawn buttons, no settings icons, no controls, no UI frame, no extra text, no watermark. This is a matching portrait production background, cohesive with the provided landscape image.

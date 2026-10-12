@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 import { GAME_MODES, createWorldActivityState, worldActivityReducer, findWorldActivityObject } from './state/worldActivityFlow.js';
 import { progressService } from './services/progressService';
 import SharedWorld from './entry/SharedWorld.jsx';
-import { entrySummary } from './entry/entryExperience.js';
 import PianoStageView from './piano/PianoStageView';
 import GameTransitionManager from './transitions/GameTransitionManager';
 import { Zap, X, Menu } from 'lucide-react';
@@ -16,7 +15,7 @@ import { STICKERS_BASE } from '../modules/piano-magico/PianoMagico';
 import AdventureDiscovery from './adventure/AdventureDiscovery.jsx';
 import { getAdventureSummary } from './adventure/adventureState.js';
 import AdventureStart from './adventure/AdventureStart.jsx';
-import { hasAdventureProgress, getNewAdventurePhase } from './adventure/adventureStart.js';
+import { getNewAdventurePhase } from './adventure/adventureStart.js';
 import { getValleyProgress } from './adventure/valleyProgression.js';
 import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
 import WorldMusic from './audio/WorldMusic.jsx';
@@ -32,7 +31,7 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
   const [flow, dispatch] = useReducer(worldActivityReducer, userId, id => createWorldActivityState(progressService.loadAdventure(id)));
   const gameMode = flow.mode;
   const gameState = flow.game;
-  const [startPhase, setStartPhase] = useState(() => hasAdventureProgress(progressService.loadAdventure(userId)) ? 'ENTRY' : 'CHARACTER');
+  const [startPhase, setStartPhase] = useState('CHARACTER');
   const [worldVisit, setWorldVisit] = useState(0);
   const [gameplay,setGameplay]=useState(()=>gameplayPersistence().load(userId));
   const gameplayRef=useRef(gameplay);gameplayRef.current=gameplay;
@@ -161,20 +160,16 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
   );
 
   if (startPhase !== 'PLAYING') return <AdventureStart
-    phase={startPhase} profile={profile} canContinue={hasAdventureProgress(gameState.adventure)}
-    sharedEntry={sharedEntry} summary={entrySummary(gameState.adventure)} gameplay={gameplay}
-    onPersonalize={() => setMenuOpen(true)}
-    personalization={menuOpen ? <AdventurerMenu profile={profile} gameplay={gameplay} initialTab="character" onClose={() => setMenuOpen(false)} onExit={onExitApp} onMap={() => setMenuOpen(false)} onApply={async (character, equipment, pet) => {
-      if (character !== profile.avatarId) { const saved = await progressService.selectCharacter(userId, character); if (saved?.avatarId !== character) throw Error('Character not confirmed'); setProfile(saved); dispatch({ type: 'PROFILE', profile: saved }); }
-      saveEquipment(userId, character, equipment); updateGameplay(equipPet(gameplayRef.current, pet)); setEquipmentVersion(value => value + 1);
-    }}/> : null}
-    onPhase={setStartPhase} onBegin={beginAdventure} onContinue={beginAdventure}
+    phase={startPhase} profile={profile}
+    sharedEntry={sharedEntry} gameplay={gameplay}
+    onPhase={setStartPhase} onBegin={beginAdventure}
     onNewAdventure={newAdventure} debugEnabled={debugEnabled}
-    onCharacter={async (avatarId, equipment) => {
+    onCharacter={async (avatarId, equipment, pet) => {
       const saved = await progressService.selectCharacter(userId, avatarId);
       if (!saved || saved.avatarId !== avatarId) throw new Error('Character not confirmed');
       saveEquipment(userId, avatarId, equipment);
       setProfile(saved); dispatch({ type: 'PROFILE', profile: saved });
+      if(pet!==undefined)updateGameplay(equipPet(gameplayRef.current,pet));
     }}
     onExit={onExitApp} onReset={resetAdventure}
   />;

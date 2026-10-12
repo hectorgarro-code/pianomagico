@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { Play, Sparkles, Compass, Database, Eye, Swords, WandSparkles } from 'lucide-react';
 import { createWorldGameplay } from '../gameplay/WorldGameplay.js';
+import { createCameraOcclusion } from './cameraOcclusion.js';
 import { getGameplayContent } from '../gameplay/gameplayContent.js';
 import { getCharacterModel } from '../../modules/core/utils/characterModels';
 import { WorldGenerator } from './WorldGenerator';
@@ -20,7 +21,7 @@ import { resolveObjectiveTarget } from '../navigation/valleyNavigation.js';
 import { createChestSignals } from './chestSignals.js';
 import { createCharacterAnimator } from '../presentation/characterActions.js';
 import { loadCharacterPresentation, applyEquipment, readEquipment, getEquipment } from '../presentation/characterEquipment.js';
-import { assistedCameraYaw } from './cameraAssist.js';
+import { assistedCameraYaw, terrainSafeCameraHeight } from './cameraAssist.js';
 import { titleCamera } from '../entry/entryExperience.js';
 
 function updateChestLids(models, state) {
@@ -124,6 +125,7 @@ export default function World3DView({
   const characterMixerRef = useRef(null);
   const characterActionsRef = useRef({});
   const expressionRef = useRef(null);
+  const encounterCameraRef = useRef(0);
   const gameplayRef = useRef(null), gameplayStateRef = useRef(gameplayState), profileRef = useRef(profile), loadHeroRef = useRef(null), restoredContextRef = useRef(null);
   const callbacksRef = useRef({onGameplayReward,onMinigame});callbacksRef.current={onGameplayReward,onMinigame};
   gameplayStateRef.current=gameplayState || EMPTY_GAMEPLAY;profileRef.current=profile;
@@ -180,7 +182,7 @@ export default function World3DView({
   }, [active, returnContext]);
 
   const performWorldAction = key => {
-    if (!activeRef.current || loading || mapOpenRef.current) return;
+    if (!activeRef.current || loading || mapOpenRef.current || gameplayRef.current?.staggered) return;
     if (key==='E' && nearbyGate) {callbacksRef.current.onMinigame?.(nearbyGate.minigameId);return;}
     if (key==='E' && nearbyStation) {handleTriggerLesson(nearbyStation);return;}
     if (isGroundedRef.current && expressionRef.current?.express(key)) {
@@ -398,6 +400,7 @@ export default function World3DView({
     let playerColliderDebug = null;
     let collisionDebug = null;
     let chestSignals = null;
+    let cameraOcclusion = null;
     const titleHidden = [];
     let titleStarted = performance.now(), wasPresentation = presentationRef.current, sessionToken = 0;
     const resetTitle = () => { if (presentationRef.current) titleStarted = performance.now(); };
@@ -423,6 +426,7 @@ export default function World3DView({
       const safeSpawn=collisionWorld.move(playerPosRef.current,{x:0,z:0});
       Object.assign(playerPosRef.current,safeSpawn);
       scene.add(sceneGroup);
+      cameraOcclusion=createCameraOcclusion(sceneGroup);
 
       // Debug overlay
       debugGroup.visible = debugMode;
@@ -460,6 +464,7 @@ export default function World3DView({
         const runtime=await createWorldGameplay(scene,heightAt,{
           state:()=>gameplayStateRef.current,player:()=>playerPosRef.current,
           onReward:id=>callbacksRef.current.onGameplayReward?.(id),
+          onPlayerHit:()=>{playerVelYRef.current=8;isGroundedRef.current=false;expressionRef.current?.react();},
           onColliders:extra=>{collisionWorldRef.current=new CollisionWorld([...getActiveWorldColliders(allCollidersRef.current,adventureStateRef.current),...extra]);}
         });
         if(!isMounted || token !== sessionToken || !sessionRef.current){runtime.dispose();return;}gameplayRef.current=runtime;
@@ -558,7 +563,7 @@ export default function World3DView({
         }
         return;
       }
-      if (!activeRef.current) {metricsTime=now;metricsFrames=0;return;}
+      if (!activeRef.current) {cameraOcclusion?.reset();metricsTime=now;metricsFrames=0;return;}
 
       if (characterMixerRef.current) {
         characterMixerRef.current.update(delta);
@@ -575,7 +580,7 @@ export default function World3DView({
       if (keysRef.current.left) inputX -= 1;
       if (keysRef.current.right) inputX += 1;
 
-      const isInputActive = !mapOpenRef.current && !expressionRef.current?.locked && (inputX !== 0 || inputZ !== 0);
+      const isInputActive = !mapOpenRef.current && !expressionRef.current?.locked && !gameplayRef.current?.staggered && (inputX !== 0 || inputZ !== 0);
 
       // Calcular dirección de movimiento orientada según el azimut de la cámara
       let moveDir = new THREE.Vector3(0, 0, 0);
@@ -603,7 +608,8 @@ export default function World3DView({
       collisionWorld = collisionWorldRef.current;
       if (isInputActive && collisionWorld) {
         const beforeX=playerPosRef.current.x,beforeZ=playerPosRef.current.z;
-        const next=collisionWorld.move(playerPosRef.current,{x:moveDir.x*baseSpeed*delta,z:moveDir.z*baseSpeed*delta});
+        const displacement={x:moveDir.x*baseSpeed*delta,z:moveDir.z*baseSpeed*delta};
+        const next=gameplayRef.current?.movePlayer(playerPosRef.current,displacement,collisionWorld) || collisionWorld.move(playerPosRef.current,displacement);
         Object.assign(playerPosRef.current,next);
         isMoving=Math.hypot(next.x-beforeX,next.z-beforeZ)>1e-5;
         if (isMoving) {
@@ -632,6 +638,8 @@ export default function World3DView({
         playerPosRef.current.y = groundY;
       }
 
+      if(!mapOpenRef.current)gameplayRef.current?.update(delta,now/1000,playerPosRef.current,playerRotYRef.current,collisionWorldRef.current);
+
       // Animaciones de Personaje
       let desiredAnim = 'Idle';
       if (isMoving) {
@@ -649,7 +657,6 @@ export default function World3DView({
         characterMeshRef.current.rotation.y = playerRotYRef.current;
         sunLight.target = characterMeshRef.current;
       }
-      if(!mapOpenRef.current)gameplayRef.current?.update(delta,now/1000,playerPosRef.current,playerRotYRef.current,collisionWorldRef.current);
       setNearbyGate(gameplayRef.current?.nearestGate(playerPosRef.current) || null);
       if(playerColliderDebug)playerColliderDebug.position.set(playerPosRef.current.x,playerPosRef.current.y,playerPosRef.current.z);
 
@@ -682,14 +689,23 @@ export default function World3DView({
       const pY = playerPosRef.current.y;
       const pZ = playerPosRef.current.z;
 
-      const camOffsetY = Math.sin(angles.currentPitch) * angles.currentDistance + 1.25;
-      const camHorizontalDist = Math.cos(angles.currentPitch) * angles.currentDistance;
+      const opponent=gameplayRef.current?.combatFocus(playerPosRef.current);
+      const encounter=!!opponent && !isDraggingMouseRef.current && (now-lastManualCameraRef.current)>1600;
+      encounterCameraRef.current += ((encounter?1:0)-encounterCameraRef.current)*Math.min(1,delta*4);
+      const combatBlend=encounterCameraRef.current;
+      const pitch=angles.currentPitch+(Math.max(.65,angles.currentPitch)-angles.currentPitch)*combatBlend;
+      const distance=angles.currentDistance+(Math.min(12,Math.max(8,angles.currentDistance))-angles.currentDistance)*combatBlend;
+      const focusX=pX+(opponent?(opponent.x-pX)*.4*combatBlend:0);
+      const focusZ=pZ+(opponent?(opponent.z-pZ)*.4*combatBlend:0);
+      const focusY=pY+(opponent?(opponent.y-pY)*.4*combatBlend:0);
+      const camOffsetY = Math.sin(pitch) * distance + 1.25;
+      const camHorizontalDist = Math.cos(pitch) * distance;
       const camOffsetX = Math.sin(angles.currentYaw) * camHorizontalDist;
       const camOffsetZ = Math.cos(angles.currentYaw) * camHorizontalDist;
 
-      let targetCamX = pX + camOffsetX;
-      let targetCamY = pY + camOffsetY;
-      let targetCamZ = pZ + camOffsetZ;
+      let targetCamX = focusX + camOffsetX + Math.cos(angles.currentYaw)*1.5*combatBlend;
+      let targetCamY = focusY + camOffsetY;
+      let targetCamZ = focusZ + camOffsetZ - Math.sin(angles.currentYaw)*1.5*combatBlend;
 
       // Prevención de clipping contra el relieve del terreno
       const terrainAtCam = getTerrainHeight(targetCamX, targetCamZ);
@@ -700,13 +716,16 @@ export default function World3DView({
       const targetCamPos = new THREE.Vector3(targetCamX, targetCamY, targetCamZ);
       const lookAhead = PLAZA_COMPOSITION.camera.lookAhead || 0;
       const targetLookAt = new THREE.Vector3(
-        pX - Math.sin(angles.currentYaw) * lookAhead,
-        pY + 1.15,
-        pZ - Math.cos(angles.currentYaw) * lookAhead
+        focusX - Math.sin(angles.currentYaw) * lookAhead*(1-combatBlend),
+        focusY + 1.15,
+        focusZ - Math.cos(angles.currentYaw) * lookAhead*(1-combatBlend)
       );
 
       camera.position.lerp(targetCamPos, Math.min(1.0, 8.5 * delta));
+      camera.position.y=terrainSafeCameraHeight(camera.position,{x:pX,y:pY+.25,z:pZ},getTerrainHeight);
+      if(opponent)camera.position.y=terrainSafeCameraHeight(camera.position,{x:opponent.x,y:opponent.y+.25,z:opponent.z},getTerrainHeight);
       camera.lookAt(targetLookAt);
+      cameraOcclusion?.update(camera.position,opponent?[playerPosRef.current,opponent]:[playerPosRef.current],delta,now/1000);
 
       chestSignals?.update(now / 1000, playerPosRef.current, adventureStateRef.current);
       if (now-navigationTime>=200) {
@@ -745,6 +764,7 @@ export default function World3DView({
       }
       renderer.dispose();
       expressionRef.current?.dispose(); expressionRef.current = null;
+      cameraOcclusion?.dispose();
       gameplayRef.current?.dispose();gameplayRef.current=null;loadHeroRef.current=null;
       sessionToken++; prepareSessionRef.current = null;
       window.removeEventListener('pointerdown', resetTitle); window.removeEventListener('keydown', resetTitle);

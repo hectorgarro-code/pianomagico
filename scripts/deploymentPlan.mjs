@@ -17,7 +17,7 @@ export function deploymentFiles(trackedModels, builtFiles) {
   }
   const files = builtFiles.filter(file => !file.startsWith('dist/models/') && !['dist/index.html', 'dist/.htaccess'].includes(file));
   for (const file of files) {
-    assert.ok(/^dist\/(assets|audio|wasm)\//.test(file) || file === 'dist/vite.svg', `Unexpected build resource: ${file}`);
+    assert.ok(/^dist\/(assets|audio|wasm)\//.test(file) || /^dist\/images\/entry\/[a-z0-9-]+\.webp$/.test(file) || file === 'dist/vite.svg', `Unexpected build resource: ${file}`);
     assert.ok(!file.split('/').some(part => part === '..'));
   }
   return [...models, ...files].map(local => ({ local, remote: '/' + local.replace(/^(public|dist)\//, '') }));

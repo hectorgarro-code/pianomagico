@@ -40,6 +40,11 @@ export function createCharacterAnimator(mixer, clips, characterId, equipment = n
       if (!name || name === 'Idle') return false;
       locked = true; switchTo(name, true); return true;
     },
+    react() {
+      const name = ['Hit_A', 'Hit_B', 'Jump_Start'].find(clip => actions[clip]);
+      if (!name) return false;
+      locked = true; switchTo(name, true); return true;
+    },
     locomotion(name) { if (!locked) switchTo(actions[name] ? name : 'Idle'); },
     setEquipment(next) { equipment = next; },
     dispose() { mixer.removeEventListener('finished', finished); mixer.stopAllAction(); mixer.uncacheRoot(mixer.getRoot()); }

@@ -4,6 +4,7 @@ import GameApp from '../../game/GameApp';
 import { initialEntry, entryReducer, entrySummary } from '../../game/entry/entryExperience.js';
 import { SharedWorldProvider } from '../../game/entry/SharedWorld.jsx';
 import TitleScreen from '../../game/entry/TitleScreen.jsx';
+import TitleScene from '../../game/entry/TitleScene.jsx';
 import WorldMusic from '../../game/audio/WorldMusic.jsx';
 import { progressService } from '../../game/services/progressService.js';
 import { gameplayPersistence } from '../../game/gameplay/gameplayState.js';
@@ -40,7 +41,7 @@ export default function MusicSuite() {
         let preferred; try { preferred = localStorage.getItem(`user_avatar_${user.id}`); } catch { /* Optional local preference. */ }
         return { ...user, avatarId: normalizeGameProfile(user, preferred)?.avatarId ?? 1, summary, petId: gameplay.equippedPetId };
     }), [users, userId]);
-    return <SharedWorldProvider presentation={false}>
+    return <SharedWorldProvider presentation={false} backdrop={entry.screen === 'ADVENTURE' ? <TitleScene showHero={false}/> : null}>
     {entry.screen === 'TITLE' ? <TitleScreen onEnter={() => { window.dispatchEvent(new Event('valley-entry-unlock')); dispatch({ type: 'ENTER' }); }}/> : entry.screen === 'PROFILES' ? <LoginScreen
         users={profiles} loading={loading} error={error} onRetry={() => setRetry(value => value + 1)} onBack={() => dispatch({ type: 'BACK' })}
         onLogin={id => {

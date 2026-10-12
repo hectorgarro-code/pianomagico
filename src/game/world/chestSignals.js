@@ -3,27 +3,42 @@ import { lessonBadgeData } from '../content/lessonRepository.js';
 
 export function createLessonBadge(object) {
   if (!object.song || object.type === 'SECRET_REWARD') return null;
-  const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 256;
-  const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+  const canvas = document.createElement('canvas'); canvas.width = 768; canvas.height = 128;
+  let texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
-  const sprite = new THREE.Sprite(material); sprite.scale.set(5, 1.25, 1); sprite.position.y = 1.5;
+  const sprite = new THREE.Sprite(material); sprite.position.y = 1.5;
   let previous = '';
   return { sprite, update(state, near) {
     const data = lessonBadgeData(object, object.song, state, near);
     const key = JSON.stringify(data); if (key === previous) return; previous = key;
-    const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(20,25,23,.92)'; ctx.fillRect(0, 0, 1024, 256);
-    ctx.strokeStyle = state === 'COMPLETED' ? '#72dba7' : state === 'LOCKED' ? '#9baba3' : '#ffcf68';
-    ctx.lineWidth = 5; ctx.strokeRect(3, 3, 1018, 250);
-    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 38px sans-serif'; ctx.textAlign = 'center';
-    const words = data.title.split(' '); let line = '', y = 58;
+    const ctx = canvas.getContext('2d'); ctx.font = 'bold 36px sans-serif';
+    const lines = []; let line = '';
+    const words = data.title.split(' ');
     for (const word of words) {
-      if (ctx.measureText(line + ' ' + word).width > 960 && line) { ctx.fillText(line, 512, y, 960); y += 44; line = word; }
+      if (ctx.measureText(line + ' ' + word).width > 696 && line) { lines.push(line); line = word; }
       else line = (line + ' ' + word).trim();
     }
-    ctx.fillText(line, 512, y, 960);
-    if (near) { ctx.font = '30px sans-serif'; ctx.fillStyle = '#ffdf8c'; ctx.fillText(data.subtitle, 512, 186, 950);
-      ctx.fillStyle = '#ffffff'; ctx.fillText(data.action, 512, 230, 950); }
+    lines.push(line);
+    const height = 32 + lines.length * 42 + (near ? 76 : 0);
+    if (canvas.height !== height) {
+      // Uploaded GPU textures cannot be resized in place.
+      canvas.height = height;
+      texture.dispose(); texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace; material.map = texture; material.needsUpdate = true;
+    } else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    sprite.scale.set(3, 3 * canvas.height / canvas.width, 1);
+    const accent = state === 'COMPLETED' ? '#9bffcf' : state === 'LOCKED' ? '#c3d6d9' : '#ffe58d';
+    ctx.beginPath(); ctx.roundRect(10, 10, 748, canvas.height - 20, 18);
+    ctx.fillStyle = 'rgba(12,34,39,.32)'; ctx.fill();
+    ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.shadowColor = accent; ctx.shadowBlur = 9; ctx.stroke();
+    ctx.shadowBlur = 3; ctx.shadowColor = '#10232b';
+    ctx.fillStyle = '#fff8d9'; ctx.font = 'bold 36px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    lines.forEach((text, index) => ctx.fillText(text, 384, 37 + index * 42, 696));
+    if (near) {
+      const y = 32 + lines.length * 42;
+      ctx.font = '27px sans-serif'; ctx.fillStyle = '#fff0b4'; ctx.fillText(data.subtitle, 384, y + 13, 696);
+      ctx.font = 'bold 27px sans-serif'; ctx.fillStyle = accent; ctx.fillText(data.action, 384, y + 47, 696);
+    }
     texture.needsUpdate = true;
   }, dispose() { material.dispose(); texture.dispose(); } };
 }

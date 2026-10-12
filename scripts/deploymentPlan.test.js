@@ -10,6 +10,8 @@ test('deployment excludes configuration, provisioning and model auxiliaries', ()
   ]);
   for (const file of ['public/models/pet.fbx', 'public/models/Samples/pet.png', 'public/models/../dbconfig.php']) assert.throws(() => deploymentFiles([file], []));
   assert.throws(() => deploymentFiles([], ['dist/backend/dbconfig.php']));
+  assert.deepEqual(deploymentFiles([], ['dist/images/entry/profile-valley-v1.webp']), [{ local:'dist/images/entry/profile-valley-v1.webp', remote:'/images/entry/profile-valley-v1.webp' }]);
+  for (const file of ['dist/images/capture.png', 'dist/images/entry/config.php', 'dist/images/entry/../private.webp']) assert.throws(() => deploymentFiles([], [file]));
 });
 
 test('deployment blocks missing lessons and incompatible schemas without changing catalogs', () => {

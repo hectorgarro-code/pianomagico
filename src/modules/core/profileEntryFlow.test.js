@@ -53,26 +53,36 @@ test('title presents only the game identity and native accessible entry button, 
   assert.match(html, /VALLE DE LAS NOTAS/); assert.match(html, /Una aventura musical/); assert.match(html, /Entrar al Valle/);
   assert.doesNotMatch(html, /BASTIAN|XP|Debug World|Abrir mapa|Cofre|Elige tu perfil/);
 });
-test('resume presents real profile, derived region/objective and dominant Continue without resetting adventure', () => {
+test('existing profile opens adventurer preparation directly with JUGAR, never the resume screen', () => {
   const html = renderEntry({sharedEntry:true,canContinue:true,summary:{region:'Rio del Ritmo',objective:'Explora el Rio',completed:2,total:6},gameplay:{equippedPetId:'kenney-cube-pets:animal-deer'}});
-  assert.match(html,/SOPHIA/); assert.match(html,/Rio del Ritmo/); assert.match(html,/Explora el Rio/); assert.match(html,/Continuar aventura/); assert.match(html,/Personalizar/); assert.match(html,/Nueva Aventura/); assert.match(html,/Personaje 3D/);
+  assert.match(html,/Elige tu aventurero/);assert.match(html,/aria-label="JUGAR"/);assert.match(html,/Personaje 3D/);assert.match(html,/aria-label="Armas"/);
+  assert.doesNotMatch(html,/entry-resume-layout|entry-region-dots|Continuar aventura|Personalizar"|Nueva Aventura|aria-label="Listo"/);
 });
 
 test('rendered profile screen has real profiles, never instrument selection or character customization', () => {
   const html = renderToStaticMarkup(React.createElement(LoginScreen, { users: [profile] }));
-  assert.match(html, /Quien va a explorar hoy/);
+  assert.match(html, /Elige tu perfil/);
   assert.match(html, /Entrar como SOPHIA/);
   assert.match(html, /Comenzar aventura/);
   assert.doesNotMatch(html, /Galáctica|Galactic|Instrumento|Uke Hero|Piano Mágico|Personaje Anterior|canvas/i);
 });
 
-test('New leads to character selection, intro and approved Plaza startup without legacy screens', () => {
+test('profile presentation uses authored art and dynamic names without inventing players or pets',()=>{
+  const users=[profile,{id:4,avatarId:5,name:'QA GAMEPLAY CONTENT 1',summary:{existing:true}}];
+  const html=renderToStaticMarkup(React.createElement(LoginScreen,{users}));
+  assert.equal((html.match(/class="valley-profile"/g)||[]).length,2);
+  for(const art of ['profile-valley-v1.webp','profile-heading-v1.webp','profile-pedestal-v1.webp'])assert.match(html,new RegExp(art));
+  assert.match(html,/Entrar como QA GAMEPLAY CONTENT 1/);assert.match(html,/Continuar aventura/);assert.match(html,/data-profile-portrait="4"/);
+  assert.doesNotMatch(html,/BASTIAN|TIZIANO|Nueva mascota|<select/);
+});
+
+test('new profile prepares its character and JUGAR starts approved Plaza; legacy intro remains available', () => {
   const adventure = createAdventureState();
   assert.equal(getNewAdventurePhase(adventure), 'CHARACTER');
   assert.doesNotMatch(renderEntry(), /Continuar/);
   const characters = renderEntry({ phase: 'CHARACTER' });
   for (const name of ['Knight', 'Mage', 'Barbarian', 'Rogue']) assert.match(characters, new RegExp(name));
-  assert.match(characters, /Confirmar/);
+  assert.match(characters, /JUGAR/);
   const intro = renderEntry({ phase: 'INTRO' });
   assert.match(intro, /Tu aventura comienza en la Plaza/);
   assert.match(intro, /Comenzar/);
@@ -81,13 +91,13 @@ test('New leads to character selection, intro and approved Plaza startup without
   assert.deepEqual(playing.game.player.position, { x: 0, y: 0.15, z: 5 });
 });
 
-test('existing adventure offers Continue and New; requesting or cancelling New never resets progress', () => {
+test('existing adventure offers JUGAR; explicit New still requires confirmation and cannot silently reset progress', () => {
   const completed = settleAdventureActivity(beginAdventureActivity(createAdventureState(), 'forest-chest-01', 1), 'forest-chest-01', { activityId: 1, completed: true });
   const before = structuredClone(completed);
   assert.equal(getNewAdventurePhase(completed), 'CONFIRM_NEW');
   assert.deepEqual(completed, before);
-  assert.match(renderEntry({ canContinue: true }), /Continuar/);
-  assert.match(renderEntry({ canContinue: true }), /Nueva Aventura/);
+  assert.match(renderEntry({ canContinue: true }), /JUGAR/);
+  assert.doesNotMatch(renderEntry({ canContinue: true }), /Continuar|Nueva Aventura/);
   const confirmation = renderEntry({ phase: 'CONFIRM_NEW' });
   assert.match(confirmation, /alertdialog/);
   assert.match(confirmation, /Cancelar/);
@@ -118,5 +128,5 @@ test('Continue restores character, objective and chests; confirmed New resets on
 
 test('normal startup hides development controls; explicit debug can expose them', () => {
   assert.doesNotMatch(renderEntry(), /Desarrollo|Saltar intro|Reiniciar aventura/);
-  assert.match(renderEntry({ debugEnabled: true }), /Desarrollo/);
+  assert.match(renderEntry({ phase:'INTRO', debugEnabled: true }), /Desarrollo/);
 });

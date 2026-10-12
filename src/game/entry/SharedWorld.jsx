@@ -1,18 +1,21 @@
-import { createContext, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import World3DView from '../world/World3DView.jsx';
 
 const WorldContext = createContext(null);
-export function SharedWorldProvider({ children, presentation = true }) {
+export function SharedWorldProvider({ children, presentation = true, backdrop = null }) {
   const [config, setConfig] = useState(null);
-  return <WorldContext.Provider value={setConfig}>
-    <div className={`entry-world ${config?.hidden ? 'entry-world-hidden' : ''}`}>
-      <World3DView {...config} active={config?.active ?? false} presentation={presentation || !config} />
+  const [started,setStarted]=useState(false),lastConfig=useRef(null);
+  const publish=useCallback(value=>{if(value){lastConfig.current=value;setStarted(true);}setConfig(value);},[]);
+  return <WorldContext.Provider value={publish}>
+    {!config && backdrop}
+    <div className={`entry-world ${!config || config?.hidden ? 'entry-world-hidden' : ''}`}>
+      {started && <World3DView {...(config || lastConfig.current)} active={config?.active ?? false} presentation={presentation} />}
     </div>
     {children}
   </WorldContext.Provider>;
 }
 
-// The publisher owns session props; the provider owns one scene/renderer for the site.
+// The publisher owns session props; the provider retains one gameplay renderer.
 export default function SharedWorld(props) {
   const publish = useContext(WorldContext), latest = useRef(props);
   latest.current = props;

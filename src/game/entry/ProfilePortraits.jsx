@@ -25,8 +25,8 @@ export default function ProfilePortraits({ users }) {
       if (clip) mixer.clipAction(clip).play(); view.mixers.push(mixer); return model;
     };
     (async () => {
-      for (const user of users.filter(item => item.summary?.existing)) {
-        const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(36, 1, .1, 25), view = { scene, camera, id: user.id, mixers: [] };
+      for (const user of users) {
+        const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(36, 1, .1, 25), view = { scene, camera, id: user.id, centerX:user.petId ? .2 : 0, mixers: [] };
         views.push(view);
         scene.add(new THREE.HemisphereLight(0xfff3dd, 0x537969, 2.5)); const sun = new THREE.DirectionalLight(0xffffff, 3); sun.position.set(3, 5, 6); scene.add(sun);
         const data = await loadCharacterPresentation(user.avatarId); if (!live) return;
@@ -49,7 +49,7 @@ export default function ProfilePortraits({ users }) {
         const element = host.current.parentElement.querySelector(`[data-profile-portrait="${view.id}"]`); if (!element) continue;
         const rect = element.getBoundingClientRect(); if (rect.bottom < 0 || rect.top > innerHeight) continue;
         const x = rect.left - bounds.left, y = bounds.bottom - rect.bottom;
-        view.camera.aspect = rect.width / rect.height; view.camera.updateProjectionMatrix(); view.camera.position.set(0, 1.7, Math.max(5, 2 / view.camera.aspect)); view.camera.lookAt(0, 1.05, 0);
+        view.camera.aspect = rect.width / rect.height; view.camera.updateProjectionMatrix(); view.camera.position.set(view.centerX, 1.9, Math.max(3.6, 2.3 / (2*Math.tan(Math.PI/10)*view.camera.aspect))); view.camera.lookAt(view.centerX, 1.25, 0);
         view.mixers.forEach(mixer => mixer.update(delta));
         renderer.setViewport(x, y, rect.width, rect.height); renderer.setScissor(x, y, rect.width, rect.height); renderer.render(view.scene, view.camera);
       }

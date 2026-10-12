@@ -17,14 +17,19 @@ test('fresh load and reload use TITLE, Enter opens profiles, profile opens Adven
   assert.equal(entryReducer(profiles, {type:'PROFILE',userId:'invalid'}), profiles);
   assert.equal(entryReducer(profiles, {type:'SELECT_INSTRUMENT'}), profiles);
 });
-test('new profile routes directly to character; existing adventure routes to resume without modifying facts', () => {
+test('both new and existing profiles prepare their adventurer directly without modifying saved facts', () => {
   const fresh = createAdventureState(); assert.equal(entrySummary(fresh).existing, false);
   const started = {...fresh,journey:{...fresh.journey,started:true}};
   const snapshot = structuredClone(started); assert.equal(entrySummary(started).existing, true); assert.deepEqual(started, snapshot);
   const app = fs.readFileSync('src/game/GameApp.jsx','utf8');
-  assert.match(app, /hasAdventureProgress\(progressService.loadAdventure\(userId\)\) \? 'ENTRY' : 'CHARACTER'/);
+  assert.match(app, /\[startPhase, setStartPhase\] = useState\('CHARACTER'\)/);
+  assert.match(app, /createWorldActivityState\(progressService.loadAdventure\(id\)\)/);
+  const preparation=fs.readFileSync('src/game/adventure/AdventureStart.jsx','utf8');
+  assert.match(preparation,/await onCharacter\(c,e,p\);onBegin\(\)/);
+  assert.match(preparation,/confirmLabel="JUGAR" onClose=\{onExit\}/);
+  assert.doesNotMatch(preparation,/entry-resume-layout|entry-resume-info/);
 });
-test('resume objective/current region and progress derive exclusively from validated Adventure', () => {
+test('profile summaries derive objective/current region and progress exclusively from validated Adventure', () => {
   let adventure=createAdventureState();
   adventure=settleAdventureActivity(beginAdventureActivity(adventure,'forest-chest-01',1),'forest-chest-01',{activityId:1,completed:true});
   const summary=entrySummary(adventure),progress=getValleyProgress(adventure);

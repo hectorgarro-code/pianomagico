@@ -1,5 +1,7 @@
 .entry-world { position:fixed; inset:0; z-index:0; background:#9bd8ff; }
 .entry-world-hidden { visibility:hidden; pointer-events:none; }
+.title-scene { position:fixed; inset:0; z-index:0; background:#83d5eb; }
+.title-scene canvas { width:100%; height:100%; display:block; }
 .entry-loading { position:relative; z-index:2; background:#10293744; }.entry-loading p { padding:12px 18px; background:#102937dd; border-radius:8px; }
 .entry-screen,.entry-adventure-screen,.entry-profiles-screen { position:relative; z-index:2; min-height:100dvh; color:#fff5de; }
 .entry-screen::before { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,#10262418,transparent 30%,#091e2ad1); }
@@ -59,3 +61,38 @@
 }
 @media(prefers-reduced-motion:reduce) { .entry-title-content,.entry-profiles-screen .valley-profile-layout,.entry-resume-layout,.entry-adventure-screen .valley-center-layout { animation:none; } }
 @media(max-height:540px) { .entry-title-screen { padding-top:22px; padding-bottom:72px; }.entry-title-content { gap:12px; }.entry-title-content .valley-title { font-size:46px; }.entry-title-content .valley-title>span { padding:8px 20px; }.entry-title-content>p { font-size:17px; }.entry-title-content>.valley-button { min-height:52px; margin-top:4px; } }
+
+/* The title set is independent of the playable valley. Keep its foreground visible. */
+.entry-title-content { position:absolute; top:6%; left:50%; transform:translateX(-50%); animation:none; gap:8px; width:min(520px,90%); }
+.entry-title-content .valley-title { font-size:72px; gap:10px; }
+.entry-title-content .valley-title>span { padding:12px 26px; background:#493521ed; border:3px solid #c89751; border-radius:8px; box-shadow:0 5px 0 #251d18; }
+.entry-title-content .valley-title-small { font-size:21px; }
+.entry-title-content>p { font-size:19px; }
+.entry-title-screen::before { background:linear-gradient(180deg,#10262408,transparent 50%,#091e2a66); }
+.entry-title-enter { position:absolute; bottom:10%; left:50%; transform:translateX(-50%); min-width:320px; min-height:72px; background:#f67a0c; border-color:#ffdb69; box-shadow:0 5px 0 #934009,0 10px 26px #172c2855; text-transform:uppercase; }
+.entry-profile-state { width:56px; min-height:48px; padding:10px; border-radius:8px; }
+.entry-profile-grid .valley-profile { border:2px solid #cda25b; background:#182d32e8; }
+.entry-resume-info { background:none; border:none; padding:20px; text-align:center; }
+.entry-resume-info h1 { overflow-wrap:anywhere; }
+.entry-progress>span { font-size:28px; font-weight:800; }
+.entry-region-dots { display:flex; gap:10px; justify-content:center; margin-top:12px; }
+.entry-region-dots>span { width:18px; height:18px; border:2px solid #f4e2a7; border-radius:50%; background:#233a37; }
+.entry-region-dots>.is-complete { background:#ffd15f; }
+.entry-resume-secondary { justify-content:center; }
+.entry-resume-secondary>button { width:56px; height:52px; display:grid; place-items:center; border-radius:8px; border:1px solid #bbab83; background:#182c33e6; }
+.entry-resume-secondary>button:first-child { border-color:#6ddde8; }
+@media(min-width:701px) { .entry-title-content,.entry-title-enter { left:64%; } }
+@media(max-width:700px) {
+ .entry-title-content { top:5%; width:92%; gap:8px; }.entry-title-content .valley-title { font-size:48px; gap:8px; }.entry-title-content .valley-title>span { padding:8px 16px; }.entry-title-content .valley-title-small { font-size:17px; }.entry-title-content>p { font-size:16px; }
+ .entry-title-enter { bottom:13%; min-width:0; width:calc(100% - 56px); max-width:340px; min-height:64px; }
+ .entry-profile-state { width:50px; }.entry-resume-info { padding:10px 20px; }
+}
+@media(max-height:540px) and (min-width:701px) { .entry-title-content { top:3%; left:65%; width:380px; }.entry-title-content .valley-title { font-size:42px; }.entry-title-enter { bottom:12%; left:65%; min-height:56px; } }
+.entry-title-illustrated { height:100dvh; min-height:100dvh; padding:0; overflow:hidden; background:#155746; }
+.entry-title-illustrated::before { display:none; }
+.entry-title-art { position:absolute; inset:0; pointer-events:none; }
+.entry-title-art img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; }
+.entry-title-illustrated .entry-title-enter { left:50%; bottom:3%; min-height:64px; min-width:350px; max-width:calc(100% - 48px); font-size:21px; border-radius:18px; }
+.entry-title-illustrated .entry-secondary { z-index:2; }
+@media(max-aspect-ratio:4/5) { .entry-title-illustrated .entry-title-enter { bottom:9%; min-width:0; width:calc(100% - 48px); max-width:360px; font-size:18px; }.entry-title-art img { object-position:center 52%; } }
+@media(max-height:480px) and (min-aspect-ratio:4/5) { .entry-title-illustrated .entry-title-enter { min-height:50px; min-width:280px; font-size:17px; bottom:3%; padding:10px 16px; } }
