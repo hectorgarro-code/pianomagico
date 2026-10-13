@@ -35,7 +35,7 @@ jobs:
       - name: Test game and deployment
         run: |
           php --version
-          node --test $(find src/game src/modules/core scripts -name '*.test.js' -type f)
+          node --test $(find src/admin src/game src/modules/core scripts -name '*.test.js' -type f)
           for file in $(find backend -name '*.php' -type f); do php -l "$file" || exit 1; done
       - name: Build
         run: npm run build

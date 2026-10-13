@@ -202,6 +202,8 @@ export const getIntervalMs = speedValue => {
   const val = Number(speedValue);
   return val > 300 ? val : 60000 / val;
 };
+export const getTempoBpm = (speedValue, tempoFactor = 1) =>
+  Math.round((60000 / getIntervalMs(speedValue)) * tempoFactor);
 
 export default function PianoMagico({
   userId,
@@ -1548,7 +1550,7 @@ export default function PianoMagico({
                     value={tempoFactor}
                     onChange={(e) => setTempoFactor(Number(e.target.value))}
                     className="bg-white text-slate-700 text-sm sm:text-xs font-black rounded-xl px-3 py-2 sm:px-2 sm:py-1 border border-slate-200 outline-none cursor-pointer hover:border-[#1CB0F6] transition-all"
-                    title={`Velocidad (${Math.round((currentSong?.speed || 100) * tempoFactor)} BPM)`}
+                    title={`Velocidad (${getTempoBpm(currentSong?.speed, tempoFactor)} BPM)`}
                   >
                     <option value={0.5}>0.5x</option>
                     <option value={0.75}>0.75x</option>

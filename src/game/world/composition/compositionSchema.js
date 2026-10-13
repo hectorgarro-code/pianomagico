@@ -27,6 +27,8 @@
  * Optional gates [{id,gateId,exitId?,instanceId?}] bind authored exits/props to
  * logical WORLD_GATES. validateWorldGateBindings checks this contract; rendering
  * does not create geometry or invisible walls for an unavailable gate.
+ * Optional gameplay declares authored worldActions and notes for a local slice;
+ * WorldGameplay materializes them, not the visual environment generator.
  */
 export const COMPOSITION_SCHEMA = {
   version: 1,

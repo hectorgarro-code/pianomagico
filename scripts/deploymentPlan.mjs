@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 export const BACKEND_RUNTIME = [
-  'backend/content/lessons.php', 'backend/content/security.php',
+  'backend/content/lessons.php', 'backend/content/security.php', 'backend/content/editor.php', 'backend/content/preflight.php',
   'backend/content/validation.php', 'backend/content/schema.php',
   'backend/content/registry.json', 'backend/content/seed.json',
   'backend/content.php', 'backend/api.php',

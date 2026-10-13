@@ -33,6 +33,21 @@ export function applyGameContent(content) {
   if (content?.schemaVersion !== 1) throw new Error('Unsupported game content version');
   content = upgradeGameplayContent(content);
   setGameplayContent(content);
+  // Optional authored activities never change the fixed regional curriculum/gates.
+  for (let i=ALL_ADVENTURE_OBJECTS.length-1;i>=0;i--) if(ALL_ADVENTURE_OBJECTS[i].id.startsWith('editor-')) ALL_ADVENTURE_OBJECTS.splice(i,1);
+  for(const composition of CONTENT_COMPOSITIONS) if(composition.adventureObjects) composition.adventureObjects=composition.adventureObjects.filter(o=>!o.id.startsWith('editor-'));
+  const additional=content.activities.filter(a=>a.id.startsWith('editor-'));
+  const registered=new Set(ALL_ADVENTURE_OBJECTS.map(o=>o.id));
+  while(additional.length) {
+    const index=additional.findIndex(a=>a.requirements.completedObjects.every(id=>registered.has(id)));
+    if(index<0)throw new Error('Optional activities contain missing/circular requirements');
+    const definition=additional.splice(index,1)[0];
+    const composition=CONTENT_COMPOSITIONS.find(c=>c.groupName===definition.compositionId);
+    if(!composition)throw new Error('Missing optional activity composition');
+    const object={id:definition.id,label:definition.label,type:'LESSON_CHEST',regionId:definition.regionId,instanceId:definition.instanceId,activityId:definition.lessonId,
+      interaction:{key:'KeyE',radius:3},requirements:structuredClone(definition.requirements),reward:structuredClone(definition.progressionReward),contentRewardId:definition.rewardId};
+    ALL_ADVENTURE_OBJECTS.push(object);(composition.adventureObjects ||= []).push(object);registered.add(object.id);
+  }
   for (const definition of content.world) {
     const composition = CONTENT_COMPOSITIONS.find(c => compositionKey(c) === definition.id);
     if (!composition) throw new Error(`Unknown composition: ${definition.id}`);
@@ -51,10 +66,12 @@ export function applyGameContent(content) {
   }
   for (const definition of content.activities) {
     const object = ALL_ADVENTURE_OBJECTS.find(o => o.id === definition.id);
-    if (object) { object.activityId = definition.lessonId; object.contentRewardId = definition.rewardId; }
+    if (object) { object.activityId = definition.lessonId; object.contentRewardId = definition.rewardId; if(definition.label)object.label=definition.label; }
     else {
       const station = PLAZA_COMPOSITION.stations.find(s => s.id === definition.id);
-      if (station) { station.lessonRef = definition.lessonId == null ? definition.lessonRef : String(definition.lessonId); station.contentRewardId = definition.rewardId; }
+      if (station) { station.lessonRef = definition.lessonId == null ? definition.lessonRef : String(definition.lessonId); station.contentRewardId = definition.rewardId;
+        if(content.editorVersion===1)station.introActivityId=definition.introLessonId ?? 1;else delete station.introActivityId;
+      }
     }
   }
 }

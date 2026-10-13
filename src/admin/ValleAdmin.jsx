@@ -1,5 +1,6 @@
-import { createElement, useEffect, useState } from 'react';
-import { BookOpen, Map, Boxes, ListChecks, Gift, Skull, Package, Puzzle, Settings, LogOut, RefreshCw, Download, Plus, Copy, Trash2, Save, Play, X } from 'lucide-react';
+import { createElement, useEffect, useState, useReducer, useCallback } from 'react';
+import {createPortal} from 'react-dom';
+import { BookOpen, Map, Boxes, ListChecks, Gift, Skull, Package, Puzzle, Settings, LogOut, RefreshCw, Download, Plus, Copy, Trash2, Save, Play, X, Undo2, Redo2, Upload, History } from 'lucide-react';
 import { contentRequest } from '../game/content/contentRepository.js';
 import { ASSET_CATALOG, ASSET_CATEGORIES } from '../game/assets/assetCatalog.js';
 import PianoMagico from '../modules/piano-magico/PianoMagico.jsx';
@@ -7,6 +8,14 @@ import ContentPreview from './ContentPreview.jsx';
 import './valleAdmin.css';
 import { upgradeGameplayContent } from '../game/gameplay/gameplayContent.js';
 import GameplayEditor from './GameplayEditor.jsx';
+import WorldEditor from './WorldEditor.jsx';
+import LessonEditor from './LessonEditor.jsx';
+import {historyReducer,prepareEditorContent} from './editorState.js';
+import WorldSandbox from './WorldSandbox.jsx';
+import MinigameEditor from './MinigameEditor.jsx';
+import MinigameView from '../game/gameplay/MinigameView.jsx';
+import PublicationReview from './PublicationReview.jsx';
+import './visualEditor.css';
 
 const PAGES = [['LECCIONES', BookOpen], ['MUNDO', Map], ['ASSETS', Boxes], ['ACTIVIDADES', ListChecks], ['RECOMPENSAS', Gift],
   ['WORLD CREATURES', Skull], ['DESTRUCTIBLES', Package], ['MINIJUEGOS', Puzzle], ['CONFIGURACION', Settings]];
@@ -20,27 +29,35 @@ function exportJson(data, name) { const url = URL.createObjectURL(new Blob([JSON
 
 export default function ValleAdmin() {
   const [session, setSession] = useState(null), [error, setError] = useState(''), [busy, setBusy] = useState(false);
-  const [page, setPage] = useState('LECCIONES'), [lessons, setLessons] = useState([]), [content, setContent] = useState(null);
+  const [page, setPage] = useState('LECCIONES'), [lessons, setLessons] = useState([]);
+  const [documentState,dispatchDocument]=useReducer(historyReducer,{value:null,past:[],future:[]});
+  const content=documentState.value, setContent=value=>dispatchDocument({type:'change',value});
+  const [history,setHistory]=useState([]),[notice,setNotice]=useState(''),[localDraft,setLocalDraft]=useState(null);
+  const [sandbox,setSandbox]=useState(null);
+  const [miniPreview,setMiniPreview]=useState(null);
+  const [review,setReview]=useState(false);
   const [saved, setSaved] = useState(''), [editor, setEditor] = useState(null), [preview, setPreview] = useState(null);
   const [query, setQuery] = useState(''), [order, setOrder] = useState('order_index'), [category, setCategory] = useState('PET');
-  const [assetId, setAssetId] = useState(null), [regionId, setRegionId] = useState(''), [objectId, setObjectId] = useState('');
+  const [assetId, setAssetId] = useState(null);
   const [assetClip, setAssetClip] = useState('');
   useEffect(() => { contentRequest('session').then(setSession).catch(e => setError(e.message)); }, []);
-  const load = async () => {
+  const load = useCallback(async () => {
     const [rows, document] = await Promise.all([contentRequest('lessons'), contentRequest('content')]);
-    setLessons(rows); setContent(upgradeGameplayContent(document)); setSaved(JSON.stringify(document)); setRegionId(id => id || document.world[0].id);
-  };
-  useEffect(() => { if (session?.authenticated) load().catch(e => setError(e.message)); }, [session?.authenticated]);
+    try {setLocalDraft(JSON.parse(localStorage.getItem(`valle-admin-world-draft:${session.username}`)));}catch{setLocalDraft(null);}
+    setLessons(rows); dispatchDocument({type:'reset',value:prepareEditorContent(upgradeGameplayContent(document))}); setSaved(JSON.stringify(document));
+    setHistory(await contentRequest('history'));setNotice('');
+  },[session?.username]);
+  useEffect(() => { if (session?.authenticated) load().catch(e => setError(e.message)); }, [session?.authenticated,load]);
   const run = async task => { setError(''); setBusy(true); try { await task(); } catch (e) { setError(e.message); if (e.status === 401) setSession(s => ({ ...s, authenticated: false })); } finally { setBusy(false); } };
-  const saveContent = () => run(async () => { const document = await contentRequest('save_content', { revision: content.revision, content }); setContent(document); setSaved(JSON.stringify(document)); });
+  const saveContent = () => run(async () => {
+    const document = await contentRequest('save_content', { revision: content.revision, content:prepareEditorContent(content) }); dispatchDocument({type:'reset',value:document}); setSaved(JSON.stringify(document));setHistory(await contentRequest('history'));setReview(false);setNotice('Contenido publicado. Se aplica al volver a cargar el juego.'); });
+  useEffect(()=>{if(content&&session?.username&&(documentState.past.length||documentState.future.length)){try{localStorage.setItem(`valle-admin-world-draft:${session.username}`,JSON.stringify(content));}catch{setNotice('No se pudo guardar la copia local del borrador.');}}},[content,session?.username,documentState.past.length,documentState.future.length]);
+  useEffect(()=>{const guard=e=>{if(content&&saved!==JSON.stringify(content)){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',guard);return()=>window.removeEventListener('beforeunload',guard);},[content,saved]);
+  useEffect(()=>{const key=e=>{if(page!=='MUNDO'||sandbox||!(e.ctrlKey||e.metaKey)||e.target.closest('input,textarea,select'))return;if(e.key.toLowerCase()==='z'||e.key.toLowerCase()==='y'){e.preventDefault();dispatchDocument({type:e.shiftKey||e.key.toLowerCase()==='y'?'redo':'undo'});}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[page,sandbox]);
   const editCollection = (key, id, patch) => setContent(c => ({ ...c, [key]: immutableEdit(c[key], id, patch) }));
   const addRecord = (key, record) => setContent(c => ({ ...c, [key]: [...c[key], record] }));
   const removeRecord = (key, id) => setContent(c => ({ ...c, [key]: c[key].filter(r => r.id !== id) }));
   const globalLessons = lessons.filter(l => l.user_id === null && !l.isUserCreated);
-  const region = content?.world.find(r => r.id === regionId);
-  const object = region?.instances.find(i => i.id === objectId);
-  const editObject = patch => setContent(c => ({ ...c, world: c.world.map(r => r.id === regionId ? { ...r, instances: immutableEdit(r.instances, objectId, patch) } : r) }));
-  const appendObject = item => { setContent(c => ({ ...c, world: c.world.map(r => r.id === regionId ? { ...r, instances: [...r.instances, item] } : r) })); setObjectId(item.id); };
   if (!session?.authenticated) return <div className="valle-admin admin-login"><form onSubmit={e => {
     e.preventDefault(); const form = new FormData(e.currentTarget);
     run(async () => setSession(await contentRequest('login', { username: form.get('username'), password: form.get('password') })));
@@ -54,10 +71,16 @@ export default function ValleAdmin() {
   return <div className="valle-admin">
     <header><strong>VALLE ADMIN</strong><span>{session.username}</span><Tool icon={LogOut} label="Cerrar sesión" onClick={() => run(async () => { await contentRequest('logout', {}); setSession(await contentRequest('session')); })} /></header>
     <div className="admin-layout" inert={busy}><nav>{PAGES.map(([name, Icon]) => <button key={name} className={page === name ? 'selected' : ''} onClick={() => { setPage(name); setQuery(''); }}>{createElement(Icon, { size: 18 })}{name}</button>)}</nav>
-      <main><div className="admin-toolbar"><h1>{page}</h1><span>Rev. {content.revision}{dirty ? ' · Sin guardar' : ''}</span>
+      <main><div className="admin-toolbar"><h1>{page}</h1><span>Rev. {content.revision}{dirty ? ' · Sin publicar' : ''}</span>
         <Tool icon={RefreshCw} label="Recargar" disabled={busy} onClick={() => { if (!dirty || confirm('Descartar cambios sin guardar?')) run(load); }} />
         <Tool icon={Download} label="Exportar JSON" onClick={() => exportJson({ content, lessons }, 'valle-content.json')} />
-        <button disabled={!dirty || busy} onClick={saveContent}><Save size={18} />Guardar contenido</button></div>
+        <Tool icon={Undo2} label="Deshacer" disabled={!documentState.past.length} onClick={()=>dispatchDocument({type:'undo'})}/><Tool icon={Redo2} label="Rehacer" disabled={!documentState.future.length} onClick={()=>dispatchDocument({type:'redo'})}/>
+        <button disabled={busy} onClick={()=>run(async()=>{await contentRequest('save_draft',{revision:content.revision,content});setNotice('Borrador guardado. El juego publicado no cambio.');})}><Save size={18}/>Guardar borrador</button>
+        <button disabled={busy} onClick={()=>run(async()=>{const draft=await contentRequest('draft');if(!draft){setNotice('No hay borrador guardado en el servidor.');return;}if(draft.baseRevision!==content.revision&&!confirm('El contenido publicado cambio. Recuperar este borrador para revisarlo?'))return;setContent({...draft.content,revision:content.revision});setNotice('Borrador recuperado, todavia no publicado.');})}>Recuperar borrador</button>
+        <label className="admin-import"><Upload size={18}/><input aria-label="Importar contenido JSON" type="file" accept="application/json,.json" onChange={e=>run(async()=>{const file=e.target.files[0];if(!file)return;if(file.size>2097152)throw Error('El archivo supera 2 MB.');const imported=JSON.parse(await file.text()),doc=imported.content||imported;if(doc.schemaVersion!==1||!Array.isArray(doc.world)||!Array.isArray(doc.activities))throw Error('Formato de contenido invalido');if(confirm('Reemplazar el borrador actual por este contenido? No se publicara automaticamente.'))setContent({...prepareEditorContent(upgradeGameplayContent(doc)),revision:content.revision});e.target.value='';})}/></label>
+        <button disabled={!dirty || busy} onClick={()=>{setError('');setReview(true);}}><Upload size={18} />Publicar contenido</button></div>
+        {notice&&<p role="status" className="admin-notice">{notice}</p>}
+        {localDraft&&<button onClick={()=>{setContent({...prepareEditorContent(localDraft),revision:content.revision});setLocalDraft(null);setNotice('Copia local recuperada como borrador. Revisa los cambios antes de publicar.');}}><Undo2 size={16}/>Recuperar copia local</button>}
         {error && <p role="alert" className="admin-error">{error}</p>}
         {page === 'LECCIONES' && <><div className="admin-toolbar"><input aria-label="Buscar lecciones" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} />
           <select aria-label="Ordenar lecciones" value={order} onChange={e => setOrder(e.target.value)}><option value="order_index">Orden</option><option value="id">ID</option><option value="title">Nombre</option></select>
@@ -78,17 +101,7 @@ export default function ValleAdmin() {
         {page === 'ASSETS' && <><div className="admin-toolbar"><select aria-label="Categoría de asset" value={category} onChange={e => { setCategory(e.target.value); setAssetId(null); }}>{ASSET_CATEGORIES.map(c => <option key={c} value={c}>{TYPE_NAMES[c] || c}</option>)}</select><input aria-label="Buscar assets" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} /></div>
           <div className="admin-split"><div className="admin-asset-list">{ASSET_CATALOG.assets.filter(a => a.category === category && a.name.toLowerCase().includes(query.toLowerCase())).map(a => <button key={a.id} className={assetId === a.id ? 'selected' : ''} onClick={() => { setAssetId(a.id); setAssetClip(''); }}>{a.previewUrl && <img src={a.previewUrl} alt="" />}<span>{a.name}<small>{a.packId}</small></span></button>)}</div>
             <section>{selectedAsset && <><h2>{selectedAsset.name}</h2><ContentPreview asset={selectedAsset} clipName={assetClip} /><Field label="Animación"><select value={assetClip} onChange={e => setAssetClip(e.target.value)}><option value="">Idle / predeterminada</option>{[...new Set([...(selectedAsset.animations || []).map(a => a.name), ...(selectedAsset.animationSources || []).flatMap(s => s.clips)])].map(name => <option key={name}>{name}</option>)}</select></Field><dl><dt>Categoría</dt><dd>{TYPE_NAMES[selectedAsset.category] || selectedAsset.category}</dd><dt>Formato</dt><dd>{selectedAsset.url.split('.').pop().toUpperCase()}</dd><dt>Pack</dt><dd>{selectedAsset.packId}</dd><dt>Licencia</dt><dd>{selectedAsset.license ? JSON.stringify(selectedAsset.license) : 'No reauditada'}</dd><dt>Animaciones</dt><dd>{JSON.stringify(selectedAsset.animations || [])}</dd><dt>Bibliotecas externas</dt><dd>{JSON.stringify(selectedAsset.animationSources || [])}</dd></dl></>}</section></div></>}
-        {page === 'MUNDO' && <><div className="admin-toolbar"><select aria-label="Región" value={regionId} onChange={e => { setRegionId(e.target.value); setObjectId(''); }}>{content.world.map(r => <option key={r.id} value={r.id}>{r.regionId} · {r.id}</option>)}</select>
-          <select aria-label="Asset para agregar" defaultValue="" onChange={e => { const asset = ASSET_CATALOG.assets.find(a => a.id === e.target.value); if (asset) appendObject({ id: `object-${Date.now()}`, assetUrl: asset.url, role: 'decoration', kind: 'props', position: [0,0,0], rotation: [0,0,0], scale: [1,1,1], grounding: 'terrain', castShadow: true, receiveShadow: true, collision: { type: 'none' }, tags: [] }); e.target.value = ''; }}><option value="">Agregar asset</option>{ASSET_CATALOG.assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
-          <div className="admin-world-layout"><div className="admin-object-list">{region?.instances.map(i => <button key={i.id} className={objectId === i.id ? 'selected' : ''} onClick={() => setObjectId(i.id)}>{i.id}</button>)}</div>
-            <section><ContentPreview region={region} selectedId={objectId} onSelect={setObjectId} />{object && <><div className="admin-toolbar"><h2>{object.id}</h2><Tool icon={Copy} label="Duplicar objeto" onClick={() => appendObject({ ...structuredClone(object), id: `object-${Date.now()}` })} /><Tool icon={Trash2} label="Eliminar objeto" onClick={() => { if (confirm(`Eliminar ${object.id}?`)) { setContent(c => ({ ...c, world: c.world.map(r => r.id === regionId ? { ...r, instances: r.instances.filter(i => i.id !== objectId) } : r) })); setObjectId(''); } }} /></div>
-              <div className="admin-transform">{['position', 'rotation', 'scale'].map(key => <fieldset key={key}><legend>{key === 'rotation' ? 'Rotación (radianes)' : key === 'position' ? 'Posición (m)' : 'Escala'}</legend>{['X','Y','Z'].map((axis,index) => <Field key={axis} label={axis}><input type="number" step="0.01" value={object[key][index]} onChange={e => editObject({ [key]: object[key].map((v,i) => i === index ? Number(e.target.value) : v) })} /></Field>)}</fieldset>)}</div>
-              <div className="admin-form-grid"><Field label="Grounding"><select value={object.grounding} onChange={e => editObject({ grounding: e.target.value })}><option>terrain</option><option>absolute</option></select></Field>
-                <Field label="Colisión"><select value={object.collision?.type || 'none'} onChange={e => editObject({ collision: e.target.value === 'solid' ? { type: 'solid', shape: 'box', source: 'bounds' } : { type: 'none' } })}><option value="none">Ninguna</option><option value="solid">Sólida</option></select></Field>
-                {object.collision?.type === 'solid' && <><Field label="Forma"><select value={object.collision.shape} onChange={e => editObject({ collision: { ...object.collision, shape: e.target.value } })}><option>box</option><option>circle</option></select></Field><Field label="Fuente"><select value={object.collision.source} onChange={e => editObject({ collision: { ...object.collision, source: e.target.value } })}><option>bounds</option><option>base</option></select></Field></>}
-                <Field label="Interacción · radio (m)"><input type="number" min="0" max="20" step=".1" value={object.interaction?.radius || ''} onChange={e => editObject({ interaction: e.target.value ? { key: 'KeyE', radius: Number(e.target.value) } : undefined })} /></Field>
-                <Field label="Tags"><input value={(object.tags || []).join(', ')} onChange={e => editObject({ tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })} /></Field></div>
-            </>}</section></div></>}
+        {page === 'MUNDO' && <WorldEditor content={content} onChange={setContent} lessons={lessons} onTest={spawn=>run(async()=>{const draft=prepareEditorContent(content);await contentRequest('validate_content',{content:draft});setSandbox({content:structuredClone(draft),spawn});})} onEditLesson={lesson=>{if(lesson)setEditor({...lesson,sequence:[...lesson.sequence]});}}/>}
         {page === 'RECOMPENSAS' && <><button onClick={() => addRecord('rewards', { id: `reward-${Date.now()}`, type: 'PET', referenceId: ASSET_CATALOG.assets.find(a => a.category === 'PET').id, presentation: '', enabled: false })}><Plus size={18} />Crear recompensa</button>
           {content.rewards.map(r => <section className="admin-record" key={r.id}><div className="admin-toolbar"><h2>{r.id}</h2><Tool icon={Trash2} label="Eliminar recompensa" onClick={() => removeRecord('rewards', r.id)} /></div><div className="admin-form-grid">
             <Field label="ID"><input defaultValue={r.id} onBlur={e => editCollection('rewards', r.id, { id: e.target.value })} /></Field><Field label="Tipo"><select value={r.type} onChange={e => editCollection('rewards', r.id, { type: e.target.value, referenceId: e.target.value === 'PET' ? ASSET_CATALOG.assets.find(a => a.category === 'PET').id : 'future-reference' })}><option>PET</option><option>SECRET</option><option>COSMETIC_FUTURE</option></select></Field>
@@ -100,19 +113,13 @@ export default function ValleAdmin() {
             <Field label="Impactos"><input type="number" min="1" max="3" value={r.hitsRequired} onChange={e => editCollection('worldActions', r.id, { hitsRequired: Number(e.target.value) })} /></Field>
             {['hitReaction', 'defeatEffect', 'behaviorType'].map(key => <Field key={key} label={key}><input value={r[key]} onChange={e => editCollection('worldActions', r.id, { [key]: e.target.value })} /></Field>)}
             <Field label="Recompensa opcional"><select value={r.optionalReward || ''} onChange={e => editCollection('worldActions', r.id, { optionalReward: e.target.value || null })}><option value="">Ninguna</option>{content.rewards.map(reward => <option key={reward.id}>{reward.id}</option>)}</select></Field></div></section>)}</>}
-        {page === 'MINIJUEGOS' && <><div className="admin-toolbar"><span>Gameplay activo · cambios aplicados al iniciar el mundo</span><button onClick={() => addRecord('minigames', { id: `minigame-${Date.now()}`, type: 'NOTE_RECOGNITION', name: 'Reconoce la nota', configuration: {notePool:['C4','D4','E4'],questionCount:5,presentationMode:'audio',difficulty:'easy'}, rewardId:null, lessonId: null, enabled: false })}><Plus size={18} />Preparar minijuego</button><button onClick={() => addRecord('gates', { id: `gate-${Date.now()}`, minigameId: content.minigames[0]?.id || '', instanceId: null, regionId:'BOSQUE_DE_LAS_NOTAS', position:[0,0,0], rotation:[0,0,0], scale:[1,1,1], requirements:[], enabled: false })}><Plus size={18} />Preparar puerta</button></div>
-          {content.minigames.map(m => <section className="admin-record" key={m.id}><div className="admin-toolbar"><h2>{m.id}</h2><Tool icon={Trash2} label="Eliminar minijuego" onClick={() => removeRecord('minigames', m.id)} /></div><div className="admin-form-grid"><Field label="Tipo"><select value={m.type} onChange={e => editCollection('minigames', m.id, { type: e.target.value })}>{['NOTE_RECOGNITION','MELODY_RECOGNITION','RHYTHM','SEQUENCE','MEMORY','PIANO_CHALLENGE'].map(t => <option key={t}>{t}</option>)}</select></Field><Field label="Lección"><select value={m.lessonId || ''} onChange={e => editCollection('minigames', m.id, { lessonId: Number(e.target.value) || null })}><option value="">Sin lección</option>{globalLessons.map(l => <option key={l.id} value={l.id}>{l.title}</option>)}</select></Field></div></section>)}
-          {content.gates.map(g => <section className="admin-record" key={g.id}><div className="admin-toolbar"><h2>{g.id}</h2><Tool icon={Trash2} label="Eliminar puerta" onClick={() => removeRecord('gates', g.id)} /></div><Field label="Minijuego"><select value={g.minigameId} onChange={e => editCollection('gates', g.id, { minigameId: e.target.value })}><option value="">Seleccionar</option>{content.minigames.map(m => <option key={m.id}>{m.id}</option>)}</select></Field><Field label="Objeto"><select value={g.instanceId || ''} onChange={e => editCollection('gates', g.id, { instanceId: e.target.value || null })}><option value="">Sin placement</option>{content.world.flatMap(r => r.instances).map(i => <option key={i.id}>{i.id}</option>)}</select></Field></section>)}</>}
-        {page === 'CONFIGURACION' && <><GameplayEditor content={content} onChange={setContent}/><dl><dt>Versión</dt><dd>{content.schemaVersion}</dd><dt>Revisión</dt><dd>{content.revision}</dd><dt>Actualización</dt><dd>{content.updated_at}</dd><dt>Persistencia</dt><dd>MySQL · contenido separado de progreso</dd></dl></>}
+        {page === 'MINIJUEGOS' && <MinigameEditor content={content} onChange={setContent} onPreview={m=>run(async()=>{await contentRequest('validate_content',{content:prepareEditorContent(content)});setMiniPreview(structuredClone(m));})}/>}
+        {page === 'CONFIGURACION' && <><div className="admin-toolbar"><button onClick={()=>setPage('LECCIONES')}><BookOpen size={18}/>Editor de lecciones</button><button onClick={()=>setPage('MUNDO')}><Map size={18}/>Editor del Valle</button></div><section className="admin-record"><h2><History size={18}/> Versiones del mundo</h2>{history.length===0?<p>El historial comienza con la primera publicacion desde este editor.</p>:history.map(version=><div className="admin-toolbar" key={version.revision}><span>Revision {version.revision} · {version.created_at}</span><button onClick={()=>run(async()=>{const snapshot=await contentRequest('history_content',{revision:version.revision});if(confirm('Recuperar esta version como borrador? No cambia lecciones ni progreso.'))setContent({...prepareEditorContent(upgradeGameplayContent(snapshot)),revision:content.revision});})}>Recuperar como borrador</button></div>)}</section><GameplayEditor content={content} onChange={setContent}/><dl><dt>Versión</dt><dd>{content.schemaVersion}</dd><dt>Revisión</dt><dd>{content.revision}</dd><dt>Actualización</dt><dd>{content.updated_at}</dd><dt>Persistencia</dt><dd>MySQL · contenido separado de progreso</dd></dl></>}
       </main></div>
-    {editor && <div className="admin-modal"><form inert={busy} onSubmit={e => { e.preventDefault(); run(async () => { await contentRequest('save_lesson', { id: editor.id ?? null, revision: editor.revision, lesson: { ...editor, sequence: typeof editor.sequence === 'string' ? editor.sequence.trim().split(/\s+/) : editor.sequence } }); setEditor(null); setLessons(await contentRequest('lessons')); }); }}>
-      <div className="admin-toolbar"><h2>{editor.id ? `Lección ${editor.id}` : 'Nueva lección'}</h2><Tool type="button" icon={X} label="Cerrar editor" onClick={() => setEditor(null)} /></div>
-      <Field label="Nombre"><input required maxLength="255" value={editor.title} onChange={e => setEditor({ ...editor, title: e.target.value })} /></Field>
-      <Field label="Secuencia"><textarea required value={typeof editor.sequence === 'string' ? editor.sequence : editor.sequence.join(' ')} onChange={e => setEditor({ ...editor, sequence: e.target.value })} /></Field>
-      <div className="admin-form-grid">{[['order_index','Orden (0-based)',0,100000],['speed','Tempo · BPM hasta 300 / ms sobre 300',20,6000],['stickerId','Sticker',1,20]].map(([key,label,min,max]) => <Field key={key} label={label}><input required type="number" min={min} max={max} value={editor[key]} onChange={e => setEditor({ ...editor, [key]: Number(e.target.value) })} /></Field>)}
-        <Field label="Ritmo"><select value={editor.rhythm} onChange={e => setEditor({ ...editor, rhythm: e.target.value })}>{['pop','rock','bubble','clasico','march','marcha'].map(r => <option key={r}>{r}</option>)}</select></Field><Field label="Activa"><input type="checkbox" checked={editor.enabled} onChange={e => setEditor({ ...editor, enabled: e.target.checked })} /></Field></div>
-      <div className="admin-toolbar"><button type="submit" disabled={busy}><Save size={18} />Guardar lección</button></div>{error && <p role="alert">{error}</p>}
-    </form></div>}
-    {preview && <div className="admin-piano-preview"><PianoMagico key={`${preview.id}-${preview.revision}`} initialSong={preview} initialView="game" initialMode="solo" preparationComplete adminPreview onExit={() => setPreview(null)} onFinishLesson={() => setPreview(null)} /><Tool className="admin-preview-close" icon={X} label="Cerrar preview" onClick={() => setPreview(null)} /></div>}
+    {sandbox&&<WorldSandbox content={sandbox.content} spawn={sandbox.spawn} lessons={lessons} onClose={()=>setSandbox(null)}/>}
+    {review&&<PublicationReview before={JSON.parse(saved)} content={content} busy={busy} error={error} onClose={()=>setReview(false)} onPublish={saveContent}/>}
+    {miniPreview&&createPortal(<MinigameView definition={miniPreview} onClose={()=>setMiniPreview(null)} onComplete={()=>setMiniPreview(null)}/>,document.body)}
+    {editor && <LessonEditor lesson={editor} busy={busy} onClose={()=>setEditor(null)} onPreview={setPreview} onSave={async lesson=>{setBusy(true);try{await contentRequest('save_lesson',{id:editor.id??null,revision:editor.revision,lesson});setLessons(await contentRequest('lessons'));setEditor(null);setNotice('Leccion publicada.');}finally{setBusy(false);}}}/>}
+    {preview && createPortal(<div className="admin-piano-preview"><PianoMagico key={`${preview.id}-${preview.revision}`} initialSong={preview} initialView="game" initialMode="solo" preparationComplete adminPreview onExit={() => setPreview(null)} onFinishLesson={() => setPreview(null)} /><Tool className="admin-preview-close" icon={X} label="Cerrar preview" onClick={() => setPreview(null)} /></div>,document.body)}
   </div>;
 }

@@ -28,6 +28,7 @@ export const EQUIPMENT = {
 };
 const equipmentNodes = new Set(['1H_Sword_Offhand', 'Badge_Shield', 'Rectangle_Shield', 'Round_Shield', 'Spike_Shield', '1H_Sword', '2H_Sword', 'Spellbook', 'Spellbook_open', '1H_Wand', '2H_Staff', '1H_Axe_Offhand', 'Barbarian_Round_Shield', '1H_Axe', '2H_Axe', 'Mug', 'Knife_Offhand', '1H_Crossbow', '2H_Crossbow', 'Knife', 'Throwable']);
 export const getEquipment = (id, choice) => (EQUIPMENT[id] || EQUIPMENT[1]).find(item => item.id === choice) || (EQUIPMENT[id] || EQUIPMENT[1])[0];
+export function hideEquipment(model){model.traverse(node=>{if(equipmentNodes.has(node.name))node.visible=false;});}
 export function readEquipment(userId, id, storage = globalThis.localStorage) {
   try { return getEquipment(id, storage?.getItem(`valley_equipment_${userId}_${id}`)).id; } catch { return getEquipment(id).id; }
 }

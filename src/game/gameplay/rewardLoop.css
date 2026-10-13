@@ -1,0 +1,11 @@
+.reward-valley{position:absolute;inset:0;z-index:80;isolation:isolate;overflow:hidden;color:#fff4c9;display:flex;flex-direction:column;align-items:center;outline:none;letter-spacing:0}
+.reward-valley-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.reward-valley::before{content:"";position:absolute;inset:0;background:#102b2545;z-index:-1}
+.reward-valley-heading{position:absolute;top:24px;left:16px;right:16px;text-align:center;z-index:2;text-shadow:0 3px 2px #38291b,0 0 18px #7a4018}
+.reward-valley-heading h2{font-size:32px;font-weight:900;margin:8px 0}.reward-valley-stars{display:flex;justify-content:center;gap:14px;color:#ffd35b;filter:drop-shadow(0 0 10px #fff1a5)}
+.reward-valley>.gameplay-stage{position:absolute;inset:100px 0 164px;width:100%;height:auto;min-height:0}
+.reward-valley-footer{position:absolute;bottom:22px;left:16px;right:16px;text-align:center;z-index:2;text-shadow:0 2px 4px #123228}
+.reward-valley-footer h3{font-size:24px;font-weight:900;min-height:30px;margin:0}.reward-valley-footer p{margin:4px 0;font-size:16px}.reward-valley-footer .gameplay-buttons{margin-top:14px}.reward-valley-footer .valley-button{min-height:56px;min-width:180px}
+.shared-game-ui:has(.reward-valley) .valley-world-hud,.shared-game-ui:has(.reward-valley) .valley-world-objective,.shared-game-ui:has(.reward-valley) .gameplay-menu-button,.shared-game-ui:has(.reward-valley) .world-toy-count{visibility:hidden}
+@media(max-width:600px){.reward-valley-heading{top:18px}.reward-valley-heading h2{font-size:25px}.reward-valley-stars svg{width:32px;height:32px}.reward-valley>.gameplay-stage{inset:98px 0 174px}.reward-valley-footer h3{font-size:21px}.reward-valley-footer .valley-button{min-width:140px;padding:12px 14px;font-size:15px}}
+@media(max-height:530px){.reward-valley-heading{top:8px}.reward-valley-heading h2{font-size:22px;margin:4px}.reward-valley-stars svg{width:28px;height:28px}.reward-valley>.gameplay-stage{inset:66px 0 112px}.reward-valley-footer{bottom:12px}.reward-valley-footer h3{font-size:18px;min-height:22px}.reward-valley-footer p{font-size:13px}.reward-valley-footer .valley-button{min-height:44px}.reward-valley-footer .gameplay-buttons{margin-top:6px}}

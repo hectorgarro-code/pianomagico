@@ -24,7 +24,7 @@ export default function SharedWorld(props) {
     publish?.({ ...props, ...callbacks });
   }, [publish, props.active, props.hidden, props.sessionKey, props.profile, props.adventureState, props.gameplayState,
     props.songs, props.userPerformances, props.memoryMedals, props.returnContext, props.initialPosition,
-    props.initialRotation, props.debugEnabled, props.equipmentVersion, props.mapRequest, props.completedStationIds?.join('|'), callbacks]);
+    props.initialRotation, props.debugEnabled, props.equipmentVersion, props.mapRequest, props.companionCelebration, props.completedStationIds?.join('|'), callbacks]);
   useLayoutEffect(() => () => publish?.(null), [publish]);
   return publish ? null : <World3DView {...props} />;
 }

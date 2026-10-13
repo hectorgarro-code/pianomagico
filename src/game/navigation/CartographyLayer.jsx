@@ -40,6 +40,7 @@ const StaticInk = memo(function StaticInk({ model, illustration, enlarged }) {
         {completed && <path className="cartography-check" d={`M${p.x+3},${p.y+2} l2,2 l5,-6`} />}
       </g>;
     })}
+    {(model.secrets||[]).map(secret=>{const p=worldToMap(secret.position);return <g key={secret.id} data-map-secret={secret.id}><title>Secreto encontrado</title><path d={`M${p.x},${p.y-5} l4,5 l-4,5 l-4,-5 Z`} fill="#4e8988" stroke="#4e381d" strokeWidth="1.2"/></g>;})}
   </g>;
 });
 

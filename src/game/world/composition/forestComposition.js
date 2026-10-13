@@ -1,3 +1,5 @@
+import { FOREST_TOY } from './toyComposition.js';
+import {FOREST_MUSIC} from './musicalMechanismComposition.js';
 const trees = [
   ['west-01','Tree_3_A_Color1',-14,-29,1.65,0.4],
   ['west-02','Tree_2_A_Color1',-18,-31,1.5,1.2],
@@ -38,6 +40,8 @@ const reservation = (id,center,radius,purpose) => ({id,shape:'circle',center,rad
 export const FOREST_COMPOSITION = {
   schemaVersion:1,regionId:'BOSQUE_DE_LAS_NOTAS',reviewStatus:'draft',stage:'medium',
   origin:[0,0,0],groupName:'Region_Bosque_Medium',
+  gameplay:FOREST_TOY,
+  musicalMechanisms:[FOREST_MUSIC],
   spawn:{position:[12,0.9,-28],rotation:[0,Math.PI,0]},
   camera:{yaw:0,pitch:0.26,distance:18,lookAhead:4},
   terrain:{baseY:1.5,flatRadius:5.5,

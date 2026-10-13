@@ -61,7 +61,7 @@ test('recognition difficulty changes distractors without omitting the correct no
 });
 test('Valley result is opt-in, waits for real saved piano result and does not replace standalone result',()=>{
   const piano=fs.readFileSync('src/modules/piano-magico/PianoMagico.jsx','utf8');assert.ok(piano.includes('valleyResult = false'));assert.ok(piano.includes("view === 'success' && currentSong && !valleyResult"));assert.ok(piano.includes('await performanceSaveRef.current'));
-  const result=fs.readFileSync('src/game/gameplay/ValleyActivityResult.jsx','utf8');assert.ok(result.includes('result.xp'));assert.ok(result.includes('AssetStage petId={pet.assetId} celebration'));assert.ok(result.includes('Equipar ahora'));
+  const result=fs.readFileSync('src/game/gameplay/ValleyActivityResult.jsx','utf8');assert.ok(result.includes('result.xp'));assert.ok(result.includes('petId={pet?.assetId}'));assert.ok(result.includes('rewardMode'));assert.ok(result.includes('EQUIPAR'));assert.ok(result.includes('disabled={!ready}'));
   const world=fs.readFileSync('src/game/world/World3DView.jsx','utf8');assert.ok(world.includes('onClick={()=>performWorldAction(\'Q\')}'));assert.ok(world.includes('onClick={()=>performWorldAction(\'E\')}'));
 });
 test('server validates active gameplay, negative cases and keeps ADMIN security',()=>{

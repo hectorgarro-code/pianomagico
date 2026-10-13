@@ -26,7 +26,7 @@ test('both new and existing profiles prepare their adventurer directly without m
   assert.match(app, /createWorldActivityState\(progressService.loadAdventure\(id\)\)/);
   const preparation=fs.readFileSync('src/game/adventure/AdventureStart.jsx','utf8');
   assert.match(preparation,/await onCharacter\(c,e,p\);onBegin\(\)/);
-  assert.match(preparation,/confirmLabel="JUGAR" onClose=\{onExit\}/);
+  assert.match(preparation,/confirmLabel="JUGAR"/);assert.match(preparation,/onClose=\{onExit\}/);assert.match(preparation,/onNewAdventure=/);
   assert.doesNotMatch(preparation,/entry-resume-layout|entry-resume-info/);
 });
 test('profile summaries derive objective/current region and progress exclusively from validated Adventure', () => {
@@ -50,6 +50,6 @@ test('entry owns one World3DView, shares cached previews, keeps piano/instrument
   assert.match(suite,/SharedWorldProvider/); assert.doesNotMatch(suite,/InstrumentSelection|UkeHero|MusicStudio/);
   assert.match(shared,/session props/); assert.match(shared,/World3DView/);
   const profiles=fs.readFileSync('src/game/entry/ProfilePortraits.jsx','utf8');assert.match(profiles,/setScissor/);assert.match(profiles,/loadCharacterPresentation/);assert.match(profiles,/user.petId/);assert.doesNotMatch(profiles,/WorldGenerator/);
-  const music=fs.readFileSync('src/game/audio/WorldMusic.jsx','utf8');assert.match(music,/valley-entry-unlock/);assert.doesNotMatch(music,/getUserMedia|usePianoMic|AudioContext/);
+  const music=fs.readFileSync('src/game/audio/WorldMusic.jsx','utf8');assert.match(music,/valley-entry-unlock/);assert.doesNotMatch(music,/getUserMedia|startMic|stopMic|AudioContext/);assert.match(music,/usePianoMicStore.subscribe/);
   const css=fs.readFileSync('src/game/entry/entryExperience.css','utf8');assert.match(css,/focus-visible/);assert.match(css,/@media\(max-width:700px\)/);
 });

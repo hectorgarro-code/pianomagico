@@ -6,6 +6,8 @@ require __DIR__ . '/dbconfig.php';
 require __DIR__ . '/content/security.php';
 require __DIR__ . '/content/validation.php';
 require __DIR__ . '/content/lessons.php';
+require __DIR__ . '/content/editor.php';
+require __DIR__ . '/content/preflight.php';
 if (!$conn) content_fail(503, 'Database unavailable');
 try {
     $action = $_GET['action'] ?? '';
@@ -36,20 +38,35 @@ try {
         session_regenerate_id(true); $_SESSION['admin_id'] = (int)$account['id']; $_SESSION['authenticated_at'] = time(); $_SESSION['csrf'] = bin2hex(random_bytes(32));
         echo json_encode(['authenticated' => true, 'username' => $account['username'], 'csrfToken' => $_SESSION['csrf']]); exit;
     }
-    content_admin($conn);
+    $admin = content_admin($conn);
+    if (in_array($action,['draft','save_draft','history','history_content','lesson_history','lesson_history_content'],true)) { echo json_encode(content_editor_action($conn,$action,$input,$admin),JSON_UNESCAPED_UNICODE); exit; }
     if ($action === 'logout') { content_post(); $_SESSION = []; session_destroy(); echo json_encode(['ok'=>true]); exit; }
     if ($action === 'lessons') { echo json_encode(content_lessons($conn),JSON_UNESCAPED_UNICODE); exit; }
-    if ($action === 'save_lesson') { content_post(); echo json_encode(content_save_lesson($conn,$input)); exit; }
+    if ($action === 'save_lesson') { content_post();content_editor_schema($conn);echo json_encode(content_save_lesson($conn,$input,fn($lesson)=>content_editor_lesson_snapshot($conn,$lesson,$admin['id']))); exit; }
     if ($action === 'content') { echo json_encode(content_document($conn),JSON_UNESCAPED_UNICODE); exit; }
+    if ($action === 'validate_content') {
+        content_post();
+        $registry=json_decode(file_get_contents(__DIR__.'/content/registry.json'),true,512,JSON_THROW_ON_ERROR);
+        $draft=$input['content'] ?? null;
+        content_revision_check($draft,content_document($conn));
+        $checked=validate_game_content($draft,$registry,content_lessons($conn));
+        $assets=content_asset_preflight($checked,$registry);
+        echo json_encode(['ok'=>true,'revision'=>$draft['revision'],...$assets]);exit;
+    }
     if ($action === 'save_content') {
         content_post();
+        content_editor_schema($conn);
         $registry = json_decode(file_get_contents(__DIR__.'/content/registry.json'),true,512,JSON_THROW_ON_ERROR);
         $conn->beginTransaction();
         $current = content_document($conn,true);
         if ((int)($input['revision'] ?? -1) !== $current['revision']) throw new DomainException('El contenido cambio; recargar antes de guardar');
         $data = validate_game_content($input['content'] ?? null,$registry,content_lessons($conn));
+        content_asset_preflight($data,$registry);
+        content_editor_snapshot($conn,$current,$admin['id']);
         $stmt = $conn->prepare('UPDATE valle_game_content SET payload=?,revision=revision+1 WHERE id=1'); $stmt->execute([json_encode($data,JSON_UNESCAPED_UNICODE)]);
-        $conn->commit(); echo json_encode(content_document($conn),JSON_UNESCAPED_UNICODE); exit;
+        $published = content_document($conn);
+        content_editor_snapshot($conn,$published,$admin['id']);
+        $conn->commit(); echo json_encode($published,JSON_UNESCAPED_UNICODE); exit;
     }
     content_fail(404,'Accion inexistente');
 } catch (InvalidArgumentException $e) { if ($conn->inTransaction()) $conn->rollBack(); content_fail(422,$e->getMessage()); }

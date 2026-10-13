@@ -4,7 +4,7 @@ import { progressService } from './services/progressService';
 import SharedWorld from './entry/SharedWorld.jsx';
 import PianoStageView from './piano/PianoStageView';
 import GameTransitionManager from './transitions/GameTransitionManager';
-import { Zap, X, Menu } from 'lucide-react';
+import { Zap, X, Menu, Music2 } from 'lucide-react';
 import AdventurerMenu from './gameplay/AdventurerMenu.jsx';
 import ValleyActivityResult from './gameplay/ValleyActivityResult.jsx';
 import MinigameView from './gameplay/MinigameView.jsx';
@@ -21,7 +21,11 @@ import ValleyProgressDebug from './adventure/ValleyProgressDebug.jsx';
 import WorldMusic from './audio/WorldMusic.jsx';
 import ValleyEnding from './adventure/ValleyEnding.jsx';
 import { getDevPlaytest } from './playtest/playtestTelemetry.js';
-import { saveEquipment } from './presentation/characterEquipment.js';
+import { EQUIPMENT, saveEquipment } from './presentation/characterEquipment.js';
+import {loadEquipmentCollection,unlockEquipment,saveEquipmentCollection,canEquip} from './presentation/equipmentCollection.js';
+import VisualPreview from './presentation/VisualPreview.jsx';
+import {claimLessonPetReward} from './gameplay/lessonPetReward.js';
+import {FIRST_MINUTES as F,firstMinutesStarted,firstMinutesPhase,mayRestoreFirstMinutes} from './gameplay/firstMinutes.js';
 
 // Estados del Orquestador General
 export { GAME_MODES } from './state/worldActivityFlow.js';
@@ -31,14 +35,31 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
   const [flow, dispatch] = useReducer(worldActivityReducer, userId, id => createWorldActivityState(progressService.loadAdventure(id)));
   const gameMode = flow.mode;
   const gameState = flow.game;
+  const flowRef=useRef(flow);flowRef.current=flow;
+  const settlingResultRef=useRef(false);
+  const [companionCelebration,setCompanionCelebration]=useState(0);
   const [startPhase, setStartPhase] = useState('CHARACTER');
   const [worldVisit, setWorldVisit] = useState(0);
+  const [finalRevealReady,setFinalRevealReady]=useState(()=>getValleyProgress(gameState.adventure).valleyCompleted);
   const [gameplay,setGameplay]=useState(()=>gameplayPersistence().load(userId));
   const gameplayRef=useRef(gameplay);gameplayRef.current=gameplay;
+  const [arsenal,setArsenal]=useState(()=>loadEquipmentCollection(userId));
+  const [arsenalSaved,setArsenalSaved]=useState(true);
+  const [weaponReward,setWeaponReward]=useState(null);
+  const arsenalRef=useRef(arsenal);arsenalRef.current=arsenal;
+  const visualGameplay={...gameplay,unlockedEquipment:arsenal};
+  useEffect(()=>{
+    const next=unlockEquipment(arsenalRef.current,gameState.adventure);
+    const added=next.filter(id=>!arsenalRef.current.includes(id));
+    if(added.length){arsenalRef.current=next;setArsenal(next);if(startPhase==='PLAYING')setWeaponReward(added.at(-1));}
+    setArsenalSaved(saveEquipmentCollection(userId,next));
+  },[userId,gameState.adventure,startPhase]);
+  useEffect(()=>{if(!weaponReward)return;const timer=setTimeout(()=>setWeaponReward(null),3500);return()=>clearTimeout(timer);},[weaponReward]);
   const [menuOpen,setMenuOpen]=useState(false),[activityResult,setActivityResult]=useState(null),[miniId,setMiniId]=useState(null),[equipmentVersion,setEquipmentVersion]=useState(0),[mapRequest,setMapRequest]=useState(0);
   const [gameplaySaved,setGameplaySaved]=useState(true);
   const updateGameplay=next=>{gameplayRef.current=next;setGameplay(next);setGameplaySaved(gameplayPersistence().save(userId,next));};
   const receiveReward=(id,result=null,name='')=>{
+    if(getGameplayContent().rewards.find(reward=>reward.id===id)?.type==='PET')return;
     const claimed=claimReward(gameplayRef.current,id);updateGameplay(claimed.state);
     if(claimed.pet || result)setActivityResult({result:result || {completed:true},pet:claimed.pet,name});
   };
@@ -63,11 +84,12 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
     window.addEventListener('pagehide', pause);
     return () => { window.removeEventListener('pagehide', pause); pause(); };
   }, [userId]);
-  const resetAdventure = () => { dispatch({ type: 'RESET_ADVENTURE' }); updateGameplay({...gameplayRef.current,completedMinigames:[]});setWorldVisit(value => value + 1); setStartPhase('ENTRY'); };
+  const resetAdventure = () => { dispatch({ type: 'RESET_ADVENTURE' }); setFinalRevealReady(false);updateGameplay({...gameplayRef.current,completedMinigames:[]});setWorldVisit(value => value + 1); setStartPhase('ENTRY'); };
   const newAdventure = (confirmed = false) => {
     const phase = getNewAdventurePhase(gameState.adventure, confirmed);
     if (phase === 'CHARACTER') {
       dispatch({ type: 'RESET_ADVENTURE' });
+      setFinalRevealReady(false);
       updateGameplay({...gameplayRef.current,completedMinigames:[]});
       setWorldVisit(value => value + 1);
     }
@@ -92,7 +114,7 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
   const discoveredSong = songs.find(song => String(song.id) === String(discoveredObject?.activityId ?? flow.context?.activityId));
   const adventureSummary = getAdventureSummary(gameState.adventure);
   const valleyProgress = getValleyProgress(gameState.adventure);
-  const showEnding = gameMode === GAME_MODES.WORLD && valleyProgress.valleyCompleted && !flow.endingAcknowledged;
+  const showEnding = gameMode === GAME_MODES.WORLD && valleyProgress.valleyCompleted && finalRevealReady && !flow.endingAcknowledged;
 
   // Cargar datos del usuario desde la capa progressService
   const loadUserData = useCallback(async () => {
@@ -141,11 +163,24 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
 
   // Lección completada (recargar datos frescos de backend)
   const handleLessonFinished = useCallback(async (result) => {
+    const current=flowRef.current;
+    if(settlingResultRef.current||worldActivityReducer(current,{type:'RETURN',result})===current)return;
+    settlingResultRef.current=true;
     dispatch({ type: 'RETURN', result });
-    const object=findWorldActivityObject(flow.context?.stationId);
-    receiveReward(result.completed ? object?.contentRewardId : null,result,selectedSong?.title || object?.label || 'Actividad');
-    await loadUserData();
-  }, [loadUserData,flow.context,selectedSong]);
+    setActivityResult({result,pet:null,pending:true});
+    try{
+      const performances=await progressService.getUserPerformances(userId);
+      const object=findWorldActivityObject(current.context?.stationId);
+      const claimed=claimLessonPetReward(gameplayRef.current,{result,context:current.context,activity:current.activity,object,userId,performances});
+      if(claimed.state!==gameplayRef.current)updateGameplay(claimed.state);
+        if(claimed.valid){setCompanionCelebration(value=>value+1);if(firstMinutesStarted(current.game.adventure)&&mayRestoreFirstMinutes(result,current.context,object))dispatch({type:'VALIDATED_PLAZA_RESULT',performanceId:result.performanceId});}
+        const firstReward=claimed.valid&&firstMinutesPhase(current.game.adventure)==='CHEST'&&mayRestoreFirstMinutes(result,current.context,object);
+        const reunion=firstReward&&!claimed.pet?getGameplayContent().pets.find(p=>p.id==='kenney-cube-pets:animal-elephant'&&gameplayRef.current.unlockedPets.includes(p.id)):null;
+        setActivityResult({result:reunion?{...result,returningFriend:true}:result,pet:claimed.pet||reunion,pending:false,saveFailed:result.completed&&!claimed.valid});
+      await loadUserData();
+    }catch{setActivityResult({result,pet:null,pending:false,saveFailed:result.completed});}
+    finally{settlingResultRef.current=false;}
+  }, [loadUserData,userId]);
 
   // Fin de la animación de transición
   const handleTransitionComplete = useCallback((targetMode) => {
@@ -161,10 +196,11 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
 
   if (startPhase !== 'PLAYING') return <AdventureStart
     phase={startPhase} profile={profile}
-    sharedEntry={sharedEntry} gameplay={gameplay}
+    sharedEntry={sharedEntry} gameplay={visualGameplay}
     onPhase={setStartPhase} onBegin={beginAdventure}
     onNewAdventure={newAdventure} debugEnabled={debugEnabled}
     onCharacter={async (avatarId, equipment, pet) => {
+      if(!canEquip(avatarId,equipment,arsenalRef.current))throw Error('Equipment unavailable');
       const saved = await progressService.selectCharacter(userId, avatarId);
       if (!saved || saved.avatarId !== avatarId) throw new Error('Character not confirmed');
       saveEquipment(userId, avatarId, equipment);
@@ -175,7 +211,7 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
   />;
 
   return (
-    <div className={`relative w-full h-[100dvh] overflow-hidden ${sharedEntry ? 'shared-game-ui' : 'bg-slate-950'} text-slate-100 select-none`}>
+      <div className={`relative w-full h-[100dvh] overflow-hidden ${sharedEntry ? 'shared-game-ui' : 'bg-slate-950'} ${firstMinutesStarted(gameState.adventure)?'first-minutes-adventure':''} ${firstMinutesPhase(gameState.adventure)&&firstMinutesPhase(gameState.adventure)!=='DONE'?'first-minutes-ui':''} text-slate-100 select-none`}>
       {/* HUD SUPERIOR DEL VIDEOJUEGO (Solo visible en WORLD) */}
       {(
         <div className={`valley-world-hud fixed top-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-5 flex justify-between items-start ${gameMode !== GAME_MODES.WORLD ? 'hidden' : ''}`}>
@@ -199,7 +235,7 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
 
           {/* HUD Derecha: XP y Salir */}
           <div className="pointer-events-auto flex items-center gap-2">
-            <WorldMusic active={gameMode === GAME_MODES.WORLD && !flow.discovery && !miniId && !activityResult && !menuOpen} immediatePause={gameMode === GAME_MODES.PIANO || !!flow.discovery || !!miniId || !!activityResult || menuOpen} />
+            <WorldMusic adventure={gameState.adventure} active={gameMode === GAME_MODES.WORLD && !flow.discovery && !miniId && !activityResult && !menuOpen} immediatePause={gameMode === GAME_MODES.PIANO || !!miniId || !!activityResult || menuOpen} />
             <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md border border-amber-400/30 px-3 py-1.5 rounded-full shadow-2xl">
               <Zap size={15} className="text-amber-400 fill-amber-400" />
               <span className="text-xs font-black text-amber-300 tracking-wider">
@@ -247,6 +283,8 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
               debugEnabled={debugEnabled}
               active={gameMode === GAME_MODES.WORLD && !flow.discovery && !showEnding && !menuOpen && !miniId && !activityResult}
               returnContext={flow.context}
+              companionCelebration={companionCelebration}
+              onRestorationSettled={id=>{if(id==='OBSERVATORIO_MUSICAL')setFinalRevealReady(true);}}
               completedStationIds={Object.keys(gameState.world.stationResults)}
               songs={songs}
               profile={profile}
@@ -262,6 +300,7 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
               onPlaytestEvent={handlePlaytestEvent}
               gameplayState={gameplay} equipmentVersion={equipmentVersion} onGameplayReward={receiveReward}
               onMinigame={setMiniId} mapRequest={mapRequest}
+              onToyEvent={event=>dispatch({type:'TOY_EVENT',event})}
             />
           </div>
         )}
@@ -274,20 +313,24 @@ export default function GameApp({ userId, onExitApp, sharedEntry = false }) {
         />}
         {showEnding && !activityResult && <ValleyEnding onContinue={() => dispatch({ type: 'ACK_ENDING' })} />}
         {gameMode===GAME_MODES.WORLD && !flow.discovery && <button className="gameplay-menu-button" onClick={()=>setMenuOpen(true)} title="Menu del aventurero" aria-label="Menu del aventurero"><Menu size={20}/></button>}
-        {menuOpen && <AdventurerMenu profile={profile} gameplay={gameplay} onClose={()=>setMenuOpen(false)} onExit={onExitApp}
+        {gameMode===GAME_MODES.WORLD && startPhase==='PLAYING' && <div className="world-toy-count" aria-label="Notas Perdidas recogidas" title="Notas Perdidas"><Music2 size={22}/><span key={gameState.adventure.toy?.collectedNotes.length || 0}>{gameState.adventure.toy?.collectedNotes.length || 0}</span></div>}
+        {weaponReward && gameMode===GAME_MODES.WORLD && <div className="arsenal-reward" role="status"><VisualPreview characterId={Object.entries(EQUIPMENT).find(([,list])=>list.some(e=>e.id===weaponReward))?.[0]} equipment={weaponReward} weapon/><span>¡Nueva arma!</span></div>}
+        {menuOpen && <AdventurerMenu profile={profile} gameplay={visualGameplay} onClose={()=>setMenuOpen(false)} onExit={onExitApp}
           onMap={()=>{setMenuOpen(false);setMapRequest(value=>value+1);}}
           onApply={async(character,equipment,pet)=>{
+            if(!canEquip(character,equipment,arsenalRef.current))throw Error('Equipment unavailable');
             if(character!==profile.avatarId){const saved=await progressService.selectCharacter(userId,character);if(saved?.avatarId!==character)throw Error('Character not confirmed');setProfile(saved);dispatch({type:'PROFILE',profile:saved});}
             saveEquipment(userId,character,equipment);setEquipmentVersion(value=>value+1);updateGameplay(equipPet(gameplayRef.current,pet));
           }}/>
         }
         {miniId && <MinigameView key={miniId} definition={getGameplayContent().minigames.find(m=>m.id===miniId)} onClose={()=>setMiniId(null)} onComplete={id=>{
-          const completion=completeMinigame(gameplayRef.current,id,true);updateGameplay(completion.state);setMiniId(null);if(completion.pet)setActivityResult({pet:completion.pet,result:{completed:true},name:getGameplayContent().minigames.find(m=>m.id===id)?.name});
+          const content=getGameplayContent();
+          const completion=completeMinigame(gameplayRef.current,id,true,{...content,rewards:content.rewards.filter(reward=>reward.type!=='PET')});updateGameplay(completion.state);setMiniId(null);
         }}/>
         }
-        {activityResult && <ValleyActivityResult result={activityResult.result} pet={activityResult.pet} activityName={activityResult.name} onContinue={()=>{setActivityResult(null);dispatch({type:'ACK_REWARD'});}} onEquip={()=>{updateGameplay(equipPet(gameplayRef.current,activityResult.pet.id));setActivityResult(null);dispatch({type:'ACK_REWARD'});}}/>}
-        {!gameplaySaved && <p role="alert" className="absolute bottom-12 left-4 z-50 bg-zinc-900 p-3 text-xs">No se pudo guardar tu coleccion en este dispositivo.</p>}
-        {gameMode === GAME_MODES.WORLD && gameState.adventure.lastReward && !flow.discovery && <div role="status" className="absolute bottom-16 left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border border-emerald-400 bg-zinc-900 px-4 py-3 text-sm">
+        {activityResult && <ValleyActivityResult result={activityResult.result} pet={activityResult.pet} characterId={profile.avatarId} pending={activityResult.pending} saveFailed={activityResult.saveFailed} onContinue={()=>{if(firstMinutesStarted(gameState.adventure)&&gameState.adventure.valley.milestones.includes(F.restored)&&!gameplayRef.current.equippedPetId&&activityResult.pet)updateGameplay(equipPet(gameplayRef.current,activityResult.pet.id));setActivityResult(null);dispatch({type:'ACK_REWARD'});}} onEquip={()=>{if(!activityResult.pet)return;updateGameplay(equipPet(gameplayRef.current,activityResult.pet.id));setActivityResult(null);dispatch({type:'ACK_REWARD'});}}/>}
+        {(!gameplaySaved||!arsenalSaved) && <p role="alert" className="absolute bottom-12 left-4 z-50 bg-zinc-900 p-3 text-xs">No se pudo guardar tu coleccion en este dispositivo.</p>}
+        {gameMode === GAME_MODES.WORLD && gameState.adventure.lastReward && !flow.discovery && !activityResult && <div role="status" className="absolute bottom-16 left-1/2 z-40 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border border-emerald-400 bg-zinc-900 px-4 py-3 text-sm">
           <span>Recompensa: {gameState.adventure.lastReward.label}</span>
           <button onClick={() => dispatch({ type: 'ACK_REWARD' })} title="Cerrar recompensa" aria-label="Cerrar recompensa"><X size={16}/></button>
         </div>}

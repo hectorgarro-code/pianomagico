@@ -1,0 +1,15 @@
+import test,{before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {createServer} from 'vite';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {createElement} from 'react';
+import {readFileSync} from 'node:fs';
+let server,data,LessonEditor;
+before(async()=>{server=await createServer({server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom',logLevel:'error'});data=await server.ssrLoadModule('/src/admin/lessonEditorData.js');LessonEditor=(await server.ssrLoadModule('/src/admin/LessonEditor.jsx')).default;});
+after(async()=>{await server?.close();});
+const lesson={id:1,title:'Elefante',speed:1300,sequence:['C','C','C'],rhythm:'bubble',stickerId:1,order_index:1,enabled:true};
+test('legacy milliseconds display BPM but remain exact unless tempo is explicitly changed',()=>{const view=data.normalizeLessonForEditor(lesson);assert.equal(view.speed,46);assert.equal(data.lessonEditorPayload(view,lesson).speed,1300);assert.equal(data.lessonEditorPayload({...view,speed:100},lesson).speed,100);assert.deepEqual(lesson.sequence,['C','C','C']);});
+test('lesson versions compare musical data without comparing progress or revision counters',()=>{const changes=data.compareLessonVersions(lesson,{...lesson,revision:99,speed:90,sequence:['C','E','G'],total_score:500});assert.deepEqual(changes.map(c=>c.field),['speed','sequence']);});
+test('version comparison does not hide distinct legacy tempos rounded to the same BPM',()=>{const changes=data.compareLessonVersions(lesson,{...lesson,speed:1301});assert.equal(changes.length,1);assert.equal(changes[0].field,'speed');assert.match(changes[0].before,/1300 ms/);assert.match(changes[0].after,/1301 ms/);});
+test('visual lesson form exposes notes, durations, rests and real preview without instrument menus',()=>{const html=renderToStaticMarkup(createElement(LessonEditor,{lesson}));for(const label of ['Secuencia musical','BPM','Silencio','Octava','Duracion','Probar en PianoMagico','Publicar leccion'])assert.ok(html.includes(label));assert.ok(!html.includes('1300 BPM'));});
+test('sandbox never receives a real profile or persistence service and always previews PianoMagico safely',()=>{const source=readFileSync('src/admin/WorldSandbox.jsx','utf8');assert.match(source,/preparationComplete adminPreview/);assert.doesNotMatch(source,/progressService|gameplayPersistence|localStorage|saveEquipment|userId=/);assert.match(source,/applyGameContent\(baseline\)/);assert.match(source,/structuredClone\(getGameplayContent\(\)\)/);assert.match(source,/sessionKey="admin-preview"/);});

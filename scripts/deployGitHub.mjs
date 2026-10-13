@@ -65,11 +65,21 @@ async function upload(remote, source, buffer = false) {
   });
 }
 async function snapshot(remote) {
-  const data = await transfer(async () => {
+  let data;
+  try { data = await transfer(async () => {
     const chunks = [];
     await client.downloadTo(new Writable({ write(chunk, encoding, done) { chunks.push(Buffer.from(chunk)); done(); } }), remote);
     return Buffer.concat(chunks);
-  });
+  }); } catch(error) {
+    const newRuntime=['/backend/content/editor.php','/backend/content/preflight.php'];
+    if(error.code!==550||!newRuntime.includes(remote))throw error;
+    const listing=await transfer(()=>client.list(path.posix.dirname(remote)));
+    if(listing.some(entry=>entry.name===path.posix.basename(remote)))throw error;
+    snapshots.set(remote,null);
+    await fs.mkdir(backupDir,{recursive:true});
+    await fs.writeFile(path.join(backupDir,'new-runtime-files.json'),JSON.stringify([...snapshots].filter(([,data])=>data===null).map(([file])=>file)));
+    return;
+  }
   snapshots.set(remote, data);
   const local = path.join(backupDir, remote.slice(1));
   await fs.mkdir(path.dirname(local), { recursive: true });
@@ -119,7 +129,7 @@ try {
   const rollback = [...changed].filter(remote => remote !== '/index.html').reverse();
   if (changed.has('/index.html')) rollback.push('/index.html');
   for (const remote of rollback) {
-    try { await upload(remote, snapshots.get(remote), true); }
+    try { if(snapshots.get(remote)===null)await transfer(()=>client.remove(remote));else await upload(remote, snapshots.get(remote), true); }
     catch { console.error(`Rollback failed for ${remote}; restore the workflow backup manually.`); }
   }
 } finally {

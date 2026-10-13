@@ -3,8 +3,10 @@ import { beginAdventureActivity, canRequestAdventureActivity, findAdventureObjec
 import { createAdventureState } from '../adventure/adventureState.js';
 import { applyValleyEvent, getPlayableRegionAt, getValleyProgress } from '../adventure/valleyProgression.js';
 import { REGION_IDS } from '../adventure/valleyBlueprint.js';
+import { applyToyEvent } from '../adventure/toyState.js';
 import { PLAZA_COMPOSITION } from '../world/composition/plazaComposition.js';
 import { ADVENTURE_OBJECT_TYPES } from '../world/composition/forestAdventureComposition.js';
+import {FIRST_MINUTES as F,firstMinutesStarted,mayRestoreFirstMinutes} from '../gameplay/firstMinutes.js';
 
 export function findWorldActivityObject(id) {
   const object = findAdventureObject(id);
@@ -34,11 +36,25 @@ export function restoreWorldContext(context, collisionWorld, heightAt) {
 
 export function worldActivityReducer(state, action) {
   switch (action.type) {
-    case 'START_ADVENTURE':
-      return { ...state, game: { ...state.game, adventure: { ...state.game.adventure, journey: { ...state.game.adventure.journey, started: true } } } };
+    case 'VALIDATED_PLAZA_RESULT': {
+      if(![GAME_MODES.WORLD,GAME_MODES.TRANSITION_TO_WORLD].includes(state.mode)||!firstMinutesStarted(state.game.adventure)||String(action.performanceId)!==String(state.lastResult?.performanceId)||!mayRestoreFirstMinutes(state.lastResult,state.context,findWorldActivityObject(F.station)))return state;
+      const adventure=applyValleyEvent(state.game.adventure,{type:'MILESTONE_REACHED',id:F.restored});
+      return adventure===state.game.adventure?state:{...state,game:{...state.game,adventure}};
+    }
+    case 'TOY_EVENT': {
+      if(state.mode!==GAME_MODES.WORLD)return state;
+      const adventure=applyToyEvent(state.game.adventure,action.event);
+      return adventure===state.game.adventure?state:{...state,game:{...state.game,adventure}};
+    }
+    case 'START_ADVENTURE': {
+      let adventure=state.game.adventure;
+      if(!adventure.journey.started&&!Object.values(adventure.entries).some(entry=>entry.state==='COMPLETED')&&!adventure.valley.milestones.length)adventure=applyValleyEvent(adventure,{type:'MILESTONE_REACHED',id:F.started});
+      return {...state,game:{...state.game,adventure:{...adventure,journey:{...adventure.journey,started:true}}}};
+    }
     case 'OBJECTIVE': {
       if (state.mode !== GAME_MODES.WORLD) return state;
       let adventure = state.game.adventure;
+      if(firstMinutesStarted(adventure)&&action.distance>=.6)adventure=applyValleyEvent(adventure,{type:'MILESTONE_REACHED',id:F.moved});
       if (adventure.journey.started && (action.distance >= 3 || action.position.z < -10)) adventure = applyValleyEvent(adventure, { type: 'MILESTONE_REACHED', id: 'plaza-explored' });
       const regionId = getPlayableRegionAt(action.position);
       if(adventure.journey.started && regionId===REGION_IDS.GROTTO) adventure=applyValleyEvent(adventure,{type:'DISCOVERY_RECORDED',id:'echo-grotto-found'});

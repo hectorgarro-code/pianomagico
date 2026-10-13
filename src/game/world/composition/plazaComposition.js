@@ -1,5 +1,6 @@
 // Explicit authored positions. Mapping only normalizes the instance contract;
 // no position, orientation or scale is generated randomly.
+import { PLAZA_TOY } from './toyComposition.js';
 const floorPositions = [
   [-4,-8], [0,-8], [4,-8],
   [-8,-4], [-4,-4], [0,-4], [4,-4], [8,-4],
@@ -96,6 +97,7 @@ export const PLAZA_COMPOSITION = {
   origin: [0,0,0],
   groupName: 'Region_Plaza_de_las_Notas',
   spawn: {position:[0,0.15,5], rotation:[0,Math.PI,0]},
+  gameplay:PLAZA_TOY,
   camera: {yaw:0, pitch:0.26, distance:18, portraitDistance:16, lookAhead:4},
   atmosphere: {color:0x9bd8ff,near:32,far:55},
   terrain: {

@@ -8,7 +8,7 @@ import VisualCustomizer from '../presentation/VisualCustomizer.jsx';
 export default function AdventureStart({ phase, profile, onPhase, onCharacter, onBegin, onNewAdventure, onExit, onReset, debugEnabled = false, sharedEntry = false, gameplay }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const selector = phase === 'CHARACTER' || phase === 'ENTRY';
-  if(selector)return <VisualCustomizer profile={profile} gameplay={gameplay} onSelect={onCharacter} onConfirm={async(c,e,p)=>{await onCharacter(c,e,p);onBegin();}} confirmLabel="JUGAR" onClose={onExit}/>;
+  if(selector)return <VisualCustomizer profile={profile} gameplay={gameplay} onSelect={onCharacter} onConfirm={async(c,e,p)=>{await onCharacter(c,e,p);onBegin();}} confirmLabel="JUGAR" onNewAdventure={onNewAdventure?()=>onNewAdventure():undefined} onClose={onExit}/>;
   return <main className={`valley-menu ${sharedEntry ? 'entry-adventure-screen' : ''}`}>
     {!sharedEntry && <ValleyScene characterId={phase === 'ENTRY' ? profile.avatarId : null} equipment={readEquipment(profile.user_id ?? profile.id, profile.avatarId)} autoDemo={false}/>}
     <button onClick={onExit} title="Volver a perfiles" aria-label="Volver a perfiles" className="valley-exit"><X size={22}/></button>

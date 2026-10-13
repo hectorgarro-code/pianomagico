@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Music2, Volume2, VolumeX, X } from 'lucide-react';
 import { createWorldMusic, readMusicSettings, saveMusicSettings } from './worldMusic.js';
+import { usePianoMicStore } from '../../hooks/usePianoMicStore.js';
+import { createValleySoundscape, regionalAudioState } from './valleySoundscape.js';
+import './worldAudio.css';
 
-export default function WorldMusic({ active, immediatePause, unlockOnEntry = false }) {
+export default function WorldMusic({ active, immediatePause, unlockOnEntry = false, adventure }) {
+  const micActive = usePianoMicStore(state => state.isListening);
+  const regional = regionalAudioState(adventure);
+  const ambienceRef = useRef(null);
+  const musicalFocusRef = useRef(false);
   const audioRef = useRef(null);
   const controllerRef = useRef(null);
   const panelRef = useRef(null);
@@ -12,7 +19,7 @@ export default function WorldMusic({ active, immediatePause, unlockOnEntry = fal
   });
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState('idle');
-  const latest = useRef({ settings, active, immediatePause });
+  const latest = useRef({ settings, active, immediatePause, regional, micActive });
   useEffect(()=>{
     const changed=()=>setSettings(readMusicSettings(window.localStorage));
     window.addEventListener('valley-music-settings',changed);
@@ -21,14 +28,22 @@ export default function WorldMusic({ active, immediatePause, unlockOnEntry = fal
 
   useEffect(() => {
     const controller = createWorldMusic(audioRef.current, { onStatus: setStatus });
+    const ambience = createValleySoundscape();
+    ambienceRef.current = ambience;
     controllerRef.current = controller;
     const sync = () => {
       const state = latest.current;
-      controller.update(state.settings, state.active && !document.hidden,
-        document.hidden || state.immediatePause);
+      const enabled = state.active && !document.hidden && !usePianoMicStore.getState().isListening && !musicalFocusRef.current;
+      const hard = document.hidden || state.immediatePause || usePianoMicStore.getState().isListening || musicalFocusRef.current;
+      controller.update({ ...state.settings, volume: state.settings.volume * (.45 + state.regional.stage * .12) }, enabled, hard);
+      ambience.update(state.regional, state.settings, enabled, hard);
+      if (audioRef.current) audioRef.current.dataset.soundscape = JSON.stringify(ambience.stats);
     };
-    const unlock = () => void controller.resume();
-    const enter = () => { if (unlockOnEntry) { controller.update(latest.current.settings, true); void controller.resume(); } };
+    const unlock = () => { if (document.hidden || usePianoMicStore.getState().isListening) return; void controller.resume(); ambience.unlock(); if (audioRef.current) audioRef.current.dataset.soundscape = JSON.stringify(ambience.stats); };
+    const enter = () => { if (unlockOnEntry) unlock(); };
+    const unsubscribeMic = usePianoMicStore.subscribe((state, previous) => { if (state.isListening !== previous.isListening) sync(); });
+    const focus = event => { musicalFocusRef.current = event.detail === true; sync(); };
+    window.addEventListener('valley-musical-focus', focus);
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
@@ -40,16 +55,22 @@ export default function WorldMusic({ active, immediatePause, unlockOnEntry = fal
       window.removeEventListener('keydown', unlock);
       window.removeEventListener('valley-entry-unlock', enter);
       controller.dispose();
+      unsubscribeMic(); ambience.dispose(); ambienceRef.current = null;
+      window.removeEventListener('valley-musical-focus', focus);
       controllerRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    latest.current = { settings, active, immediatePause };
-    controllerRef.current?.update(settings, active && !document.hidden,
-      document.hidden || immediatePause);
+    latest.current = { settings, active, immediatePause, regional, micActive };
+    const enabled = active && !document.hidden && !micActive && !musicalFocusRef.current;
+    const hard = document.hidden || immediatePause || micActive || musicalFocusRef.current;
+    controllerRef.current?.update({ ...settings, volume: settings.volume * (.45 + regional.stage * .12) }, enabled, hard);
+    ambienceRef.current?.update(regional, settings, enabled, hard);
     try { saveMusicSettings(window.localStorage, settings); } catch { /* Optional preference storage. */ }
-  }, [settings, active, immediatePause]);
+    window.dispatchEvent(new Event('valley-audio-preferences'));
+    if (audioRef.current) audioRef.current.dataset.soundscape = JSON.stringify(ambienceRef.current?.stats);
+  }, [settings, active, immediatePause, micActive, regional.region, regional.stage]);
 
   useEffect(() => {
     if (!open) return;
@@ -75,7 +96,7 @@ export default function WorldMusic({ active, immediatePause, unlockOnEntry = fal
     {open && <div id="world-music-settings" className="fixed right-3 top-14 w-56 rounded-lg border border-white/20 bg-zinc-950/95 p-3 shadow-xl sm:absolute sm:right-0 sm:top-11">
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="text-sm">Música</span>
-        <button type="button" title="Cerrar" aria-label="Cerrar ajustes de música" onClick={() => setOpen(false)}><X size={16} /></button>
+        <button type="button" className="grid h-8 w-8 place-items-center" title="Cerrar" aria-label="Cerrar ajustes de música" onClick={() => setOpen(false)}><X size={16} /></button>
       </div>
       <div className="flex items-center gap-3">
         <button type="button" aria-label={settings.muted ? 'Activar música' : 'Silenciar música'}

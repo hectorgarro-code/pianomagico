@@ -3,6 +3,7 @@ import { normalizeJourney } from './adventureStart.js';
 import { ALL_LESSON_CHESTS } from '../world/composition/routeAdventureComposition.js';
 import { FINAL_ADVENTURE_OBJECTS } from '../world/composition/finalAdventureComposition.js';
 import { normalizeValley, getValleyProgress, applyValleyEvent } from './valleyProgression.js';
+import { normalizeToyState } from './toyState.js';
 
 export const ADVENTURE_STATES = Object.freeze({ LOCKED: 'LOCKED', AVAILABLE: 'AVAILABLE', IN_PROGRESS: 'IN_PROGRESS', COMPLETED: 'COMPLETED' });
 export const ALL_ADVENTURE_OBJECTS = [...ALL_LESSON_CHESTS, ...FINAL_ADVENTURE_OBJECTS];
@@ -38,7 +39,7 @@ export function createAdventureState(snapshot) {
     valley[field] = valley[field].filter(value => value !== id);
     if (entries[object.id].state === ADVENTURE_STATES.COMPLETED && (object.type === ADVENTURE_OBJECT_TYPES.CHALLENGE || field === 'collectedRewards')) valley[field].push(id);
   }
-  return { schemaVersion: 2, entries: refreshAvailability(entries), lastReward: null, journey, valley };
+  return { schemaVersion: 2, entries: refreshAvailability(entries), lastReward: null, journey, valley, toy:normalizeToyState(supported?snapshot?.toy:null) };
 }
 
 export function canRequestAdventureActivity(state, objectId, activityId) {

@@ -110,18 +110,47 @@ function validate_game_content($data, $registry, $lessons) {
     $activityIds = [];
     foreach ($data['activities'] as $activity) {
         $id = $activity['id'] ?? '';
-        if (!isset($knownActivities[$id]) || isset($activityIds[$id])) throw new InvalidArgumentException('Actividad invalida');
-        $activityIds[$id] = true; $known = $knownActivities[$id];
-        foreach (['regionId', 'type', 'requirements', 'progressionReward'] as $field)
-            if (($activity[$field] ?? null) != ($known[$field] ?? null)) throw new InvalidArgumentException('CP1 no altera topologia/requisitos/progresion');
+        if (!content_identifier($id) || isset($activityIds[$id])) throw new InvalidArgumentException('Actividad invalida');
+        $activityIds[$id] = true;
+        if (isset($knownActivities[$id])) {
+            $known = $knownActivities[$id];
+            foreach (['regionId', 'type', 'requirements', 'progressionReward'] as $field)
+                if (($activity[$field] ?? null) != ($known[$field] ?? null)) throw new InvalidArgumentException('No se altera topologia/requisitos/progresion principal');
+        } else {
+            if (strpos($id,'editor-') !== 0 || ($data['editorVersion'] ?? null) !== 1 || ($activity['type'] ?? '') !== 'LESSON_CHEST') throw new InvalidArgumentException('Solo cofres opcionales autorados');
+            $composition = $regions[$activity['compositionId'] ?? ''] ?? null;
+            if (!$composition || $composition['regionId'] !== ($activity['regionId'] ?? '') || ($instanceRegions[$activity['instanceId'] ?? ''] ?? '') !== $activity['compositionId']) throw new InvalidArgumentException('Cofre sin placement en su region');
+            if (!is_string($activity['label'] ?? null) || trim($activity['label']) === '' || strlen($activity['label']) > 160) throw new InvalidArgumentException('Nombre de cofre invalido');
+            if (!is_array($activity['requirements']['completedObjects'] ?? null)) throw new InvalidArgumentException('Requisitos de cofre invalidos');
+            $expected = ['id'=>$activity['instanceId'].'-progress','type'=>'REGION_PROGRESS','regionId'=>$activity['regionId'],'unlocks'=>[],'segmentCompleted'=>false,'label'=>'Cofre completado'];
+            if (($activity['progressionReward'] ?? null) != $expected) throw new InvalidArgumentException('Cofre opcional no altera progreso principal ni XP');
+            foreach ($data['world'] as $r) foreach ($r['instances'] as $i) if ($i['id'] === $activity['instanceId'] && !in_array($i['assetUrl'], ['/models/props/chest_wood.glb','/models/props/chest_gold.glb'],true)) throw new InvalidArgumentException('Asset de cofre incompatible');
+        }
         if ($activity['type'] !== 'SECRET_REWARD') {
             $lesson = $lessonIds[$activity['lessonId'] ?? ''] ?? null;
             if (!$lesson || $lesson['user_id'] !== null || $lesson['is_user_created'] || !$lesson['enabled']) throw new InvalidArgumentException('Leccion global activa requerida');
             if (!in_array($activity['assignmentStatus'] ?? '', ['VERIFICADA', 'PROVISIONAL'], true)) throw new InvalidArgumentException('Estado de asignacion invalido');
         } elseif (($activity['lessonId'] ?? null) !== null) throw new InvalidArgumentException('Un secreto no es una leccion');
         if (($activity['rewardId'] ?? null) !== null && !isset($rewards[$activity['rewardId']])) throw new InvalidArgumentException('Recompensa inexistente');
+        if ($id==='plaza-first-lesson' && ($data['editorVersion'] ?? null)===1) {
+            $intro=$lessonIds[$activity['introLessonId'] ?? 1] ?? null;
+            $speed=(float)($intro['speed'] ?? 0); $bpm=$speed>300?60000/$speed:$speed;
+            if (!$intro || !$intro['enabled'] || $intro['user_id']!==null || $intro['is_user_created'] || $bpm>100 || $bpm<20) throw new InvalidArgumentException('La leccion inicial debe estar activa y tener 20-100 BPM');
+        }
     }
-    if (count($activityIds) !== count($knownActivities)) throw new InvalidArgumentException('Falta una actividad');
+    foreach ($knownActivities as $id=>$unused) if (!isset($activityIds[$id])) throw new InvalidArgumentException('Falta una actividad principal');
+    $visiting=[]; $visited=[]; $activityMap=array_column($data['activities'],null,'id');
+    $visit=function($id) use (&$visit,&$visiting,&$visited,$activityMap) {
+        if (!isset($activityMap[$id])) throw new InvalidArgumentException('Requisito de actividad inexistente');
+        if (isset($visiting[$id])) throw new InvalidArgumentException('Requisitos circulares');
+        if (isset($visited[$id])) return;
+        $visiting[$id]=true;
+        foreach ($activityMap[$id]['requirements']['completedObjects'] as $next) $visit($next);
+        unset($visiting[$id]); $visited[$id]=true;
+    };
+    foreach (array_keys($activityMap) as $id) $visit($id);
+    foreach ($data['activities'] as $activity) if (strpos($activity['id'],'editor-')===0) foreach ($activity['requirements']['completedObjects'] as $id)
+        if ($activityMap[$id]['type']==='PRACTICE_STATION') throw new InvalidArgumentException('Una practica libre no es requisito de progreso');
     $actionIds = [];
     foreach ($data['worldActions'] as $target) {
         if (!content_identifier($target['id'] ?? null) || isset($actionIds[$target['id']])) throw new InvalidArgumentException('Target invalido');
@@ -172,8 +201,50 @@ function validate_game_content($data, $registry, $lessons) {
             if (!content_identifier($pet['id'] ?? null) || isset($pets[$pet['id']]) || !is_bool($pet['enabled'] ?? null) || ($assets[$pet['assetId'] ?? '']['category'] ?? '') !== 'PET'
                 || !is_string($pet['name'] ?? null) || trim($pet['name']) === '' || strlen($pet['name']) > 100) throw new InvalidArgumentException('Pet invalida');
             $pets[$pet['id']] = true;
+            if (isset($pet['behaviorProfile']) && !in_array($pet['behaviorProfile'],['CALM','ENERGETIC','CURIOUS'],true)) throw new InvalidArgumentException('Personalidad de mascota invalida');
         }
         foreach ($data['rewards'] as $reward) if ($reward['type'] === 'PET' && !isset($pets[$reward['referenceId']])) throw new InvalidArgumentException('Reward pet fuera de coleccion');
     }
-    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion']));
+    if (isset($data['editorVersion'])) {
+        $targets=array_column($data['worldActions'],null,'id');
+        foreach (['intro-box'=>'intro-note','intro-skeleton'=>'intro-box-note'] as $id=>$note) {
+            $target=$targets[$id] ?? null;
+            if (!$target || !$target['enabledInWorld'] || ($target['firstMinutesOnly'] ?? false)!==true || ($target['toy'] ?? false)!==true || ($target['requiresNote'] ?? '')!==$note || ($id==='intro-skeleton' && ($target['training'] ?? false)!==true)) throw new InvalidArgumentException('No se elimina ni desactiva el inicio de la aventura');
+        }
+        if ($data['editorVersion'] !== 1 || !is_array($data['residents'] ?? null) || count($data['residents'])>100) throw new InvalidArgumentException('Editor/residentes invalidos');
+        $residents=[];
+        foreach ($data['residents'] as $resident) {
+            if (!content_identifier($resident['id'] ?? null) || isset($residents[$resident['id']]) || !is_int($resident['characterId'] ?? null) || $resident['characterId']<1 || $resident['characterId']>5
+                || !in_array($resident['regionId'] ?? '', array_column($registry['compositions'],'regionId'),true) || !content_vector($resident['position'] ?? null)
+                || !is_numeric($resident['rotation'] ?? null) || !is_finite((float)$resident['rotation']) || !is_numeric($resident['scale'] ?? null) || $resident['scale']<=0 || $resident['scale']>10
+                || !is_numeric($resident['radius'] ?? null) || $resident['radius']<=0 || $resident['radius']>3) throw new InvalidArgumentException('Habitante invalido');
+            $residents[$resident['id']]=true;
+            if (isset($resident['walk']) && (!is_array($resident['walk']) || count($resident['walk'])<2 || count($resident['walk'])>20)) throw new InvalidArgumentException('Recorrido NPC invalido');
+            foreach ($resident['walk'] ?? [] as $point) if (!is_array($point)||count($point)!==2||!is_numeric($point[0])||!is_numeric($point[1])||abs($point[0])>10000||abs($point[1])>10000) throw new InvalidArgumentException('Recorrido NPC invalido');
+            foreach ($resident['watch'] ?? [] as $id) if (!isset($activityIds[$id])) throw new InvalidArgumentException('Actividad observada por NPC inexistente');
+            if (isset($resident['goal']) && (!content_vector($resident['goal']['position'] ?? null) || !content_identifier($resident['goal']['noteId'] ?? null))) throw new InvalidArgumentException('Objetivo NPC invalido');
+        }
+    }
+    $editorRecords=array_merge(...array_map(fn($r)=>$r['instances'],$data['world']));
+    $editorRecords=array_merge($editorRecords,$data['worldActions'],$data['gates'],$data['residents'] ?? []);
+    foreach($editorRecords as $record) if(isset($record['editor'])) {
+        $meta=$record['editor'];
+        if(!is_array($meta)||array_diff(array_keys($meta),['group','layer','locked','hidden']))throw new InvalidArgumentException('Metadata editorial invalida');
+        foreach(['group','layer'] as $field)if(isset($meta[$field])&&(!is_string($meta[$field])||strlen($meta[$field])>80||preg_match('/[<>\x00-\x1f]/',$meta[$field])))throw new InvalidArgumentException('Nombre editorial invalido');
+        foreach(['locked','hidden'] as $field)if(isset($meta[$field])&&!is_bool($meta[$field]))throw new InvalidArgumentException('Estado editorial invalido');
+    }
+    if(isset($data['editorTemplates'])) {
+        if(!is_array($data['editorTemplates'])||count($data['editorTemplates'])>40)throw new InvalidArgumentException('Plantillas invalidas');
+        $copy=$data;unset($copy['editorTemplates']);$seen=[];
+        foreach($data['editorTemplates'] as $i=>$template) {
+            if(!content_identifier($template['id'] ?? null)||isset($seen[$template['id']])||!is_string($template['name'] ?? null)||trim($template['name'])===''||strlen($template['name'])>80||!is_array($template['instances'] ?? null)||count($template['instances'])<1||count($template['instances'])>100)throw new InvalidArgumentException('Plantilla invalida');
+            $seen[$template['id']]=true;
+            foreach($template['instances'] as $j=>$instance) {
+                if(isset($instance['interaction']))throw new InvalidArgumentException('Plantilla con interaccion no admitida');
+                $instance['id']='template-check-'.$i.'-'.$j;$copy['world'][0]['instances'][]=$instance;
+            }
+        }
+        validate_game_content($copy,$registry,$lessons);
+    }
+    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion', 'editorVersion','residents','editorTemplates']));
 }

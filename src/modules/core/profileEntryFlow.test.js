@@ -35,6 +35,11 @@ test('preview uses existing solfege, frequency and legacy speed semantics unchan
   assert.equal(pianoHelpers.getIntervalMs(1300),1300);
   assert.equal(pianoHelpers.getIntervalMs(120),500);
   assert.equal(pianoHelpers.getIntervalMs(null),600);
+  assert.equal(pianoHelpers.getTempoBpm(1300),46);
+  assert.equal(pianoHelpers.getTempoBpm(1300,2),92);
+  assert.equal(pianoHelpers.getTempoBpm(100),100);
+  assert.equal(pianoHelpers.getTempoBpm(120,0.5),60);
+  assert.equal(pianoHelpers.getTempoBpm(null),100);
   assert.equal(pianoHelpers.getNoteFrequency('A4'),440);
 });
 

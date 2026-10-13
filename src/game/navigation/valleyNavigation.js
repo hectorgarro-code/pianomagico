@@ -2,13 +2,14 @@ import { VALLEY_REGIONS, REGION_IDS } from '../adventure/valleyBlueprint.js';
 import { getValleyProgress } from '../adventure/valleyProgression.js';
 import { ALL_ADVENTURE_OBJECTS } from '../adventure/adventureState.js';
 import { PLAZA_COMPOSITION } from '../world/composition/plazaComposition.js';
-import { FOREST_COMPOSITION } from '../world/composition/forestComposition.js';
+import { FOREST_ADVENTURE_COMPOSITION as FOREST_COMPOSITION } from '../world/composition/forestAdventureComposition.js';
 import { JUNCTION_COMPOSITION } from '../world/composition/junctionComposition.js';
 import { RIVER_COMPOSITION } from '../world/composition/riverComposition.js';
 import { MOUNTAIN_COMPOSITION } from '../world/composition/mountainComposition.js';
 import { GROTTO_COMPOSITION } from '../world/composition/grottoComposition.js';
 import { RUINS_COMPOSITION } from '../world/composition/ruinsComposition.js';
 import { OBSERVATORY_COMPOSITION } from '../world/composition/observatoryComposition.js';
+import {EXPLORATION_SECRETS} from '../world/composition/explorationSecrets.js';
 
 export const MAP_COMPOSITIONS = [PLAZA_COMPOSITION, FOREST_COMPOSITION, JUNCTION_COMPOSITION,
   RIVER_COMPOSITION, MOUNTAIN_COMPOSITION, GROTTO_COMPOSITION, RUINS_COMPOSITION, OBSERVATORY_COMPOSITION];
@@ -85,7 +86,8 @@ export function getValleyMap(adventure, target = resolveObjectiveTarget(adventur
     id: o.id, regionId: o.regionId, label: o.label, position: xz(o.instance.position),
     state: adventure.entries[o.id]?.state || 'LOCKED', type: o.type
   }));
-  return { regions, paths, chests, target, currentRegion: progress.currentRegion };
+  const secrets=EXPLORATION_SECRETS.filter(s=>adventure.toy?.discoveredSecrets?.includes(s.id)).map(s=>({id:s.id,position:xz(s.position)}));
+  return { regions, paths, chests, secrets, target, currentRegion: progress.currentRegion };
 }
 
 export function getDirectionHint(position, target, cameraYaw, projected) {

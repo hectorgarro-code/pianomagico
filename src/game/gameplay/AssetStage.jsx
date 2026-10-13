@@ -6,20 +6,23 @@ import { loadCachedModel } from '../assets/assetManifest.js';
 import { loadCharacterPresentation, applyEquipment, getEquipment } from '../presentation/characterEquipment.js';
 import { createCharacterAnimator } from '../presentation/characterActions.js';
 
-export default function AssetStage({ characterId=null, petId=null, equipment=null, pets=null, celebration=false, manualRotation=0, action=null, autoDemo=true, interactive=false, platform=false }) {
+export default function AssetStage({ characterId=null, petId=null, equipment=null, pets=null, celebration=false, manualRotation=0, action=null, autoDemo=true, interactive=false, platform=false, rewardMode=false, reveal=1,onReady }) {
   const host=useRef(null),[error,setError]=useState(''),[ready,setReady]=useState(false);
-  const pose = useRef({ manualRotation, action, autoDemo }); pose.current = { manualRotation, action, autoDemo };
+  const pose = useRef({ manualRotation, action, autoDemo,reveal,onReady }); pose.current = { manualRotation, action, autoDemo,reveal,onReady };
   useEffect(()=>{
     let live=true,frame;const roots=[],mixers=[],animators=[],skeletons=new Set();setError('');setReady(false);
     const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(36,1,.1,70);
+    let rewardPet=null,rewardPetScale=null,rewardLid=null,rewardAge=0,stageReady=false;
+    const rewardPetTarget=new THREE.Vector3();
     const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
     host.current.appendChild(renderer.domElement);scene.add(new THREE.HemisphereLight(0xfff3d2,0x42725d,2.5));const sun=new THREE.DirectionalLight(0xffffff,3);sun.position.set(3,5,6);scene.add(sun);
+    renderer.domElement.dataset.previewEquipment=equipment||'';
     const sparkGeometry=celebration?new THREE.BufferGeometry():null;
     const sparkMaterial=celebration?new THREE.PointsMaterial({color:0xffdf83,size:.055,transparent:true,opacity:.85}):null;
     const sparks=celebration?new THREE.Points(sparkGeometry,sparkMaterial):null;
     if(sparks){sparkGeometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(90),3));scene.add(sparks);}
     const gallery=Boolean(pets),ids=pets || (petId?[petId]:[]),columns=gallery?Math.min(4,Math.max(1,ids.length)):1;
-    const resize=()=>{if(!host.current)return;const w=host.current.clientWidth,h=host.current.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();const rows=Math.ceil(ids.length/columns);camera.position.set(0,gallery?Math.max(2,rows*.8):1.7,gallery?Math.max(5,(columns*2+.6)/(2*Math.tan(Math.PI/10)*camera.aspect)*1.15,(rows*1.7+1)/(2*Math.tan(Math.PI/10))):platform?Math.max(5.2,3.4/(2*Math.tan(Math.PI/10)*camera.aspect)):7);camera.lookAt(0,gallery?Math.max(0,rows-1)*.7:.9,0);};
+    const resize=()=>{if(!host.current)return;const w=host.current.clientWidth,h=host.current.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();const rows=Math.ceil(ids.length/columns);camera.position.set(0,rewardMode?2.6:gallery?Math.max(2,rows*.8):1.7,rewardMode?Math.max(6.8,6.5/(2*Math.tan(Math.PI/10)*camera.aspect)):gallery?Math.max(5,(columns*2+.6)/(2*Math.tan(Math.PI/10)*camera.aspect)*1.15,(rows*1.7+1)/(2*Math.tan(Math.PI/10))):platform?Math.max(5.2,3.4/(2*Math.tan(Math.PI/10)*camera.aspect)):7);camera.lookAt(0,gallery?Math.max(0,rows-1)*.7:rewardMode?1.2:.9,0);};
     const observer=new ResizeObserver(resize);observer.observe(host.current);resize();
     let angle = pose.current.manualRotation, lastRotation = angle, actionToken, dragging = false, pointerX = 0;
     const down = event => { if (!interactive) return; dragging = true; pointerX = event.clientX; host.current.setPointerCapture(event.pointerId); };
@@ -32,7 +35,8 @@ export default function AssetStage({ characterId=null, petId=null, equipment=nul
     };
     (async()=>{
       if(platform){const data=await loadCachedModel('/models/props/floor_tile.glb');if(!live)return;const floor=data.scene.clone(true),box=new THREE.Box3().setFromObject(floor),size=box.getSize(new THREE.Vector3()),scale=3.4/Math.max(size.x,size.z,.1);floor.scale.set(scale,scale*3.5,scale);floor.position.y=-box.max.y*floor.scale.y;scene.add(floor);}
-      if(characterId){const data=await loadCharacterPresentation(characterId),model=await add(data,2.3,petId?-.45:0,0);if(!model)return;const eq=getEquipment(characterId,equipment);await applyEquipment(model,characterId,eq.id);if(!live)return;const mixer=new THREE.AnimationMixer(model);mixers.push(mixer);animators.push(createCharacterAnimator(mixer,data.animations,characterId,eq));
+      if(rewardMode){const data=await loadCachedModel('/models/props/chest_wood.glb'),chest=await add(data,1.2,1.8,0);if(!chest)return;rewardLid=chest.getObjectByName('chest_lid');const light=new THREE.PointLight(0xffd06b,8,10);light.position.set(0,1.5,2);scene.add(light);}
+      if(characterId){const data=await loadCharacterPresentation(characterId),model=await add(data,2.3,rewardMode?(petId?-2:0):petId?-.45:0,0);if(!model)return;const eq=getEquipment(characterId,equipment);await applyEquipment(model,characterId,eq.id);if(!live)return;const mixer=new THREE.AnimationMixer(model);mixers.push(mixer);const animator=createCharacterAnimator(mixer,data.animations,characterId,eq);animators.push(animator);if(rewardMode&&celebration)animator.locomotion('Cheer');
         if(platform){
           // Hidden equipment can extend below feet in the native GLB bounds.
           mixer.update(.2);model.updateWorldMatrix(true,true);let footY=Infinity;const vertex=new THREE.Vector3();
@@ -42,14 +46,28 @@ export default function AssetStage({ characterId=null, petId=null, equipment=nul
       }
       for(let i=0;i<ids.length;i++) {
         const asset=ASSET_CATALOG.assets.find(a=>a.id===ids[i]);if(!asset)throw Error('Unknown pet');
-        const data=await loadCachedModel(asset.url),x=gallery?(i%columns-(columns-1)/2)*2:characterId?1:0,y=gallery?(Math.ceil(ids.length/columns)-1-Math.floor(i/columns))*1.7:0;
-        const model=await add(data,gallery?1.05:characterId ? .9:1.4,x,y);if(!model)return;const mixer=new THREE.AnimationMixer(model);mixers.push(mixer);const clip=data.animations.find(c=>c.name==='idle');if(clip)mixer.clipAction(clip).play();
+        const data=await loadCachedModel(asset.url),x=gallery?(i%columns-(columns-1)/2)*2:rewardMode?0:characterId?1:0,y=gallery?(Math.ceil(ids.length/columns)-1-Math.floor(i/columns))*1.7:0;
+        const model=await add(data,gallery?1.05:rewardMode?2.4:characterId ? .9:1.4,x,y);if(!model)return;if(rewardMode){rewardPet=model;rewardPetScale=model.scale.clone();model.visible=false;}const mixer=new THREE.AnimationMixer(model);mixers.push(mixer);const clip=data.animations.find(c=>c.name==='idle');if(clip)mixer.clipAction(clip).play();
       }
-      if(live)setReady(true);
-    })().catch(()=>{if(live){setError('No se pudo cargar el modelo.');setReady(true);}});
+      if(live){stageReady=true;setReady(true);pose.current.onReady?.();}
+    })().catch(()=>{if(live){setError('No se pudo cargar el modelo.');setReady(true);pose.current.onReady?.();}});
     let last=performance.now(),nextDemo=last+2400,index=0;
-    const animate=()=>{frame=requestAnimationFrame(animate);const now=performance.now(),delta=Math.min(.05,(now-last)/1000);last=now;if(pose.current.manualRotation!==lastRotation){angle+=pose.current.manualRotation-lastRotation;lastRotation=pose.current.manualRotation;}if(animators.length && pose.current.action && pose.current.action.token!==actionToken){actionToken=pose.current.action.token;animators.forEach(a=>a.express(pose.current.action.key));}mixers.forEach(m=>m.update(delta));if(pose.current.autoDemo && !dragging && now>nextDemo){animators.forEach(a=>a.express(index%2?'E':'Q'));index++;nextDemo=now+4200;}roots.forEach(root=>{root.rotation.y=interactive?angle:Math.sin(now/3500)*.25;});if(sparks){const points=sparkGeometry.attributes.position;for(let i=0;i<points.count;i++){const angle=i*2.4+now/2600;points.setXYZ(i,Math.cos(angle)*(1+i%3*.12),(now/1700+i*.17)%2.3,Math.sin(angle)*.7);}points.needsUpdate=true;}renderer.render(scene,camera);renderer.domElement.dataset.previewAction=animators[0]?.name || 'idle';renderer.domElement.dataset.previewRotation=String(angle);};animate();
+    const animate=()=>{
+      frame=requestAnimationFrame(animate);const now=performance.now(),delta=Math.min(.05,(now-last)/1000);last=now;
+      if(pose.current.manualRotation!==lastRotation){angle+=pose.current.manualRotation-lastRotation;lastRotation=pose.current.manualRotation;}
+      if(animators.length&&pose.current.action&&pose.current.action.token!==actionToken){actionToken=pose.current.action.token;animators.forEach(a=>a.express(pose.current.action.key));}
+      mixers.forEach(m=>m.update(delta));
+      if(pose.current.autoDemo&&!dragging&&now>nextDemo){animators.forEach(a=>a.express(index%2?'E':'Q'));index++;nextDemo=now+4200;}
+      roots.forEach(root=>{root.rotation.y=interactive?angle:Math.sin(now/3500)*.25;});
+      if(rewardMode){
+        if(stageReady)rewardAge+=delta;if(rewardLid)rewardLid.rotation.x=celebration?-1.15*Math.min(1,rewardAge/.9):0;
+        if(!dragging)angle+=delta*.15;
+        if(rewardPet){rewardPet.visible=pose.current.reveal===1;rewardPet.scale.lerp(rewardPetTarget.copy(rewardPetScale).multiplyScalar(pose.current.reveal===1?1:.01),Math.min(1,delta*8));}
+      }
+      if(sparks){const points=sparkGeometry.attributes.position;for(let i=0;i<points.count;i++){const a=i*2.4+now/2600;points.setXYZ(i,Math.cos(a)*(1+i%3*.12),(now/1700+i*.17)%2.3,Math.sin(a)*.7);}points.needsUpdate=true;}
+      renderer.render(scene,camera);renderer.domElement.dataset.previewAction=animators[0]?.name||'idle';renderer.domElement.dataset.previewRotation=String(angle);
+    };animate();
     return()=>{live=false;cancelAnimationFrame(frame);observer.disconnect();animators.forEach(a=>a.dispose());mixers.forEach(m=>{m.stopAllAction();m.uncacheRoot(m.getRoot());});skeletons.forEach(s=>s.dispose());sparkGeometry?.dispose();sparkMaterial?.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
-  },[characterId,petId,equipment,pets,celebration,platform]);
+  },[characterId,petId,equipment,pets,celebration,platform,rewardMode]);
   return <div className="gameplay-stage" ref={host} aria-label={characterId ? 'Personaje 3D' : 'Mascota 3D'}>{!ready && <p role="status">Cargando modelos...</p>}{error && <p role="alert">{error}</p>}</div>;
 }

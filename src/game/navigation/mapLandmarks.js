@@ -29,7 +29,10 @@ export const MAP_LANDMARKS = Object.freeze(selections.map(([instanceId, asset, s
 
 export function mapIllustration(model) {
   const known = new Set(model.regions.map(r => r.id));
-  const landmarks = MAP_LANDMARKS.filter(l => known.has(l.regionId));
+  const landmarks = MAP_LANDMARKS.filter(l => known.has(l.regionId)).flatMap(landmark=>{
+    const instance=MAP_COMPOSITIONS.find(c=>c.regionId===landmark.regionId)?.instances.find(i=>i.id===landmark.id);
+    return instance?[{...landmark,position:{x:instance.position[0],z:instance.position[2]}}]:[];
+  });
   const water = known.has('RIO_DEL_RITMO') ? RIVER_CHANNEL.map(([x, z]) => ({ x, z })) : [];
   const labels = model.regions.map(region => {
     const p=worldToMap(region.position), [dx,dy]=MAP_LABEL_OFFSETS[region.id] || [0,-25];

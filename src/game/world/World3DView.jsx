@@ -1,9 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { Play, Sparkles, Compass, Database, Eye, Swords, WandSparkles } from 'lucide-react';
+import { Play, Sparkles, Compass, Database, Eye, Swords, WandSparkles, PawPrint } from 'lucide-react';
 import { createWorldGameplay } from '../gameplay/WorldGameplay.js';
 import { createCameraOcclusion } from './cameraOcclusion.js';
+import { createFootsteps } from '../audio/footsteps.js';
+import { createWeaponCuts } from '../audio/weaponCuts.js';
+import { createDoorSound } from '../audio/doorSound.js';
+import { createImpactSounds, targetImpactSound } from '../audio/impactSounds.js';
+import { createToyNoteSound } from '../audio/toyNoteSound.js';
+import { readMusicSettings } from '../audio/worldMusic.js';
+import { usePianoMicStore } from '../../hooks/usePianoMicStore.js';
+import {FIRST_MINUTES as F,firstMinutesPhase,firstMinutesStarted} from '../gameplay/firstMinutes.js';
+import FirstMinutesHints from '../gameplay/FirstMinutesHints.jsx';
+import {createFirstMinutesWorld} from '../gameplay/FirstMinutesWorld.js';
+import { createFootstepSurface } from './footstepSurface.js';
 import { getGameplayContent } from '../gameplay/gameplayContent.js';
 import { getCharacterModel } from '../../modules/core/utils/characterModels';
 import { WorldGenerator } from './WorldGenerator';
@@ -25,14 +36,16 @@ import { assistedCameraYaw, terrainSafeCameraHeight } from './cameraAssist.js';
 import { titleCamera } from '../entry/entryExperience.js';
 
 function updateChestLids(models, state) {
-  for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED ? -1.15 : 0);
+  for (const [id, lid] of models) lid.node.rotation.x = lid.closedRotation + (state?.entries[id]?.state === ADVENTURE_STATES.COMPLETED || id===F.station&&state?.valley?.milestones.includes(F.restored) ? -1.15 : 0);
 }
 const EMPTY_GAMEPLAY = { completedMinigames: [], equippedPetId: null };
 
 export default function World3DView({
   debugEnabled = false,
+  onToyEvent,
   active = true,
   returnContext = null,
+  companionCelebration = 0,
   completedStationIds = [],
   songs = [],
   profile = {},
@@ -52,6 +65,7 @@ export default function World3DView({
   presentation = false,
   sessionKey = null,
   onGameplayReward,
+  onRestorationSettled,
   onMinigame,
   mapRequest = 0
 }) {
@@ -105,6 +119,7 @@ export default function World3DView({
   const playerRotYRef = useRef(initialRotation ?? PLAZA_COMPOSITION.spawn.rotation[1]);
   const [navigationPose, setNavigationPose] = useState({ position: { ...playerPosRef.current },
     rotation: playerRotYRef.current, cameraYaw: PLAZA_COMPOSITION.camera.yaw });
+  const introPhase=firstMinutesPhase(adventureState),introActive=!!introPhase&&introPhase!=='DONE';
 
   // Camera Orbit / Rotation Controls con Damping suave y Anti-Clipping
   const cameraAngleRef = useRef({
@@ -125,11 +140,20 @@ export default function World3DView({
   const characterMixerRef = useRef(null);
   const characterActionsRef = useRef({});
   const expressionRef = useRef(null);
+  const weaponCutsRef = useRef(null);
+    const worldCueRef = useRef(null);
+  const doorSoundRef = useRef(null);
   const encounterCameraRef = useRef(0);
   const gameplayRef = useRef(null), gameplayStateRef = useRef(gameplayState), profileRef = useRef(profile), loadHeroRef = useRef(null), restoredContextRef = useRef(null);
-  const callbacksRef = useRef({onGameplayReward,onMinigame});callbacksRef.current={onGameplayReward,onMinigame};
+  const callbacksRef = useRef({onGameplayReward,onMinigame,onToyEvent,onRestorationSettled});callbacksRef.current={onGameplayReward,onMinigame,onToyEvent,onRestorationSettled};
   gameplayStateRef.current=gameplayState || EMPTY_GAMEPLAY;profileRef.current=profile;
   const [nearbyGate,setNearbyGate]=useState(null);
+  const companionCelebratedRef=useRef(companionCelebration);
+  useEffect(()=>{
+    if(active && companionCelebration!==companionCelebratedRef.current){
+      companionCelebratedRef.current=companionCelebration;gameplayRef.current?.companionEvent('LESSON_COMPLETED');worldCueRef.current?.('chest');
+    }
+  },[active,companionCelebration]);
   useEffect(()=>{void gameplayRef.current?.setPet(gameplayState?.equippedPetId).catch(console.error);},[gameplayState?.equippedPetId]);
   useEffect(()=>{void loadHeroRef.current?.().catch(console.error);},[profile.avatarId,equipmentVersion]);
   useEffect(() => {
@@ -161,7 +185,7 @@ export default function World3DView({
   useEffect(() => {
     if (!collisionWorldRef.current || !adventureState) return;
     collisionWorldRef.current = new CollisionWorld([...getActiveWorldColliders(allCollidersRef.current, adventureState),...(gameplayRef.current?.colliders() || [])]);
-    updateGateModels(gateModelsRef.current, adventureState);
+    updateGateModels(gateModelsRef.current, adventureState,model=>doorSoundRef.current?.opened(model.userData.gateId,model.getWorldPosition(new THREE.Vector3())));
     updateGateModels(debugGroupRef.current?.getObjectByName('Collision_Debug')?.children.filter(node=>node.userData.gateId) || [], adventureState);
   }, [adventureState]);
 
@@ -185,9 +209,12 @@ export default function World3DView({
     if (!activeRef.current || loading || mapOpenRef.current || gameplayRef.current?.staggered) return;
     if (key==='E' && nearbyGate) {callbacksRef.current.onMinigame?.(nearbyGate.minigameId);return;}
     if (key==='E' && nearbyStation) {handleTriggerLesson(nearbyStation);return;}
+    const introductoryTarget=key==='Q'?gameplayRef.current?.introTarget():null;
+    if(introductoryTarget&&Math.hypot(introductoryTarget.x-playerPosRef.current.x,introductoryTarget.z-playerPosRef.current.z)<2.8)playerRotYRef.current=Math.atan2(introductoryTarget.x-playerPosRef.current.x,introductoryTarget.z-playerPosRef.current.z);
     if (isGroundedRef.current && expressionRef.current?.express(key)) {
       const clip=expressionRef.current.actions[expressionRef.current.name]?.getClip();
       gameplayRef.current?.action(clip?.name,clip?.duration || 1);
+      weaponCutsRef.current?.begin(characterMeshRef.current?.userData.weaponCut,clip?.name,clip?.duration || 1);
     }
   };
 
@@ -200,9 +227,12 @@ export default function World3DView({
 
   // Notificar al estado del juego al interactuar
   const handleTriggerLesson = (station) => {
+    if(station?.id===F.station&&firstMinutesStarted(adventureStateRef.current)&&!['CHEST','DONE'].includes(firstMinutesPhase(adventureStateRef.current)))return;
     if (!station || !activeRef.current || mapOpenRef.current || expressionRef.current?.locked || interactionLockedRef.current || loading) return;
     if (station.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION && !onDiscoverAdventure) return;
     interactionLockedRef.current = true;
+    const position=station.position;
+    if(position)gameplayRef.current?.companionEvent('CHEST_INSPECTED',Array.isArray(position)?{x:position[0],z:position[2]}:position);
     const context = {
       position: { ...playerPosRef.current }, rotation: playerRotYRef.current,
       stationId: station.id, regionId: station.regionId,
@@ -223,6 +253,8 @@ export default function World3DView({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!activeRef.current || mapOpenRef.current || e.repeat || e.target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if(/^Digit[123]$/.test(e.code)&&gameplayRef.current?.musicKey(Number(e.code.slice(-1))-1)){e.preventDefault();return;}
+      if(e.code==='KeyF'&&!loading&&!gameplayRef.current?.staggered){e.preventDefault();gameplayRef.current?.interactPet();return;}
       if (e.code === 'KeyW' || e.code === 'ArrowUp') keysRef.current.forward = true;
       if (e.code === 'KeyS' || e.code === 'ArrowDown') keysRef.current.backward = true;
       if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysRef.current.left = true;
@@ -400,7 +432,38 @@ export default function World3DView({
     let playerColliderDebug = null;
     let collisionDebug = null;
     let chestSignals = null;
+    let firstMinutesWorld = null;
     let cameraOcclusion = null;
+    const footsteps=createFootsteps({baseUrl:import.meta.env.BASE_URL});
+    const weaponCuts=createWeaponCuts({baseUrl:import.meta.env.BASE_URL});weaponCutsRef.current=weaponCuts;
+    const doorSound=createDoorSound({baseUrl:import.meta.env.BASE_URL});doorSoundRef.current=doorSound;
+    const impactSounds=createImpactSounds({baseUrl:import.meta.env.BASE_URL});
+    const noteSound=createToyNoteSound();
+    worldCueRef.current=kind=>noteSound.cue(kind,{silent:audioSilent(),volume:stepSettings.volume});
+    let runePointer=null;
+    const runeDown=event=>{runePointer={x:event.clientX,y:event.clientY};};
+    const runeUp=event=>{
+      if(!runePointer||Math.hypot(event.clientX-runePointer.x,event.clientY-runePointer.y)>8)return;
+      runePointer=null;if(!activeRef.current||mapOpenRef.current)return;
+      const bounds=renderer.domElement.getBoundingClientRect();
+      gameplayRef.current?.musicPointer((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1,camera);
+    };
+    renderer.domElement.addEventListener('pointerdown',runeDown);renderer.domElement.addEventListener('pointerup',runeUp);
+    const unlockNotes=()=>{if(activeRef.current&&!usePianoMicStore.getState().isListening&&!document.hidden)noteSound.unlock();};
+    window.addEventListener('pointerdown',unlockNotes);window.addEventListener('keydown',unlockNotes);
+    let surfaceAt=()=> 'grass';
+    let stepSettings=readMusicSettings(globalThis.localStorage);
+    const audioSilent=()=>document.hidden||mapOpenRef.current||!activeRef.current||stepSettings.muted||stepSettings.volume===0||usePianoMicStore.getState().isListening;
+    const stopWorldSounds=()=>{footsteps.stop();weaponCuts.stop();doorSound.reset();impactSounds.stop();noteSound.stop();};
+    const unsubscribeMic=usePianoMicStore.subscribe((state,previous)=>{if(state.isListening&&!previous.isListening)stopWorldSounds();});
+    const syncStepSettings=()=>{stepSettings=readMusicSettings(globalThis.localStorage);if(audioSilent())stopWorldSounds();};
+    window.addEventListener('valley-audio-preferences',syncStepSettings);
+    window.addEventListener('valley-music-settings',syncStepSettings);
+    window.addEventListener('storage',syncStepSettings);
+    const pauseSteps=()=>{if(document.hidden){footsteps.stop();weaponCuts.stop();doorSound.reset();impactSounds.stop();noteSound.stop();}};
+    document.addEventListener('visibilitychange',pauseSteps);
+    const syncWorldVolume=event=>{if(event.target?.hasAttribute?.('data-world-music')){syncStepSettings();if(stepSettings.muted || stepSettings.volume===0){footsteps.stop();weaponCuts.stop();doorSound.reset();impactSounds.stop();noteSound.stop();}}};
+    document.addEventListener('volumechange',syncWorldVolume,true);
     const titleHidden = [];
     let titleStarted = performance.now(), wasPresentation = presentationRef.current, sessionToken = 0;
     const resetTitle = () => { if (presentationRef.current) titleStarted = performance.now(); };
@@ -427,6 +490,7 @@ export default function World3DView({
       Object.assign(playerPosRef.current,safeSpawn);
       scene.add(sceneGroup);
       cameraOcclusion=createCameraOcclusion(sceneGroup);
+      surfaceAt=createFootstepSurface(sceneGroup);
 
       // Debug overlay
       debugGroup.visible = debugMode;
@@ -445,7 +509,7 @@ export default function World3DView({
           : songs.find(item => String(item.id) === String(object.activityId ?? object.lessonRef));
         let instance = null;
         sceneGroup.traverse(obj => { if (obj.userData.compositionId === object.instanceId) instance = obj; });
-        if (object.type !== ADVENTURE_OBJECT_TYPES.PRACTICE_STATION && instance) {
+        if (instance) {
           const lid = instance.getObjectByName('chest_lid');
           if (lid) adventureModelsRef.current.set(object.id, { node: lid, closedRotation: lid.rotation.x });
         }
@@ -456,19 +520,38 @@ export default function World3DView({
       setInteractionObjects(levelPositions);
       updateChestLids(adventureModelsRef.current, adventureStateRef.current);
       chestSignals = createChestSignals(scene, generatedObjects, heightAt);
+      firstMinutesWorld=createFirstMinutesWorld(scene,heightAt);
 
       prepareSessionRef.current = async () => {
         if (!sessionRef.current || !profileRef.current.avatarId) return;
+        doorSound.reset();
         const token = ++sessionToken;
         gameplayRef.current?.dispose(); gameplayRef.current = null;
         const runtime=await createWorldGameplay(scene,heightAt,{
           state:()=>gameplayStateRef.current,player:()=>playerPosRef.current,
+          adventure:()=>adventureStateRef.current,
+          companionChests:()=>levelPositions.filter(object=>object.type!==ADVENTURE_OBJECT_TYPES.SECRET_REWARD &&
+            (object.type===ADVENTURE_OBJECT_TYPES.PRACTICE_STATION || adventureStateRef.current?.entries[object.id]?.state===ADVENTURE_STATES.COMPLETED))
+            .map(object=>({x:object.x,z:object.z,kind:'CHEST'})),
+          onToyEvent:event=>callbacksRef.current.onToyEvent?.(event),
+          onSecretFound:(id,position)=>{noteSound.cue('secret',{silent:audioSilent(),volume:stepSettings.volume,position,player:playerPosRef.current,yaw:cameraAngleRef.current.currentYaw});onPlaytestEvent?.('SECRET_DISCOVERED',{id});},
+          onNoteSound:(pitch,position)=>noteSound.play(pitch,{silent:audioSilent(),volume:stepSettings.volume,position:Array.isArray(position)?{x:position[0],z:position[2]}:position,player:playerPosRef.current,yaw:cameraAngleRef.current.currentYaw}),
+          onMusicalFocus:focused=>window.dispatchEvent(new CustomEvent('valley-musical-focus',{detail:focused})),
+          onRestorationNote:(pitch,volume)=>noteSound.play(pitch,{volume:volume*stepSettings.volume,silent:audioSilent()}),
+          onRestorationSettled:id=>callbacksRef.current.onRestorationSettled?.(id),
           onReward:id=>callbacksRef.current.onGameplayReward?.(id),
-          onPlayerHit:()=>{playerVelYRef.current=8;isGroundedRef.current=false;expressionRef.current?.react();},
+          onPlayerHit:({training}={})=>{weaponCuts.stop();playerVelYRef.current=training?3:8;isGroundedRef.current=false;expressionRef.current?.react();impactSounds.play('hurt',{silent:audioSilent(),volume:stepSettings.volume});},
+          onPlayerImpact:target=>{
+            const silent=audioSilent();
+            const mageSound=weaponCuts.impact({silent,volume:stepSettings.volume});
+            if(!mageSound || target.type==='DESTRUCTIBLE'||target.defeated)impactSounds.play(targetImpactSound(target),{silent,volume:stepSettings.volume,position:target.position,player:playerPosRef.current});
+          },
+          onGateOpened:gate=>doorSound.opened(gate.id,{x:gate.position[0],z:gate.position[2]}),
           onColliders:extra=>{collisionWorldRef.current=new CollisionWorld([...getActiveWorldColliders(allCollidersRef.current,adventureStateRef.current),...extra]);}
         });
         if(!isMounted || token !== sessionToken || !sessionRef.current){runtime.dispose();return;}gameplayRef.current=runtime;
         await runtime.setPet(gameplayStateRef.current.equippedPetId);
+        await runtime.prepareResidents();
       };
 
       // 6. Spawn del Héroe
@@ -486,6 +569,8 @@ export default function World3DView({
           charMesh.traverse(c => { if (c.isMesh) c.castShadow = true; });
           const equipment = getEquipment(charInfo.id, readEquipment(profileRef.current.user_id ?? profileRef.current.id, charInfo.id));
           await applyEquipment(charMesh, charInfo.id, equipment.id);
+          charMesh.userData.weaponCut=charInfo.id===2?'mage':equipment.nodes.some(name=>name.includes('Sword'))?'sword':equipment.nodes.some(name=>name.includes('Axe'))?'axe':null;
+          weaponCuts.stop();
           if (!isMounted || token!==heroToken) return;
           expressionRef.current?.dispose();
           if(characterMeshRef.current){const skeletons=new Set();characterMeshRef.current.traverse(n=>{if(n.skeleton)skeletons.add(n.skeleton);});skeletons.forEach(s=>s.dispose());characterMeshRef.current.removeFromParent();}
@@ -545,6 +630,11 @@ export default function World3DView({
       if (gameplayGroup) gameplayGroup.visible = !presenting;
       if (characterMeshRef.current) characterMeshRef.current.visible = !presenting;
       if (presenting) {
+        footsteps.stop();
+        weaponCuts.stop();
+        doorSound.reset();
+        impactSounds.stop();
+        noteSound.stop();
         if (document.hidden) { titleStarted += delta * 1000; return; }
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.entryMotion === 'reduced';
         const shot = titleCamera((now - titleStarted) / 1000, camera.aspect < 1, reduced);
@@ -563,7 +653,7 @@ export default function World3DView({
         }
         return;
       }
-      if (!activeRef.current) {cameraOcclusion?.reset();metricsTime=now;metricsFrames=0;return;}
+      if (!activeRef.current) {footsteps.stop();weaponCuts.stop();impactSounds.stop();noteSound.stop();doorSound.update({active:false,silent:document.hidden || stepSettings.muted || stepSettings.volume===0,player:playerPosRef.current});cameraOcclusion?.reset();metricsTime=now;metricsFrames=0;return;}
 
       if (characterMixerRef.current) {
         characterMixerRef.current.update(delta);
@@ -605,6 +695,7 @@ export default function World3DView({
       } else movementBasisRef.current.signature = '';
 
       let isMoving=false;
+      let stepDistance=0;
       collisionWorld = collisionWorldRef.current;
       if (isInputActive && collisionWorld) {
         const beforeX=playerPosRef.current.x,beforeZ=playerPosRef.current.z;
@@ -612,9 +703,11 @@ export default function World3DView({
         const next=gameplayRef.current?.movePlayer(playerPosRef.current,displacement,collisionWorld) || collisionWorld.move(playerPosRef.current,displacement);
         Object.assign(playerPosRef.current,next);
         isMoving=Math.hypot(next.x-beforeX,next.z-beforeZ)>1e-5;
+        stepDistance=Math.hypot(next.x-beforeX,next.z-beforeZ);
         if (isMoving) {
           walkedDistanceRef.current += Math.hypot(next.x-beforeX,next.z-beforeZ);
           const journey = adventureStateRef.current?.journey;
+          if(firstMinutesPhase(adventureStateRef.current)==='MOVE'&&walkedDistanceRef.current>=.6)objectiveCallbackRef.current?.({...playerPosRef.current},walkedDistanceRef.current);
           const event = `${getPlayableRegionAt(next) || 'TRANSITION'}:${walkedDistanceRef.current >= 3 || next.z < -10 ? 'WALKED' : 'START'}`;
           if (journey?.started && event && event !== reportedObjectiveRef.current) {
             reportedObjectiveRef.current = event;
@@ -639,6 +732,12 @@ export default function World3DView({
       }
 
       if(!mapOpenRef.current)gameplayRef.current?.update(delta,now/1000,playerPosRef.current,playerRotYRef.current,collisionWorldRef.current);
+      weaponCuts.update(delta,{silent:audioSilent(),volume:stepSettings.volume});
+      doorSound.update({active:!mapOpenRef.current,silent:audioSilent(),volume:stepSettings.volume,player:playerPosRef.current});
+      if(audioSilent())impactSounds.stop();
+      footsteps.update({moved:stepDistance,grounded:isGroundedRef.current && !gameplayRef.current?.staggered,
+        running:isShift,time:now/1000,surface:()=>surfaceAt(playerPosRef.current),
+        silent:audioSilent(),volume:stepSettings.volume});
 
       // Animaciones de Personaje
       let desiredAnim = 'Idle';
@@ -663,7 +762,8 @@ export default function World3DView({
       // Detección de proximidad a estaciones
       let detected = null;
       for (let pos of levelPositions) {
-        pos.song = pos.lessonRef === 'first-song' ? songsRef.current[0] : songsRef.current.find(song => String(song.id) === String(pos.activityId ?? pos.lessonRef));
+        pos.song = pos.id===F.station&&firstMinutesStarted(adventureStateRef.current)?songsRef.current.find(song=>String(song.id)===String(pos.introActivityId??F.activityId)):pos.lessonRef === 'first-song' ? songsRef.current[0] : songsRef.current.find(song => String(song.id) === String(pos.activityId ?? pos.lessonRef));
+        if(pos.id===F.station&&firstMinutesStarted(adventureStateRef.current)&&!['CHEST','DONE'].includes(firstMinutesPhase(adventureStateRef.current)))continue;
         const dx = playerPosRef.current.x - pos.x;
         const dz = playerPosRef.current.z - pos.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
@@ -689,7 +789,7 @@ export default function World3DView({
       const pY = playerPosRef.current.y;
       const pZ = playerPosRef.current.z;
 
-      const opponent=gameplayRef.current?.combatFocus(playerPosRef.current);
+      const opponent=gameplayRef.current?.combatFocus(playerPosRef.current)||gameplayRef.current?.musicFocus();
       const encounter=!!opponent && !isDraggingMouseRef.current && (now-lastManualCameraRef.current)>1600;
       encounterCameraRef.current += ((encounter?1:0)-encounterCameraRef.current)*Math.min(1,delta*4);
       const combatBlend=encounterCameraRef.current;
@@ -728,6 +828,7 @@ export default function World3DView({
       cameraOcclusion?.update(camera.position,opponent?[playerPosRef.current,opponent]:[playerPosRef.current],delta,now/1000);
 
       chestSignals?.update(now / 1000, playerPosRef.current, adventureStateRef.current);
+      firstMinutesWorld?.update(delta,now/1000,adventureStateRef.current);
       if (now-navigationTime>=200) {
         navigationTime=now;
         const target=resolveObjectiveTarget(adventureStateRef.current);
@@ -736,7 +837,7 @@ export default function World3DView({
           targetProjection.set(target.position.x,getTerrainHeight(target.position.x,target.position.z)+1,target.position.z).project(camera);
           projected={x:targetProjection.x,y:targetProjection.y,z:targetProjection.z};
         }
-        setNavigationPose({position:{...playerPosRef.current},rotation:playerRotYRef.current,cameraYaw:angles.currentYaw,projected});
+        setNavigationPose({position:{...playerPosRef.current},rotation:playerRotYRef.current,cameraYaw:angles.currentYaw,projected,introTarget:gameplayRef.current?.introTarget()?{...gameplayRef.current.introTarget()}:null});
       }
 
       renderer.render(scene, camera);
@@ -746,6 +847,10 @@ export default function World3DView({
           const metrics={fps:Math.round(metricsFrames*1000/(now-metricsTime)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,solidColliders:collisionWorld?.colliders.length ?? 0,...gameplayRef.current?.stats,sampledAt:Math.round(now),foreground:document.visibilityState==='visible' && document.hasFocus()};
           renderer.domElement.dataset.renderMetrics=JSON.stringify(metrics);
           renderer.domElement.dataset.characterAction=expressionRef.current?.name || 'Idle';
+          renderer.domElement.dataset.worldMusic=JSON.stringify(gameplayRef.current?.musicStats||[]);
+          renderer.domElement.dataset.worldRestoration=JSON.stringify(gameplayRef.current?.restorationStats||[]);
+          renderer.domElement.dataset.residents=JSON.stringify(gameplayRef.current?.residentStats||{});
+          renderer.domElement.dataset.companion=JSON.stringify(gameplayRef.current?.companionStats||null);
           renderer.domElement.dataset.playerPose=JSON.stringify({position:playerPosRef.current,rotation:playerRotYRef.current,cameraYaw:angles.currentYaw});
           if(debugEnabled)setWorldMetrics(previous=>previous?{...previous,...metrics}:previous);
           metricsFrames=0;metricsTime=now;
@@ -765,11 +870,22 @@ export default function World3DView({
       renderer.dispose();
       expressionRef.current?.dispose(); expressionRef.current = null;
       cameraOcclusion?.dispose();
-      gameplayRef.current?.dispose();gameplayRef.current=null;loadHeroRef.current=null;
+      footsteps.dispose();
+      weaponCuts.dispose();if(weaponCutsRef.current===weaponCuts)weaponCutsRef.current=null;
+      doorSound.dispose();if(doorSoundRef.current===doorSound)doorSoundRef.current=null;
+      impactSounds.dispose();
+      noteSound.dispose();worldCueRef.current=null;unsubscribeMic();window.removeEventListener('valley-audio-preferences',syncStepSettings);window.removeEventListener('pointerdown',unlockNotes);window.removeEventListener('keydown',unlockNotes);
+      renderer.domElement.removeEventListener('pointerdown',runeDown);renderer.domElement.removeEventListener('pointerup',runeUp);
+      window.removeEventListener('valley-music-settings',syncStepSettings);
+      window.removeEventListener('storage',syncStepSettings);
+      document.removeEventListener('visibilitychange',pauseSteps);
+      document.removeEventListener('volumechange',syncWorldVolume,true);
+      gameplayRef.current?.dispose();gameplayRef.current=null;loadHeroRef.current=null;window.dispatchEvent(new CustomEvent('valley-musical-focus',{detail:false}));
       sessionToken++; prepareSessionRef.current = null;
       window.removeEventListener('pointerdown', resetTitle); window.removeEventListener('keydown', resetTitle);
       moteGeometry.dispose(); moteMaterial.dispose();
       chestSignals?.dispose();
+      firstMinutesWorld?.dispose();
       if(collisionDebug)disposeCollisionDebug(collisionDebug);
       debugGroupRef.current=null;
       collisionWorldRef.current=null;
@@ -779,10 +895,11 @@ export default function World3DView({
   }, []);
 
   return (
-    <div className="relative w-full h-full flex flex-col overflow-hidden bg-slate-950 select-none">
+    <div className={`relative w-full h-full flex flex-col overflow-hidden bg-slate-950 select-none ${introPhase?'first-minutes-world':''}`}>
       <div ref={containerRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing" />
-      {!presentation && adventureState && !loading && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} requestedOpen={mapOpen} onOpenChange={setMapOpen} onPlaytestEvent={onPlaytestEvent} />}
-      {active && !loading && <div className="world-action-controls"><button title="Accion primaria" aria-label="Accion primaria" onClick={()=>performWorldAction('Q')}><Swords/></button><button title="Accion secundaria / interactuar" aria-label="Accion secundaria / interactuar" onClick={()=>performWorldAction('E')}><WandSparkles/></button></div>}
+      {!presentation && adventureState && !loading && !introActive && <WorldNavigation adventure={adventureState} pose={navigationPose} active={active} requestedOpen={mapOpen} onOpenChange={setMapOpen} onPlaytestEvent={onPlaytestEvent} />}
+      {active&&!loading&&!mapOpen&&introPhase&&<FirstMinutesHints phase={introPhase} position={navigationPose.position} targetPosition={navigationPose.introTarget} onAction={performWorldAction} onMove={(direction,pressed)=>{keysRef.current[direction]=pressed;}}/>}
+      {active && !loading && !introActive && <div className="world-action-controls"><button title="Accion primaria" aria-label="Accion primaria" onClick={()=>performWorldAction('Q')}><Swords/></button><button title="Accion secundaria / interactuar" aria-label="Accion secundaria / interactuar" onClick={()=>performWorldAction('E')}><WandSparkles/></button>{gameplayState?.equippedPetId && <button className="companion-greeting" title="Saludar a tu mascota (F)" aria-label="Saludar a tu mascota" onClick={()=>{if(!mapOpenRef.current)gameplayRef.current?.interactPet();}}><PawPrint/></button>}</div>}
       {active && nearbyGate && <button className="absolute top-28 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100%-2rem)] rounded-lg bg-emerald-950 px-4 py-3 border border-emerald-300" onClick={()=>performWorldAction('E')}>Desafio musical · E - Jugar<br/><span className="text-xs">{getGameplayContent().minigames.find(m=>m.id===nearbyGate.minigameId)?.name}</span></button>}
 
       {loading && (
@@ -796,7 +913,7 @@ export default function World3DView({
         </div>
       )}
 
-      {active && nearbyStation && !nearbyGate && (
+      {active && nearbyStation && !nearbyGate && !introActive && (
         <div className="absolute top-28 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in duration-200 pointer-events-auto w-max max-w-[calc(100%-2rem)]">
           <button
             onClick={() => handleTriggerLesson(nearbyStation)}

@@ -29,7 +29,9 @@ import { validateWorldGateBindings } from '../adventure/valleyProgression.js';
 import { GROTTO_COMPOSITION } from './composition/grottoComposition.js';
 import { RUINS_COMPOSITION } from './composition/ruinsComposition.js';
 import { OBSERVATORY_COMPOSITION } from './composition/observatoryComposition.js';
-const COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION,GROTTO_COMPOSITION,RUINS_COMPOSITION,OBSERVATORY_COMPOSITION];
+import {explorationOverlay} from './composition/explorationSecrets.js';
+const BASE_COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION,GROTTO_COMPOSITION,RUINS_COMPOSITION,OBSERVATORY_COMPOSITION];
+const COMPOSITIONS=[...BASE_COMPOSITIONS,...BASE_COMPOSITIONS.map(explorationOverlay).filter(c=>c.instances.length)];
 const REGISTERED_ASSETS = [...collectAssetUrls(KAYKIT_ASSETS), ...contentAssetUrls];
 
 export class WorldGenerator {
@@ -138,10 +140,10 @@ export class WorldGenerator {
   /**
    * Construye el terreno topográfico respetando las alturas continuas
    */
-  buildTerrain() {
+  buildTerrain({ widthSegments, depthSegments } = {}) {
     const size = 110;
-    const segments = PLAZA_COMPOSITION.constructionPhase ? Math.ceil(size*2) : 56;
-    const geo = new THREE.PlaneGeometry(size, 200, segments, 400);
+    const segments = widthSegments ?? (PLAZA_COMPOSITION.constructionPhase ? Math.ceil(size*2) : 56);
+    const geo = new THREE.PlaneGeometry(size, 200, segments, depthSegments ?? 400);
     geo.rotateX(-Math.PI / 2);
     geo.translate(0,0,-45);
 
@@ -276,6 +278,7 @@ export class WorldGenerator {
       if (obj) {
         obj.rotation.set(...item.rotation);
         obj.userData.compositionId = item.id;
+        if (/\/(floor_tile[^/]*|stairs[^/]*)\.(glb|gltf)$/i.test(item.assetUrl)) obj.userData.footstepSurface = 'concrete';
         const gate = (composition.gates || []).find(binding => binding.instanceId === item.id);
         if (gate) obj.userData.gateId = gate.gateId;
       }
