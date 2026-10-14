@@ -65,21 +65,22 @@ async function upload(remote, source, buffer = false) {
   });
 }
 async function snapshot(remote) {
-  let data;
-  try { data = await transfer(async () => {
-    const chunks = [];
-    await client.downloadTo(new Writable({ write(chunk, encoding, done) { chunks.push(Buffer.from(chunk)); done(); } }), remote);
-    return Buffer.concat(chunks);
-  }); } catch(error) {
-    const newRuntime=['/backend/content/editor.php','/backend/content/preflight.php','/backend/content/events.php','/backend/content/design.php','/backend/content/design-registry.json','/backend/content/imports.php'];
-    if(error.code!==550||!newRuntime.includes(remote))throw error;
+  const newRuntime=['/backend/content/editor.php','/backend/content/preflight.php','/backend/content/events.php','/backend/content/design.php','/backend/content/design-registry.json','/backend/content/imports.php'];
+  // Some hosting servers reset the data channel on RETR for an absent file.
+  if(newRuntime.includes(remote)) {
     const listing=await transfer(()=>client.list(path.posix.dirname(remote)));
-    if(listing.some(entry=>entry.name===path.posix.basename(remote)))throw error;
-    snapshots.set(remote,null);
-    await fs.mkdir(backupDir,{recursive:true});
-    await fs.writeFile(path.join(backupDir,'new-runtime-files.json'),JSON.stringify([...snapshots].filter(([,data])=>data===null).map(([file])=>file)));
-    return;
+    if(!listing.some(entry=>entry.name===path.posix.basename(remote))) {
+      snapshots.set(remote,null);
+      await fs.mkdir(backupDir,{recursive:true});
+      await fs.writeFile(path.join(backupDir,'new-runtime-files.json'),JSON.stringify([...snapshots].filter(([,data])=>data===null).map(([file])=>file)));
+      return;
+    }
   }
+  const data=await transfer(async () => {
+    const chunks=[];
+    await client.downloadTo(new Writable({write(chunk,encoding,done){chunks.push(Buffer.from(chunk));done();}}),remote);
+    return Buffer.concat(chunks);
+  });
   snapshots.set(remote, data);
   const local = path.join(backupDir, remote.slice(1));
   await fs.mkdir(path.dirname(local), { recursive: true });
