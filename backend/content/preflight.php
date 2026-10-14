@@ -1,4 +1,8 @@
 <?php
+function content_public_root(){
+    $base=dirname(__DIR__,2);
+    return is_dir($base.'/public/models')?$base.'/public':$base;
+}
 function content_resource_file($path,$root) {
     if(!is_string($path)||str_contains($path,"\0"))throw new InvalidArgumentException('Recurso invalido');
     $file=realpath($path);$base=realpath($root);
@@ -19,7 +23,7 @@ function content_model_document($file) {
     }finally{fclose($stream);}
 }
 function content_asset_preflight($data,$registry,$root=null) {
-    $root=$root ?? dirname(__DIR__,2).'/public';$assets=array_column($registry['assets'],null,'id');$urls=[];
+    $root=$root ?? content_public_root();$assets=array_column($registry['assets'],null,'id');$urls=[];
     foreach($data['world'] as $region)foreach($region['instances'] as $object)$urls[$object['assetUrl']]=true;
     foreach($data['editorTemplates'] ?? [] as $template)foreach($template['instances'] as $object)$urls[$object['assetUrl']]=true;
     foreach($data['worldActions'] as $object)if($object['enabledInWorld'])$urls[$assets[$object['assetId']]['url']]=true;

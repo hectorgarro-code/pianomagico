@@ -2,12 +2,19 @@ import test from 'node:test';
 import process from 'node:process';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,readFileSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,readFileSync,copyFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join,resolve,sep} from 'node:path';
 import {createDefaultContent} from '../game/content/contentDefaults.js';
 import {spatialWarnings} from './editorPreflight.js';
 const php=(source,input)=>execFileSync(process.env.PHP_BINARY||(process.platform==='win32'?'C:/xampp/php/php.exe':'php'),['-r',`require 'backend/content/preflight.php';$i=json_decode(stream_get_contents(STDIN),true);try{${source}}catch(Throwable $e){echo $e->getMessage();}`],{input:JSON.stringify(input),encoding:'utf8'});
+test('public root supports both Vite source and flat hosting layout',()=>{
+  const root=mkdtempSync(join(tmpdir(),'valle-root-test-'));assert.ok(root.startsWith(resolve(tmpdir())+sep));
+  try{const helper=join(root,'backend/content/preflight.php');mkdirSync(join(root,'backend/content'),{recursive:true});copyFileSync('backend/content/preflight.php',helper);mkdirSync(join(root,'models'));
+    const check=()=>execFileSync(process.env.PHP_BINARY||(process.platform==='win32'?'C:/xampp/php/php.exe':'php'),['-r','require $argv[1];echo content_public_root();',helper],{encoding:'utf8'});
+    assert.equal(resolve(check()),resolve(root));mkdirSync(join(root,'public/models'),{recursive:true});assert.equal(resolve(check()),resolve(root,'public'));
+  }finally{rmSync(root,{recursive:true,force:true});}
+});
 test('preflight checks real referenced models without modifying the content',()=>{
   const content=createDefaultContent(),registry=JSON.parse(readFileSync('backend/content/registry.json')),before=JSON.stringify(content);
   const result=JSON.parse(php("echo json_encode(content_asset_preflight($i['content'],$i['registry']));",{content,registry}));
