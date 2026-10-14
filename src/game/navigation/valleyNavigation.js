@@ -86,7 +86,7 @@ export function getValleyMap(adventure, target = resolveObjectiveTarget(adventur
     id: o.id, regionId: o.regionId, label: o.label, position: xz(o.instance.position),
     state: adventure.entries[o.id]?.state || 'LOCKED', type: o.type
   }));
-  const secrets=EXPLORATION_SECRETS.filter(s=>adventure.toy?.discoveredSecrets?.includes(s.id)).map(s=>({id:s.id,position:xz(s.position)}));
+  const secrets=EXPLORATION_SECRETS.filter(s=>s.enabled!==false&&adventure.toy?.discoveredSecrets?.includes(s.id)).map(s=>({id:s.id,position:xz(s.position)}));
   return { regions, paths, chests, secrets, target, currentRegion: progress.currentRegion };
 }
 

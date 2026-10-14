@@ -27,6 +27,8 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
     const grid=new THREE.GridHelper(160,160,0x526c63,0x9aaa90);grid.position.set(origin[0],heightAt(origin[0],origin[2])+.03,origin[2]);scene.add(grid);
     const generator=new WorldGenerator(),terrain=generator.buildTerrain({widthSegments:44,depthSegments:160});scene.add(terrain);
     const models=new Map(),pending=new Map(),ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let drag=false,down=null;
+    const routeGroup=new THREE.Group();scene.add(routeGroup);
+    function clearRoutes(){for(const line of [...routeGroup.children]){line.geometry.dispose();line.material.dispose();line.removeFromParent();}}
     const rt={scene,renderer,camera,orbit,transform,models,grid,drag:false};runtime.current=rt;
     function disposeEntry(entry){entry.mixer?.stopAllAction();entry.mixer?.uncacheRoot(entry.model);const skeletons=new Set();entry.model.traverse(n=>{if(n.skeleton)skeletons.add(n.skeleton);});skeletons.forEach(s=>s.dispose());entry.helper?.geometry.dispose();entry.helper?.material.dispose();entry.model.removeFromParent();entry.helper?.removeFromParent();}
     function updateModel(entry,item){const [x,y,z]=item.position;entry.model.position.set(x,item.grounding==='absolute'?y:heightAt(x,z)+y,z);entry.model.rotation.fromArray(item.rotation);entry.model.scale.fromArray(item.scale);entry.model.visible=!item.editor?.hidden&&item.enabled!==false&&item.enabledInWorld!==false;entry.helper?.update();}
@@ -55,7 +57,13 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
     rt.select=()=>{
       const p=props.current,entry=models.get(p.selectedKey);
       const selected=p.records.filter(r=>p.selectedKeys.includes(r.key)),locked=selected.some(r=>r.editor?.locked);
-      if(entry&&entry.model.visible&&!locked){if(transform.object!==entry.model)transform.attach(entry.model);}else transform.detach();
+      clearRoutes();
+      for(const resident of selected.filter(r=>r.collection==='residents'&&r.walk&&!r.editor?.hidden)){
+        const points=[...resident.walk,resident.walk[0]].map(([x,z])=>new THREE.Vector3(x,heightAt(x,z)+.12,z));
+        routeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0xffd15c,depthTest:false,transparent:true,opacity:.9})));
+      }
+      const positionOnly=selected.some(r=>r.collection==='worldEvents');
+      if(entry&&entry.model.visible&&!locked&&(!positionOnly||p.mode==='translate')){if(transform.object!==entry.model)transform.attach(entry.model);}else transform.detach();
       const verticalOnly=p.mode==='rotate'&&selected.some(r=>r.collision?.type==='solid'||['residents','worldActions','gates'].includes(r.collection));
       transform.showX=!verticalOnly;transform.showZ=!verticalOnly;
       transform.setMode(p.mode);transform.setTranslationSnap(p.snap? .5:null);transform.setRotationSnap(p.snap?Math.PI/12:null);transform.setScaleSnap(p.snap? .1:null);
@@ -68,7 +76,8 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
       const position=obj.position.toArray();if(item.grounding!=='absolute')position[1]=props.current.mode==='translate'&&!dragAxis.includes('Y')?item.position[1]:position[1]-heightAt(position[0],position[2]);
       const rotation=obj.rotation.toArray().slice(0,3),scale=obj.scale.toArray().map(s=>Math.max(.01,s));
       if(item.collision?.type==='solid'){rotation[0]=0;rotation[2]=0;}
-      props.current.onTransform(item,{position,rotation,scale});
+      const hasEvent=props.current.records.some(r=>r.collection==='worldEvents'&&props.current.selectedKeys.includes(r.key));
+      props.current.onTransform(item,hasEvent?{position}:{position,rotation,scale});
     }};
     transform.addEventListener('dragging-changed',dragging);
     const start=e=>{down=[e.clientX,e.clientY];drag=false;};
@@ -82,7 +91,7 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
     renderer.domElement.addEventListener('pointerdown',start);renderer.domElement.addEventListener('pointerup',end);
     const resize=()=>{const w=container.clientWidth,h=container.clientHeight;renderer.setSize(w,h);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();};observer=new ResizeObserver(resize);observer.observe(container);resize();
     const clock=new THREE.Clock();function tick(){if(!live)return;const dt=Math.min(clock.getDelta(),.05);for(const e of models.values()){e.mixer?.update(dt);e.helper.update();}orbit.update();renderer.render(scene,camera);frame=requestAnimationFrame(tick);}rt.sync();tick();
-    return()=>{live=false;runtime.current=null;cancelAnimationFrame(frame);observer.disconnect();transform.removeEventListener('dragging-changed',dragging);transform.dispose();orbit.dispose();for(const entry of models.values())disposeEntry(entry);terrain.geometry.dispose();terrain.material.dispose();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();};
+    return()=>{live=false;runtime.current=null;cancelAnimationFrame(frame);observer.disconnect();clearRoutes();transform.removeEventListener('dragging-changed',dragging);transform.dispose();orbit.dispose();for(const entry of models.values())disposeEntry(entry);terrain.geometry.dispose();terrain.material.dispose();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();};
   },[region.id]);
   useEffect(()=>{const rt=runtime.current,entry=rt?.models.get(selectedKey);if(!entry)return;const box=new THREE.Box3().setFromObject(entry.model),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3()).length();const offset=rt.camera.position.clone().sub(rt.orbit.target).normalize().multiplyScalar(Math.max(6,size*2));rt.orbit.target.copy(center);rt.camera.position.copy(center).add(offset);rt.orbit.update();},[focusToken,selectedKey]);
   return <div className="world-editor-viewport" ref={host}>{loading&&<span className="editor-loading" role="status">Cargando modelos...</span>}{error&&<p className="admin-error" role="alert">{error}</p>}</div>;

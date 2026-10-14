@@ -17,19 +17,20 @@ export function createWorldCollectibles(group,heightAt,options) {
   const notes=TOY_NOTES.map(definition=>{
     const node=new THREE.Group(),sprite=new THREE.Sprite(material);node.name='LostNote:'+definition.id;sprite.scale.set(.65,.8,1);node.add(sprite);
     const halo=new THREE.Mesh(haloGeometry,haloMaterial);halo.rotation.x=-Math.PI/2;halo.position.y=-.8;node.add(halo);
-    node.position.set(definition.position[0],heightAt(definition.position[0],definition.position[2])+1,definition.position[2]);node.visible=false;group.add(node);
+    node.position.set(definition.position[0],heightAt(definition.position[0],definition.position[2])+definition.position[1]+1,definition.position[2]);node.visible=false;group.add(node);
     return {definition,node,collected:options.adventure()?.toy?.collectedNotes.includes(definition.id)||false,age:null};
   });
   return {
-    release(sourceId,position){for(const item of notes)if(item.definition.sourceId===sourceId){item.node.position.x=position.x;item.node.position.z=position.z;}},
+    release(sourceId,position){for(const item of notes)if(item.definition.sourceId===sourceId&&!item.definition.stayAtAuthoredPosition){item.node.position.x=position.x;item.node.position.z=position.z;}},
     update(delta,time,player,defeated) {
       discoveryAge+=delta;discovery.visible=discoveryAge<1.8;discovery.material.opacity=Math.min(1,Math.max(0,(1.8-discoveryAge)*2));if(discovery.visible)discovery.position.y+=delta*.25;
       for(const item of notes){
         const {definition,node}=item;
+        if(definition.enabled===false){node.visible=false;continue;}
         if(definition.firstMinutesOnly&&!firstMinutesStarted(options.adventure())||firstMinutesStarted(options.adventure())&&firstMinutesPhase(options.adventure())!=='DONE'&&['note-arrival','note-plaza','note-exit','note-corner','note-box','note-barrel'].includes(definition.id)){node.visible=false;continue;}
         if(item.age!==null){item.age+=delta;node.position.y+=delta*2;node.scale.setScalar(Math.max(.01,1-item.age/.4));if(item.age>=.4)node.visible=false;continue;}
-        node.visible=!item.collected&&(!definition.sourceId||defeated.has(definition.sourceId))&&(!definition.mechanismId||options.adventure()?.toy?.completedMechanisms?.includes(definition.mechanismId))&&(!definition.secretId||Math.hypot(player.x-node.position.x,player.z-node.position.z)<(definition.revealRadius||5));if(!node.visible)continue;
-        node.position.y=heightAt(node.position.x,node.position.z)+1+Math.sin(time*2+definition.position[0])*.12;
+        node.visible=!item.collected&&(!definition.sourceId||defeated.has(definition.sourceId))&&(!definition.mechanismId||options.adventure()?.toy?.completedMechanisms?.includes(definition.mechanismId))&&(!(definition.secretId||definition.stayAtAuthoredPosition)||Math.hypot(player.x-node.position.x,player.z-node.position.z)<(definition.revealRadius||5));if(!node.visible)continue;
+        node.position.y=heightAt(node.position.x,node.position.z)+definition.position[1]+1+Math.sin(time*2+definition.position[0])*.12;
         if(Math.hypot(player.x-node.position.x,player.z-node.position.z)<1.15&&Math.abs(player.y-(node.position.y-1))<1.2){
           item.collected=true;item.age=0;options.onCollect(definition);options.onBurst(node.position.clone());
           if(definition.secretId&&!knownSecrets.has(definition.secretId)){

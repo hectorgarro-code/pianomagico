@@ -71,7 +71,7 @@ async function snapshot(remote) {
     await client.downloadTo(new Writable({ write(chunk, encoding, done) { chunks.push(Buffer.from(chunk)); done(); } }), remote);
     return Buffer.concat(chunks);
   }); } catch(error) {
-    const newRuntime=['/backend/content/editor.php','/backend/content/preflight.php'];
+    const newRuntime=['/backend/content/editor.php','/backend/content/preflight.php','/backend/content/events.php'];
     if(error.code!==550||!newRuntime.includes(remote))throw error;
     const listing=await transfer(()=>client.list(path.posix.dirname(remote)));
     if(listing.some(entry=>entry.name===path.posix.basename(remote)))throw error;

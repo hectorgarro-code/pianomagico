@@ -19,6 +19,6 @@ export function applyToyEvent(adventure,event) {
   }
   if(event.type!=='LOST_NOTE_COLLECTED')return adventure;
   const note=TOY_NOTES.find(n=>n.id===event.id);
-  if(!note||toy.collectedNotes.includes(note.id)||(note.sourceId&&!toy.defeatedTargets.includes(note.sourceId))||(note.mechanismId&&!toy.completedMechanisms?.includes(note.mechanismId)))return adventure;
+  if(!note||note.enabled===false||toy.collectedNotes.includes(note.id)||(note.sourceId&&!toy.defeatedTargets.includes(note.sourceId))||(note.mechanismId&&!toy.completedMechanisms?.includes(note.mechanismId)))return adventure;
   return {...adventure,toy:{...toy,collectedNotes:[...toy.collectedNotes,note.id],discoveredSecrets:note.secretId?[...new Set([...toy.discoveredSecrets,note.secretId])]:toy.discoveredSecrets}};
 }

@@ -13,6 +13,7 @@ export function authorMetadata(content,regionId,records,keys,values) {
 }
 export function transformSelection(content,regionId,records,keys,anchor,values) {
   const selected=editableRecords(records,keys),old=anchor.position,next=values.position||old;
+  if(selected.some(r=>r.collection==='worldEvents')&&(values.rotation||values.scale))throw Error('Los eventos se posicionan; no se rotan ni se escalan.');
   const oldScale=anchor.scale,newScale=values.scale||oldScale,rot=values.rotation||anchor.rotation;
   const q=new Quaternion().setFromEuler(new Euler(...rot)).multiply(new Quaternion().setFromEuler(new Euler(...anchor.rotation)).invert());
   const ratio=new Vector3(...newScale).divide(new Vector3(...oldScale));
@@ -26,7 +27,7 @@ export function transformSelection(content,regionId,records,keys,anchor,values) 
     const rotation=new Euler().setFromQuaternion(q.clone().multiply(new Quaternion().setFromEuler(new Euler(...r.rotation)))).toArray().slice(0,3);
     const scale=r.scale.map((v,i)=>v*newScale[i]/oldScale[i]);
     if(![...position,...rotation,...scale].every(Number.isFinite)||scale.some(v=>v<=0||v>100))throw Error('Transformacion fuera de limites.');
-    return patchRecord(c,regionId,r,{position,rotation,scale});
+    return patchRecord(c,regionId,r,r.collection==='worldEvents'?{position}:{position,rotation,scale});
   },content);
 }
 export function alignSelection(content,regionId,records,keys,axis) {

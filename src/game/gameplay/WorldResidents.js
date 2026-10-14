@@ -4,7 +4,7 @@ import {loadCharacterPresentation,hideEquipment} from '../presentation/character
 import {getValleyProgress} from '../adventure/valleyProgression.js';
 import {moveWithBodies} from './creatureEncounter.js';
 import {WORLD_RESIDENTS} from '../world/composition/friendlyComposition.js';
-import {createResidentBehavior,stepResident,RESIDENT_CLIPS} from './residentBehavior.js';
+import {createResidentBehavior,stepResident,RESIDENT_CLIPS,RESIDENT_BEHAVIOR_DEFAULTS} from './residentBehavior.js';
 import {FIRST_MINUTES as F,firstMinutesStarted} from './firstMinutes.js';
 import {getGameplayContent} from './gameplayContent.js';
 
@@ -19,7 +19,7 @@ export async function createWorldResidents(parent,heightAt,options){
     const material=new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false});bubbleMaterials.set(text,{texture,material});return material;
   }
   function cleanup(){for(const resident of residents){resident.mixer.stopAllAction();resident.mixer.uncacheRoot(resident.model);const skeletons=new Set();resident.model.traverse(n=>{if(n.skeleton)skeletons.add(n.skeleton);});skeletons.forEach(s=>s.dispose());}for(const {texture,material} of bubbleMaterials.values()){texture.dispose();material.dispose();}group.removeFromParent();}
-  try{for(const definition of getGameplayContent().residents || WORLD_RESIDENTS){
+  try{for(const definition of (getGameplayContent().residents || WORLD_RESIDENTS).filter(r=>r.enabled!==false)){
     const data=await loadCharacterPresentation(definition.characterId),model=clone(data.scene);hideEquipment(model);model.scale.setScalar(definition.scale);
     const position={x:definition.position[0],y:heightAt(definition.position[0],definition.position[2])+definition.position[1],z:definition.position[2]};model.position.set(position.x,position.y,position.z);model.rotation.y=definition.rotation;model.userData.friendlyResident=definition.id;
     model.traverse(n=>{if(n.isMesh)n.castShadow=true;if(n.isSkinnedMesh)n.frustumCulled=false;});group.add(model);
@@ -39,14 +39,14 @@ export async function createWorldResidents(parent,heightAt,options){
         resident.budget+=delta;if(distance>20&&resident.budget<.25)continue;const step=Math.min(.3,resident.budget);resident.budget=0;
         const goalComplete=definition.goal&&adventure?.toy?.collectedNotes.includes(definition.goal.noteId);
         const introRestored=firstMinutesStarted(adventure)&&definition.regionId==='PLAZA_DE_LAS_NOTAS'?adventure.valley.milestones.includes(F.restored):null;
-        const pose=stepResident(resident.memory,{distance,hasGoal:!!definition.goal,goalComplete,regionComplete:introRestored??completedRegions.includes(definition.regionId),nearbyComplete:definition.watch?.some(id=>newlyCompleted.has(id)),playerHit,walking:!!definition.walk},step);
+        const pose=stepResident(resident.memory,{distance,hasGoal:!!definition.goal,goalComplete,regionComplete:introRestored??completedRegions.includes(definition.regionId),nearbyComplete:definition.watch?.some(id=>newlyCompleted.has(id)),playerHit,walking:!!definition.walk,behavior:definition.behavior},step);
         resident.state=pose.state;
         let target=pose.state==='POINT'?{x:definition.goal.position[0],z:definition.goal.position[2]}:pose.near?player:null;
         let moving=false;
         if(pose.state==='WALK'){
           const point=definition.walk[resident.pathIndex],dx=point[0]-position.x,dz=point[1]-position.z,length=Math.hypot(dx,dz);
           if(length<.2)resident.pathIndex=(resident.pathIndex+1)%definition.walk.length;
-          else{const amount=Math.min(length,step*.7),old={...position};Object.assign(position,moveWithBodies(position,{x:dx/length*amount,z:dz/length*amount},collisionWorld,[...options.bodies().filter(b=>b.id!==definition.id),{x:player.x,z:player.z,radius:.34}],definition.radius));moving=Math.hypot(position.x-old.x,position.z-old.z)>.001;target={x:point[0],z:point[1]};}
+          else{const amount=Math.min(length,step*(definition.behavior?.walkSpeed??RESIDENT_BEHAVIOR_DEFAULTS.walkSpeed)),old={...position};Object.assign(position,moveWithBodies(position,{x:dx/length*amount,z:dz/length*amount},collisionWorld,[...options.bodies().filter(b=>b.id!==definition.id),{x:player.x,z:player.z,radius:.34}],definition.radius));moving=Math.hypot(position.x-old.x,position.z-old.z)>.001;target={x:point[0],z:point[1]};}
         }
         if(target){const desired=Math.atan2(target.x-position.x,target.z-position.z);model.rotation.y+=Math.atan2(Math.sin(desired-model.rotation.y),Math.cos(desired-model.rotation.y))*Math.min(1,step*5);}
         position.y=heightAt(position.x,position.z)+definition.position[1];model.position.set(position.x,position.y,position.z);

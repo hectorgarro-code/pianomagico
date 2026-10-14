@@ -16,7 +16,7 @@ export function historyReducer(state, action) {
 }
 export const newId = prefix => `editor-${prefix}-${crypto.randomUUID()}`;
 export function contentDiff(before,after) {
-  const flatten=c=>Object.fromEntries(['world','activities','rewards','worldActions','minigames','gates','pets','residents','editorTemplates'].flatMap(key=>{
+  const flatten=c=>Object.fromEntries(['world','activities','rewards','worldActions','minigames','gates','pets','residents','editorTemplates','worldEvents'].flatMap(key=>{
     const records=key==='world'?(c.world||[]).flatMap(r=>r.instances.map(i=>({...i,compositionId:r.id}))):c[key]||[];
     return records.map(item=>[`${key}:${item.id}`,{collection:key,item}]);
   }));
@@ -33,6 +33,7 @@ export function prepareEditorContent(content) {
 }
 export function sceneRecords(content, region) {
   return [
+    ...(content.worldEvents||[]).filter(e=>e.regionId===region.regionId).map(e=>({...e,collection:'worldEvents',key:`worldEvents:${e.id}`,assetUrl:'/models/props/coin.glb',label:e.name,grounding:'terrain',rotation:[0,0,0],scale:[.7,.7,.7]})),
     ...region.instances.map(item=>({...item,collection:'instances',key:`instances:${item.id}`})),
     ...content.worldActions.filter(i=>i.regionId===region.regionId).map(i=>({...i,collection:'worldActions',key:`worldActions:${i.id}`,assetUrl:ASSET_CATALOG.assets.find(a=>a.id===i.assetId)?.url,grounding:'terrain'})),
     ...content.gates.filter(i=>i.regionId===region.regionId).map(i=>({...i,collection:'gates',key:`gates:${i.id}`,assetUrl:'/models/props/gate.glb',grounding:'terrain'})),
@@ -41,12 +42,13 @@ export function sceneRecords(content, region) {
 }
 export function patchRecord(content, regionId, record, patch) {
   if (record.collection==='instances') return {...content,world:content.world.map(r=>r.id===regionId?{...r,instances:r.instances.map(i=>i.id===record.id?{...i,...patch}:i)}:r)};
-  if (record.collection==='residents') patch={...patch,...(patch.rotation?{rotation:patch.rotation[1]}:{}),...(patch.scale?{scale:patch.scale.find((v,i)=>v!==record.scale[i])??patch.scale[1]}:{})};
+  if (record.collection==='residents') patch={...patch,...(patch.position&&record.walk?{walk:record.walk.map(p=>[p[0]+patch.position[0]-record.position[0],p[1]+patch.position[2]-record.position[2]])}:{}),...(patch.rotation?{rotation:patch.rotation[1]}:{}),...(patch.scale?{scale:patch.scale.find((v,i)=>v!==record.scale[i])??patch.scale[1]}:{})};
   return {...content,[record.collection]:content[record.collection].map(i=>i.id===record.id?{...i,...patch}:i)};
 }
 export function removeSceneRecord(content,regionId,record) {
   if(record.editor?.locked)throw Error('Desbloquea este elemento antes de eliminarlo.');
   if(record.firstMinutesOnly)throw Error('Este encuentro pertenece al inicio de la aventura. Puede moverse, pero no eliminarse.');
+  if(content.worldEvents?.some(e=>e.enabled&&e.trigger==='TARGET_DEFEATED'&&e.sourceId===record.id))throw Error('Un evento depende de este objeto. Desactiva o reasigna el evento primero.');
   if(record.collection==='instances') {
     const composition=CONTENT_COMPOSITIONS.find(c=>c.groupName===regionId);
     const protectedIds=[...(composition.stations||[]),...(composition.adventureObjects||[]).filter(a=>!a.id.startsWith('editor-'))].map(a=>a.instanceId);

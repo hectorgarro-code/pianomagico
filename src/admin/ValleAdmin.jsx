@@ -15,10 +15,11 @@ import WorldSandbox from './WorldSandbox.jsx';
 import MinigameEditor from './MinigameEditor.jsx';
 import MinigameView from '../game/gameplay/MinigameView.jsx';
 import PublicationReview from './PublicationReview.jsx';
+import WorldEventEditor from './WorldEventEditor.jsx';
 import './visualEditor.css';
 
 const PAGES = [['LECCIONES', BookOpen], ['MUNDO', Map], ['ASSETS', Boxes], ['ACTIVIDADES', ListChecks], ['RECOMPENSAS', Gift],
-  ['WORLD CREATURES', Skull], ['DESTRUCTIBLES', Package], ['MINIJUEGOS', Puzzle], ['CONFIGURACION', Settings]];
+  ['WORLD CREATURES', Skull], ['DESTRUCTIBLES', Package], ['MINIJUEGOS', Puzzle], ['EVENTOS', Gift], ['CONFIGURACION', Settings]];
 const TYPE_NAMES = { CHARACTER_PLAYER: 'PLAYERS', PET: 'PETS', WORLD_CREATURE: 'WORLD CREATURES', PROP: 'PROPS' };
 const newLesson = () => ({ title: '', sequence: ['C:1'], speed: 100, rhythm: 'pop', stickerId: 1, order_index: 0, enabled: true });
 const immutableEdit = (items, id, patch) => items.map(item => item.id === id ? { ...item, ...patch } : item);
@@ -114,6 +115,7 @@ export default function ValleAdmin() {
             {['hitReaction', 'defeatEffect', 'behaviorType'].map(key => <Field key={key} label={key}><input value={r[key]} onChange={e => editCollection('worldActions', r.id, { [key]: e.target.value })} /></Field>)}
             <Field label="Recompensa opcional"><select value={r.optionalReward || ''} onChange={e => editCollection('worldActions', r.id, { optionalReward: e.target.value || null })}><option value="">Ninguna</option>{content.rewards.map(reward => <option key={reward.id}>{reward.id}</option>)}</select></Field></div></section>)}</>}
         {page === 'MINIJUEGOS' && <MinigameEditor content={content} onChange={setContent} onPreview={m=>run(async()=>{await contentRequest('validate_content',{content:prepareEditorContent(content)});setMiniPreview(structuredClone(m));})}/>}
+        {page === 'EVENTOS' && <WorldEventEditor content={content} onChange={setContent} onTest={spawn=>run(async()=>{const draft=prepareEditorContent(content);await contentRequest('validate_content',{content:draft});setSandbox({content:structuredClone(draft),spawn});})}/>}
         {page === 'CONFIGURACION' && <><div className="admin-toolbar"><button onClick={()=>setPage('LECCIONES')}><BookOpen size={18}/>Editor de lecciones</button><button onClick={()=>setPage('MUNDO')}><Map size={18}/>Editor del Valle</button></div><section className="admin-record"><h2><History size={18}/> Versiones del mundo</h2>{history.length===0?<p>El historial comienza con la primera publicacion desde este editor.</p>:history.map(version=><div className="admin-toolbar" key={version.revision}><span>Revision {version.revision} · {version.created_at}</span><button onClick={()=>run(async()=>{const snapshot=await contentRequest('history_content',{revision:version.revision});if(confirm('Recuperar esta version como borrador? No cambia lecciones ni progreso.'))setContent({...prepareEditorContent(upgradeGameplayContent(snapshot)),revision:content.revision});})}>Recuperar como borrador</button></div>)}</section><GameplayEditor content={content} onChange={setContent}/><dl><dt>Versión</dt><dd>{content.schemaVersion}</dd><dt>Revisión</dt><dd>{content.revision}</dd><dt>Actualización</dt><dd>{content.updated_at}</dd><dt>Persistencia</dt><dd>MySQL · contenido separado de progreso</dd></dl></>}
       </main></div>
     {sandbox&&<WorldSandbox content={sandbox.content} spawn={sandbox.spawn} lessons={lessons} onClose={()=>setSandbox(null)}/>}

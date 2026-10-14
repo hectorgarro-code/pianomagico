@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/events.php';
 function validate_lesson($data) {
     if (!is_array($data)) throw new InvalidArgumentException('Leccion invalida');
     $title = trim($data['title'] ?? '');
@@ -164,6 +165,12 @@ function validate_game_content($data, $registry, $lessons) {
         if ($target['type'] === 'DESTRUCTIBLE' && $target['hitReaction'] !== 'none') throw new InvalidArgumentException('Destructible sin rig: reaccion none');
         if (($target['optionalReward'] ?? null) !== null && !isset($rewards[$target['optionalReward']])) throw new InvalidArgumentException('Reward target inexistente');
         if (!is_bool($target['enabledInWorld'] ?? null)) throw new InvalidArgumentException('Estado World Action invalido');
+        if (isset($target['encounter'])) {
+            $ranges=['noticeRange'=>[2,12],'leash'=>[3,16],'chaseSpeed'=>[.5,3],'windup'=>[.4,2],'recovery'=>[.8,3]];
+            if ($target['type']!=='WORLD_CREATURE'||!is_array($target['encounter'])||array_diff(array_keys($target['encounter']),array_keys($ranges))||($target['firstMinutesOnly']??false)||($target['training']??false)) throw new InvalidArgumentException('Configuracion arcade no permitida');
+            foreach($target['encounter'] as $key=>$value) if(!is_numeric($value)||!is_finite((float)$value)||$value<$ranges[$key][0]||$value>$ranges[$key][1]) throw new InvalidArgumentException('Parametro arcade fuera de rango');
+            if(($target['encounter']['leash']??10)<($target['encounter']['noticeRange']??7)) throw new InvalidArgumentException('Retorno debe cubrir el radio de deteccion');
+        }
         if ($target['enabledInWorld']) {
             content_gameplay_placement($target, $registry);
             if (!in_array($target['behaviorType'], ['stationary','wander'], true) || $target['defeatEffect'] !== 'musical-particles') throw new InvalidArgumentException('Behavior/effect no implementado');
@@ -219,14 +226,22 @@ function validate_game_content($data, $registry, $lessons) {
                 || !is_numeric($resident['rotation'] ?? null) || !is_finite((float)$resident['rotation']) || !is_numeric($resident['scale'] ?? null) || $resident['scale']<=0 || $resident['scale']>10
                 || !is_numeric($resident['radius'] ?? null) || $resident['radius']<=0 || $resident['radius']>3) throw new InvalidArgumentException('Habitante invalido');
             $residents[$resident['id']]=true;
+            if(isset($resident['enabled'])&&!is_bool($resident['enabled'])) throw new InvalidArgumentException('Estado habitante invalido');
+            if(isset($resident['behavior'])) {
+                $b=$resident['behavior'];
+                if(!is_array($b)||array_diff(array_keys($b),['nearRadius','walkSpeed','greeting','restored'])) throw new InvalidArgumentException('Comportamiento habitante invalido');
+                foreach(['nearRadius'=>[2,10],'walkSpeed'=>[.2,1.5]] as $key=>$range) if(isset($b[$key])&&(!is_numeric($b[$key])||!is_finite((float)$b[$key])||$b[$key]<$range[0]||$b[$key]>$range[1])) throw new InvalidArgumentException('Parametro habitante fuera de rango');
+                if(isset($b['greeting'])&&!in_array($b['greeting'],['WAVE','LOOK_AT_PLAYER'],true)||isset($b['restored'])&&!in_array($b['restored'],['LOOK_AT_PLAYER','WAVE','CHEER'],true)) throw new InvalidArgumentException('Gesto habitante no compatible');
+            }
             if (isset($resident['walk']) && (!is_array($resident['walk']) || count($resident['walk'])<2 || count($resident['walk'])>20)) throw new InvalidArgumentException('Recorrido NPC invalido');
-            foreach ($resident['walk'] ?? [] as $point) if (!is_array($point)||count($point)!==2||!is_numeric($point[0])||!is_numeric($point[1])||abs($point[0])>10000||abs($point[1])>10000) throw new InvalidArgumentException('Recorrido NPC invalido');
+            foreach ($resident['walk'] ?? [] as $point) if (!is_array($point)||count($point)!==2||!is_numeric($point[0])||!is_numeric($point[1])||!is_finite((float)$point[0])||!is_finite((float)$point[1])||abs($point[0])>60||$point[1]<-145||$point[1]>35) throw new InvalidArgumentException('Recorrido NPC invalido');
             foreach ($resident['watch'] ?? [] as $id) if (!isset($activityIds[$id])) throw new InvalidArgumentException('Actividad observada por NPC inexistente');
             if (isset($resident['goal']) && (!content_vector($resident['goal']['position'] ?? null) || !content_identifier($resident['goal']['noteId'] ?? null))) throw new InvalidArgumentException('Objetivo NPC invalido');
         }
     }
+    content_validate_world_events($data,$registry);
     $editorRecords=array_merge(...array_map(fn($r)=>$r['instances'],$data['world']));
-    $editorRecords=array_merge($editorRecords,$data['worldActions'],$data['gates'],$data['residents'] ?? []);
+    $editorRecords=array_merge($editorRecords,$data['worldActions'],$data['gates'],$data['residents'] ?? [],$data['worldEvents'] ?? []);
     foreach($editorRecords as $record) if(isset($record['editor'])) {
         $meta=$record['editor'];
         if(!is_array($meta)||array_diff(array_keys($meta),['group','layer','locked','hidden']))throw new InvalidArgumentException('Metadata editorial invalida');
@@ -246,5 +261,5 @@ function validate_game_content($data, $registry, $lessons) {
         }
         validate_game_content($copy,$registry,$lessons);
     }
-    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion', 'editorVersion','residents','editorTemplates']));
+    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion', 'editorVersion','residents','editorTemplates','worldEvents']));
 }

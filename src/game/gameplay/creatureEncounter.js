@@ -1,9 +1,10 @@
 import { circleContact } from '../world/collision/CollisionWorld.js';
 
 export const ENCOUNTER = Object.freeze({ noticeRange: 7, leash: 10, strikeRange: 1.65, windup: .55, recovery: 1.1, immunity: 1.5, stagger: .65 });
+export const CREATURE_BEHAVIOR_DEFAULTS={noticeRange:7,leash:10,chaseSpeed:2.1,windup:.55,recovery:1.1};
 
 export function creatureStep(target, player, delta) {
-  const encounter=target.training?{...ENCOUNTER,noticeRange:3.5,leash:4,windup:1.4,recovery:2.5}:ENCOUNTER;
+  const encounter=target.training?{...ENCOUNTER,noticeRange:3.5,leash:4,windup:1.4,recovery:2.5,chaseSpeed:.8}:{...ENCOUNTER,...CREATURE_BEHAVIOR_DEFAULTS,...target.encounter};
   const distance = Math.hypot(player.x - target.position.x, player.z - target.position.z);
   const homeDistance = Math.hypot(target.position.x - target.home.x, target.position.z - target.home.z);
   if (target.reaction > 0) { target.strike = null; return { state: 'HIT_REACTION' }; }
@@ -31,7 +32,7 @@ export function creatureStep(target, player, delta) {
       target.strike = { elapsed: 0, x: (player.x - target.position.x) / (distance || 1), z: (player.z - target.position.z) / (distance || 1) };
       return { state: 'ATTACK', started: true, direction: target.strike };
     }
-    return { state: 'CHASE', desired: player, speed: target.training?.8:2.1 };
+    return { state: 'CHASE', desired: player, speed: encounter.chaseSpeed };
   }
   return target.behaviorType === 'stationary' ? { state: 'IDLE' } : {
     state: 'WANDER', speed: .6, desired: { x: target.home.x + Math.sin(target.phase * .5) * 1.2, z: target.home.z + Math.cos(target.phase * .5) * 1.2 },
