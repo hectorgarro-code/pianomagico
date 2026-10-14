@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/events.php';
+require_once __DIR__.'/design.php';
 function validate_lesson($data) {
     if (!is_array($data)) throw new InvalidArgumentException('Leccion invalida');
     $title = trim($data['title'] ?? '');
@@ -240,6 +241,7 @@ function validate_game_content($data, $registry, $lessons) {
         }
     }
     content_validate_world_events($data,$registry);
+    content_validate_design($data);
     $editorRecords=array_merge(...array_map(fn($r)=>$r['instances'],$data['world']));
     $editorRecords=array_merge($editorRecords,$data['worldActions'],$data['gates'],$data['residents'] ?? [],$data['worldEvents'] ?? []);
     foreach($editorRecords as $record) if(isset($record['editor'])) {
@@ -261,5 +263,5 @@ function validate_game_content($data, $registry, $lessons) {
         }
         validate_game_content($copy,$registry,$lessons);
     }
-    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion', 'editorVersion','residents','editorTemplates','worldEvents']));
+    return array_intersect_key($data, array_flip(['schemaVersion', 'world', 'activities', 'rewards', 'worldActions', 'minigames', 'gates', 'pets', 'gameplayVersion', 'editorVersion','residents','editorTemplates','worldEvents','worldDesign']));
 }

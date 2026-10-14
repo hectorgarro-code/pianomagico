@@ -28,6 +28,8 @@ deploy.config.json
 /build_error.txt
 /build_log.txt
 /scratch/
+/backend/content/imported/
+/public/models/imported/
 
 # Auxiliary KayKit exports; preserve the GLB/GLTF runtime library
 /public/models/**/*.fbx

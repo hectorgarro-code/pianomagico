@@ -1,0 +1,347 @@
+{
+  "compositions": [
+    {
+      "id": "Region_Plaza_de_las_Notas",
+      "regionId": "PLAZA_DE_LAS_NOTAS",
+      "paths": [
+        "plaza-north-path"
+      ],
+      "entries": [
+        {
+          "id": "plaza-arrival",
+          "position": [
+            0,
+            0,
+            13
+          ],
+          "rotation": [
+            0,
+            3.141592653589793,
+            0
+          ]
+        }
+      ],
+      "exits": [
+        {
+          "id": "plaza-northeast-exit",
+          "position": [
+            9,
+            0,
+            -17
+          ],
+          "rotation": [
+            0,
+            3.141592653589793,
+            0
+          ]
+        }
+      ],
+      "spawn": {
+        "position": [
+          0,
+          0.15,
+          5
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Region_Bosque_Medium",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "paths": [
+        "forest-main-path"
+      ],
+      "entries": [
+        {
+          "id": "forest-plaza-entry",
+          "position": [
+            10,
+            0,
+            -19.5
+          ],
+          "rotation": [
+            0,
+            3.141592653589793,
+            0
+          ]
+        }
+      ],
+      "exits": [
+        {
+          "id": "forest-fork-reserve",
+          "position": [
+            -2,
+            1.5,
+            -46
+          ],
+          "rotation": [
+            0,
+            3.141592653589793,
+            0
+          ]
+        }
+      ],
+      "spawn": {
+        "position": [
+          12,
+          0.9,
+          -28
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Junction",
+      "regionId": "BOSQUE_DE_LAS_NOTAS",
+      "paths": [
+        "junction-approach",
+        "junction-west",
+        "junction-east"
+      ],
+      "entries": [],
+      "exits": [
+        {
+          "id": "junction-river",
+          "position": [
+            -18,
+            0,
+            -59
+          ]
+        },
+        {
+          "id": "junction-mountain",
+          "position": [
+            18,
+            0,
+            -58
+          ]
+        }
+      ],
+      "spawn": {
+        "position": [
+          -2,
+          0,
+          -46
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "River",
+      "regionId": "RIO_DEL_RITMO",
+      "paths": [
+        "river-main",
+        "river-island-detour"
+      ],
+      "entries": [],
+      "exits": [
+        {
+          "id": "river-ruins-reserve",
+          "position": [
+            -9,
+            0,
+            -85
+          ]
+        }
+      ],
+      "spawn": {
+        "position": [
+          -18,
+          0,
+          -59
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Mountain",
+      "regionId": "MONTANA_DE_LAS_MELODIAS",
+      "paths": [
+        "mountain-ascent",
+        "mountain-lookout-detour"
+      ],
+      "entries": [],
+      "exits": [
+        {
+          "id": "mountain-ruins-reserve",
+          "position": [
+            9,
+            0,
+            -80
+          ]
+        }
+      ],
+      "spawn": {
+        "position": [
+          18,
+          0,
+          -58
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Grotto_Entrance",
+      "regionId": "GRUTA_DEL_ECO",
+      "paths": [
+        "grotto-hidden-detour"
+      ],
+      "entries": [],
+      "exits": [],
+      "spawn": {
+        "position": [
+          -10,
+          0,
+          -55
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Grotto",
+      "regionId": "GRUTA_DEL_ECO",
+      "paths": [
+        "grotto-interior"
+      ],
+      "entries": [],
+      "exits": [],
+      "spawn": {
+        "position": [
+          -19,
+          0,
+          -54
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Ruins",
+      "regionId": "RUINAS_DEL_GRAN_PENTAGRAMA",
+      "paths": [
+        "river-ruins-connection",
+        "mountain-ruins-connection",
+        "ruins-ceremonial-aisle",
+        "ruins-first-voice",
+        "ruins-second-voice"
+      ],
+      "entries": [],
+      "exits": [
+        {
+          "id": "ruins-ascent",
+          "position": [
+            0,
+            1.8,
+            -108
+          ]
+        }
+      ],
+      "spawn": {
+        "position": [
+          -9,
+          0,
+          -85
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    },
+    {
+      "id": "Observatory",
+      "regionId": "OBSERVATORIO_MUSICAL",
+      "paths": [
+        "final-ascent",
+        "observatory-arrival"
+      ],
+      "entries": [],
+      "exits": [],
+      "spawn": {
+        "position": [
+          0,
+          0,
+          -108
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ]
+      }
+    }
+  ],
+  "gates": [
+    {
+      "id": "plaza_to_forest",
+      "from": [
+        "PLAZA_DE_LAS_NOTAS"
+      ],
+      "to": "BOSQUE_DE_LAS_NOTAS"
+    },
+    {
+      "id": "forest_to_river",
+      "from": [
+        "BOSQUE_DE_LAS_NOTAS"
+      ],
+      "to": "RIO_DEL_RITMO"
+    },
+    {
+      "id": "forest_to_mountain",
+      "from": [
+        "BOSQUE_DE_LAS_NOTAS"
+      ],
+      "to": "MONTANA_DE_LAS_MELODIAS"
+    },
+    {
+      "id": "forest_to_grotto",
+      "from": [
+        "BOSQUE_DE_LAS_NOTAS"
+      ],
+      "to": "GRUTA_DEL_ECO"
+    },
+    {
+      "id": "routes_to_ruins",
+      "from": [
+        "RIO_DEL_RITMO",
+        "MONTANA_DE_LAS_MELODIAS"
+      ],
+      "to": "RUINAS_DEL_GRAN_PENTAGRAMA"
+    },
+    {
+      "id": "ruins_to_observatory",
+      "from": [
+        "RUINAS_DEL_GRAN_PENTAGRAMA"
+      ],
+      "to": "OBSERVATORIO_MUSICAL"
+    }
+  ]
+}

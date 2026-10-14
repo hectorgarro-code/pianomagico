@@ -16,14 +16,15 @@ export const MAP_COMPOSITIONS = [PLAZA_COMPOSITION, FOREST_COMPOSITION, JUNCTION
 const xz = p => ({ x: p[0], z: p[2] });
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const pathPoints = MAP_COMPOSITIONS.flatMap(c => c.paths.flatMap(p => p.points.map(xz)));
-export const MAP_BOUNDS = Object.freeze({
+export const MAP_BOUNDS = {
   minX: Math.min(...pathPoints.map(p => p.x)) - 12, maxX: Math.max(...pathPoints.map(p => p.x)) + 12,
   minZ: Math.min(...pathPoints.map(p => p.z)) - 10, maxZ: Math.max(...pathPoints.map(p => p.z)) + 10
-});
+};
 export const MAP_SIZE = Object.freeze({ width: 420, height: 680, padding: 30 });
 
 // Uniform scale preserves distances and orientation; north (-Z) is up.
 export function worldToMap(position, size = MAP_SIZE, bounds = MAP_BOUNDS) {
+  if(bounds===MAP_BOUNDS){const points=MAP_COMPOSITIONS.flatMap(c=>c.paths.flatMap(p=>p.points));Object.assign(MAP_BOUNDS,{minX:Math.min(...points.map(p=>p[0]))-12,maxX:Math.max(...points.map(p=>p[0]))+12,minZ:Math.min(...points.map(p=>p[2]))-10,maxZ:Math.max(...points.map(p=>p[2]))+10});}
   const scale = Math.min((size.width - size.padding * 2) / (bounds.maxX - bounds.minX),
     (size.height - size.padding * 2) / (bounds.maxZ - bounds.minZ));
   return { x: size.width / 2 + (position.x - (bounds.minX + bounds.maxX) / 2) * scale,

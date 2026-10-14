@@ -9,13 +9,16 @@ import {calculateTerrainElevation as heightAt} from '../game/world/worldGenerati
 import {CONTENT_COMPOSITIONS} from '../game/content/contentDefaults.js';
 import {ASSET_CATALOG} from '../game/assets/assetCatalog.js';
 import {loadCharacterPresentation,hideEquipment} from '../game/presentation/characterEquipment.js';
+import {applyWorldDesign,getWorldDesign,authoredLimitColliders} from '../game/world/worldDesign.js';
 
-export default function WorldEditorViewport({region,records,selectedKey,selectedKeys=[],onSelect,onTransform,mode,snap,showBounds,focusToken,onPlacement}) {
+export default function WorldEditorViewport({content,region,records,selectedKey,selectedKeys=[],onSelect,onTransform,mode,snap,showBounds,focusToken,onPlacement,previewRevision=0}) {
+  const designSignature=JSON.stringify(content.worldDesign||{});
   const host=useRef(null),runtime=useRef(null),props=useRef(null);
   const [error,setError]=useState(''),[loading,setLoading]=useState(true);
   useLayoutEffect(()=>{props.current={records,selectedKey,selectedKeys,onSelect,onTransform,mode,snap,showBounds,onPlacement};runtime.current?.sync();},[records,selectedKey,selectedKeys,onSelect,onTransform,mode,snap,showBounds,onPlacement]);
   useEffect(()=>{
     let live=true,frame,observer;
+    const previousDesign=structuredClone(getWorldDesign());applyWorldDesign({worldDesign:JSON.parse(designSignature)},CONTENT_COMPOSITIONS);
     const container=host.current,scene=new THREE.Scene();scene.background=new THREE.Color('#9cd7ef');
     const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;container.appendChild(renderer.domElement);
     renderer.domElement.setAttribute('aria-label','Editor 3D del Valle');
@@ -28,6 +31,7 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
     const generator=new WorldGenerator(),terrain=generator.buildTerrain({widthSegments:44,depthSegments:160});scene.add(terrain);
     const models=new Map(),pending=new Map(),ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let drag=false,down=null;
     const routeGroup=new THREE.Group();scene.add(routeGroup);
+    for(const limit of authoredLimitColliders()){const box=new THREE.BoxGeometry(limit.halfWidth*2,1,limit.halfDepth*2),geometry=new THREE.EdgesGeometry(box);box.dispose();const line=new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:0xef664b}));line.position.set(limit.x,heightAt(limit.x,limit.z)+.5,limit.z);routeGroup.add(line);}
     function clearRoutes(){for(const line of [...routeGroup.children]){line.geometry.dispose();line.material.dispose();line.removeFromParent();}}
     const rt={scene,renderer,camera,orbit,transform,models,grid,drag:false};runtime.current=rt;
     function disposeEntry(entry){entry.mixer?.stopAllAction();entry.mixer?.uncacheRoot(entry.model);const skeletons=new Set();entry.model.traverse(n=>{if(n.skeleton)skeletons.add(n.skeleton);});skeletons.forEach(s=>s.dispose());entry.helper?.geometry.dispose();entry.helper?.material.dispose();entry.model.removeFromParent();entry.helper?.removeFromParent();}
@@ -57,10 +61,10 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
     rt.select=()=>{
       const p=props.current,entry=models.get(p.selectedKey);
       const selected=p.records.filter(r=>p.selectedKeys.includes(r.key)),locked=selected.some(r=>r.editor?.locked);
-      clearRoutes();
+      for(const line of [...routeGroup.children].filter(l=>l.userData.patrol)){line.geometry.dispose();line.material.dispose();line.removeFromParent();}
       for(const resident of selected.filter(r=>r.collection==='residents'&&r.walk&&!r.editor?.hidden)){
         const points=[...resident.walk,resident.walk[0]].map(([x,z])=>new THREE.Vector3(x,heightAt(x,z)+.12,z));
-        routeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0xffd15c,depthTest:false,transparent:true,opacity:.9})));
+        const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0xffd15c,depthTest:false,transparent:true,opacity:.9}));line.userData.patrol=true;routeGroup.add(line);
       }
       const positionOnly=selected.some(r=>r.collection==='worldEvents');
       if(entry&&entry.model.visible&&!locked&&(!positionOnly||p.mode==='translate')){if(transform.object!==entry.model)transform.attach(entry.model);}else transform.detach();
@@ -91,8 +95,8 @@ export default function WorldEditorViewport({region,records,selectedKey,selected
     renderer.domElement.addEventListener('pointerdown',start);renderer.domElement.addEventListener('pointerup',end);
     const resize=()=>{const w=container.clientWidth,h=container.clientHeight;renderer.setSize(w,h);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();};observer=new ResizeObserver(resize);observer.observe(container);resize();
     const clock=new THREE.Clock();function tick(){if(!live)return;const dt=Math.min(clock.getDelta(),.05);for(const e of models.values()){e.mixer?.update(dt);e.helper.update();}orbit.update();renderer.render(scene,camera);frame=requestAnimationFrame(tick);}rt.sync();tick();
-    return()=>{live=false;runtime.current=null;cancelAnimationFrame(frame);observer.disconnect();clearRoutes();transform.removeEventListener('dragging-changed',dragging);transform.dispose();orbit.dispose();for(const entry of models.values())disposeEntry(entry);terrain.geometry.dispose();terrain.material.dispose();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();};
-  },[region.id]);
+    return()=>{live=false;runtime.current=null;cancelAnimationFrame(frame);observer.disconnect();clearRoutes();transform.removeEventListener('dragging-changed',dragging);transform.dispose();orbit.dispose();for(const entry of models.values())disposeEntry(entry);terrain.geometry.dispose();terrain.material.dispose();grid.geometry.dispose();grid.material.dispose();renderer.dispose();renderer.domElement.remove();applyWorldDesign({worldDesign:previousDesign},CONTENT_COMPOSITIONS);};
+  },[region.id,designSignature,previewRevision]);
   useEffect(()=>{const rt=runtime.current,entry=rt?.models.get(selectedKey);if(!entry)return;const box=new THREE.Box3().setFromObject(entry.model),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3()).length();const offset=rt.camera.position.clone().sub(rt.orbit.target).normalize().multiplyScalar(Math.max(6,size*2));rt.orbit.target.copy(center);rt.camera.position.copy(center).add(offset);rt.orbit.update();},[focusToken,selectedKey]);
   return <div className="world-editor-viewport" ref={host}>{loading&&<span className="editor-loading" role="status">Cargando modelos...</span>}{error&&<p className="admin-error" role="alert">{error}</p>}</div>;
 }

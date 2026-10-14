@@ -8,10 +8,12 @@ require __DIR__ . '/content/validation.php';
 require __DIR__ . '/content/lessons.php';
 require __DIR__ . '/content/editor.php';
 require __DIR__ . '/content/preflight.php';
+require __DIR__ . '/content/imports.php';
 if (!$conn) content_fail(503, 'Database unavailable');
 try {
     $action = $_GET['action'] ?? '';
     if ($action === 'public_content') { echo json_encode(content_document($conn), JSON_UNESCAPED_UNICODE); exit; }
+    if ($action === 'public_assets') {echo json_encode(['assets'=>content_imported_assets()],JSON_UNESCAPED_UNICODE);exit;}
     content_session();
     if ($action === 'session') {
         $stmt = $conn->prepare('SELECT id,username,role,enabled FROM valle_admin_accounts WHERE id=?'); $stmt->execute([$_SESSION['admin_id'] ?? 0]);
@@ -19,7 +21,7 @@ try {
         echo json_encode(['authenticated' => (bool)content_admin_authorized($account,$_SESSION,time()), 'username' => $account['username'] ?? null,
             'csrfToken' => $_SESSION['csrf'], 'configured' => (bool)$conn->query('SELECT COUNT(*) FROM valle_admin_accounts WHERE enabled=1')->fetchColumn()]); exit;
     }
-    if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 2097152) content_fail(413, 'Contenido demasiado grande');
+    if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > ($action==='import_asset'?6291456:2097152)) content_fail(413, 'Contenido demasiado grande');
     $input = $_SERVER['REQUEST_METHOD'] === 'POST' ? json_decode(file_get_contents('php://input'),true,128,JSON_THROW_ON_ERROR) : null;
     if ($action === 'login') {
         content_post();
@@ -39,6 +41,7 @@ try {
         echo json_encode(['authenticated' => true, 'username' => $account['username'], 'csrfToken' => $_SESSION['csrf']]); exit;
     }
     $admin = content_admin($conn);
+    if($action==='import_asset'){content_post();echo json_encode(content_import_asset($input),JSON_UNESCAPED_UNICODE);exit;}
     if (in_array($action,['draft','save_draft','history','history_content','lesson_history','lesson_history_content'],true)) { echo json_encode(content_editor_action($conn,$action,$input,$admin),JSON_UNESCAPED_UNICODE); exit; }
     if ($action === 'logout') { content_post(); $_SESSION = []; session_destroy(); echo json_encode(['ok'=>true]); exit; }
     if ($action === 'lessons') { echo json_encode(content_lessons($conn),JSON_UNESCAPED_UNICODE); exit; }
@@ -46,7 +49,7 @@ try {
     if ($action === 'content') { echo json_encode(content_document($conn),JSON_UNESCAPED_UNICODE); exit; }
     if ($action === 'validate_content') {
         content_post();
-        $registry=json_decode(file_get_contents(__DIR__.'/content/registry.json'),true,512,JSON_THROW_ON_ERROR);
+        $registry=content_registry();
         $draft=$input['content'] ?? null;
         content_revision_check($draft,content_document($conn));
         $checked=validate_game_content($draft,$registry,content_lessons($conn));
@@ -56,7 +59,7 @@ try {
     if ($action === 'save_content') {
         content_post();
         content_editor_schema($conn);
-        $registry = json_decode(file_get_contents(__DIR__.'/content/registry.json'),true,512,JSON_THROW_ON_ERROR);
+        $registry = content_registry();
         $conn->beginTransaction();
         $current = content_document($conn,true);
         if ((int)($input['revision'] ?? -1) !== $current['revision']) throw new DomainException('El contenido cambio; recargar antes de guardar');

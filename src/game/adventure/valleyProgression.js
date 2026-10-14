@@ -106,6 +106,11 @@ export function applyValleyEvent(adventure, event) {
 
 // Authored physical footprints, independent of debug controls.
 export function getPlayableRegionAt(position) {
+  const authored=authoredRegionAt(position||{});if(authored)return authored;
+  const original=getBasePlayableRegionAt(position);
+  return getWorldDesign().areas.some(a=>a.regionId===original)?null:original;
+}
+function getBasePlayableRegionAt(position) {
   if (!Number.isFinite(position?.x) || !Number.isFinite(position?.z)) return null;
   if (Math.hypot(position.x+19,position.z+54)<2 || (position.x>=-39 && position.x<=-24 && position.z>=-62 && position.z<=-48)) return REGION_IDS.GROTTO;
   if (position.z<=-120 && position.z>=-138 && Math.abs(position.x)<=11) return REGION_IDS.OBSERVATORY;
@@ -134,3 +139,4 @@ export function validateWorldGateBindings(composition) {
   }
   return errors;
 }
+import {authoredRegionAt,getWorldDesign} from '../world/worldDesign.js';

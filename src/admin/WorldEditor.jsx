@@ -11,9 +11,10 @@ import {transformSelection,placeTemplate} from './editorAuthoring.js';
 import {createWorldEvent} from './worldEventAuthoring.js';
 import {WorldEventFields} from './WorldEventEditor.jsx';
 import {CreatureBehaviorFields,ResidentBehaviorFields} from './BehaviorFields.jsx';
+import AssetThumbnail from './AssetThumbnail.jsx';
 
 function IconButton({icon:Icon,label,...props}){return <button title={label} aria-label={label} {...props}>{createElement(Icon,{size:18})}</button>;}
-export default function WorldEditor({content,onChange,lessons,onEditLesson,onTest}) {
+export default function WorldEditor({content,onChange,lessons,onEditLesson,onTest,previewRevision=0}) {
   const [regionId,setRegionId]=useState(content.world[0].id),[selection,setSelection]=useState(''),[query,setQuery]=useState('');
   const [additional,setAdditional]=useState([]),[layerFilter,setLayerFilter]=useState('');
   const [tab,setTab]=useState('objects'),[category,setCategory]=useState('PROP'),[assetId,setAssetId]=useState('runtime:chest_wood');
@@ -68,12 +69,12 @@ export default function WorldEditor({content,onChange,lessons,onEditLesson,onTes
         <label className="editor-search"><Search size={16}/><input aria-label="Buscar elementos" placeholder="Buscar" value={query} onChange={e=>setQuery(e.target.value)}/></label>
         {tab==='objects'?<><select aria-label="Filtrar capa" value={layerFilter} onChange={e=>setLayerFilter(e.target.value)}><option value="">Todas las capas</option>{[...new Set(records.map(r=>r.editor?.layer||'Sin capa'))].map(l=><option key={l}>{l}</option>)}</select><div className="editor-object-list">{visibleRecords.filter(r=>`${r.id} ${r.label||''}`.toLowerCase().includes(query.toLowerCase())).map(r=><div className="editor-selection-row" key={r.key}><input type="checkbox" aria-label={`Seleccionar ${r.id}`} checked={selectedKeys.includes(r.key)} onChange={()=>select(r.key,true)}/><button className={selectedKeys.includes(r.key)?'selected':''} onClick={e=>select(r.key,e.ctrlKey||e.metaKey||e.shiftKey)}><span>{r.label||r.id}<small>{r.collection}{r.editor?.locked?' · Bloqueado':''}{r.editor?.hidden?' · Oculto':''}</small></span></button></div>)}</div></>:<>
           <select aria-label="Categoria de biblioteca" value={category} onChange={e=>setCategory(e.target.value)}>{ASSET_CATEGORIES.map(c=><option key={c}>{c}</option>)}</select>
-          <div className="editor-asset-grid">{ASSET_CATALOG.assets.filter(a=>a.category===category&&a.name.toLowerCase().includes(query.toLowerCase())).map(a=><button key={a.id} className={assetId===a.id?'selected':''} title={a.name} onClick={()=>setAssetId(a.id)}>{a.previewUrl?<img src={a.previewUrl} alt=""/>:<Boxes size={26}/>}<span>{a.name}</span></button>)}</div>
+          <div className="editor-asset-grid">{ASSET_CATALOG.assets.filter(a=>a.category===category&&a.name.toLowerCase().includes(query.toLowerCase())).map(a=><button key={a.id} className={assetId===a.id?'selected':''} title={a.name} onClick={()=>setAssetId(a.id)}><AssetThumbnail asset={a}/><span>{a.name}</span></button>)}</div>
           {asset&&<><ContentPreview asset={asset}/><small>{asset.name}</small><button onClick={()=>setPlacing(asset.category==='WORLD_CREATURE'?'creature':asset.category==='CHARACTER_PLAYER'?'npc':'decoration')} disabled={asset.category==='PET'}><Plus size={16}/>Colocar</button>{['PROP','DESTRUCTIBLE','DECORATION'].includes(asset.category)&&<button onClick={()=>setPlacing('destructible')}><Shield size={16}/>Destructible</button>}</>}
         </>}
         <div className="editor-add-tools"><button onClick={()=>setPlacing('chest')}><Gift size={16}/>Cofre</button><button onClick={()=>setPlacing('gate')}><DoorOpen size={16}/>Puerta musical</button><button onClick={()=>setPlacing('event')}><Music size={16}/>Evento / secreto</button></div>
       </aside>
-      <WorldEditorViewport region={region} records={visibleRecords} selectedKey={selection} selectedKeys={selectedKeys} onSelect={select} onTransform={transform} mode={mode} snap={snap} showBounds={bounds} focusToken={focus} onPlacement={placing?position=>add(placing,position):null}/>
+      <WorldEditorViewport content={content} previewRevision={previewRevision} region={region} records={visibleRecords} selectedKey={selection} selectedKeys={selectedKeys} onSelect={select} onTransform={transform} mode={mode} snap={snap} showBounds={bounds} focusToken={focus} onPlacement={placing?position=>add(placing,position):null}/>
       <aside className="editor-inspector">{record?<>
         <div className="admin-toolbar"><h2>{activity?.label||record.id}</h2><IconButton icon={Copy} label="Duplicar" onClick={duplicate}/><IconButton icon={Trash2} label="Eliminar" onClick={()=>perform(()=>{if(confirm('Eliminar este elemento del borrador?')){onChange(removeSceneRecord(content,regionId,record));setSelection('');}})}/></div>
         <fieldset className="editor-properties" disabled={!!record.editor?.locked}>

@@ -8,6 +8,7 @@ import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
 import { FOREST_COMPOSITION } from './composition/forestComposition.js';
 import { RIVER_CHANNEL, BRIDGE } from './composition/riverComposition.js';
 import { MOUNTAIN_COMPOSITION } from './composition/mountainComposition.js';
+import {authoredHeightOffset} from './worldDesign.js';
 
 const smooth = (value) => { const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t); };
 
@@ -26,6 +27,9 @@ export function calculateForestElevation(x,z) {
 }
 
 export function calculateTerrainElevation(x,z) {
+  return calculateBaseElevation(x,z)+authoredHeightOffset(x,z);
+}
+export function calculateBaseElevation(x,z) {
   const plazaHeight=calculatePlazaElevation(x,z);
   const b=FOREST_COMPOSITION.terrain.blendBounds;
   const weight=smooth(Math.min(x-b.min[0],b.max[0]-x,z-b.min[1],b.max[1]-z)/b.edgeWidth)*smooth((Math.hypot(x,z)-b.protectedRadius)/b.edgeWidth);

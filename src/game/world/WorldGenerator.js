@@ -8,14 +8,14 @@
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import contentAssetUrls from '../content/assetReferences.json' with { type: 'json' };
-import { createRNG } from './worldSeed';
+import { createRNG } from './worldSeed.js';
 import {
   GENERATION_RULES,
   calculateTerrainElevation,
   isInClearanceZone
-} from './worldGenerationRules';
-import { KAYKIT_ASSETS, loadCachedModel } from '../assets/assetManifest';
-import { WORLD_BLUEPRINT } from './worldBlueprint';
+} from './worldGenerationRules.js';
+import { KAYKIT_ASSETS, loadCachedModel } from '../assets/assetManifest.js';
+import { WORLD_BLUEPRINT } from './worldBlueprint.js';
 import { PLAZA_COMPOSITION } from './composition/plazaComposition.js';
 import { FOREST_ADVENTURE_COMPOSITION as FOREST_COMPOSITION, ADVENTURE_OBJECT_TYPES } from './composition/forestAdventureComposition.js';
 import { collectAssetUrls, validateComposition } from './composition/validateComposition.js';
@@ -30,6 +30,8 @@ import { GROTTO_COMPOSITION } from './composition/grottoComposition.js';
 import { RUINS_COMPOSITION } from './composition/ruinsComposition.js';
 import { OBSERVATORY_COMPOSITION } from './composition/observatoryComposition.js';
 import {explorationOverlay} from './composition/explorationSecrets.js';
+import {authoredLimitColliders,getWorldDesign} from './worldDesign.js';
+import {ASSET_CATALOG} from '../assets/assetCatalog.js';
 const BASE_COMPOSITIONS=[PLAZA_COMPOSITION,FOREST_COMPOSITION,JUNCTION_COMPOSITION,RIVER_COMPOSITION,MOUNTAIN_COMPOSITION,GROTTO_ENTRANCE_COMPOSITION,GROTTO_COMPOSITION,RUINS_COMPOSITION,OBSERVATORY_COMPOSITION];
 const COMPOSITIONS=[...BASE_COMPOSITIONS,...BASE_COMPOSITIONS.map(explorationOverlay).filter(c=>c.instances.length)];
 const REGISTERED_ASSETS = [...collectAssetUrls(KAYKIT_ASSETS), ...contentAssetUrls];
@@ -477,15 +479,16 @@ export class WorldGenerator {
    * Ejecuta la construcción completa de la Sección 1
    */
   async buildSection1() {
+    const registered=[...REGISTERED_ASSETS,...ASSET_CATALOG.assets.filter(a=>a.id.startsWith('imported:')).map(a=>a.url)];
     for(const composition of COMPOSITIONS.slice(2)) {
-      const result=validateComposition(composition,{registeredAssets:REGISTERED_ASSETS,worldBlueprint:WORLD_BLUEPRINT});
+      const result=validateComposition(composition,{registeredAssets:registered,worldBlueprint:WORLD_BLUEPRINT});
       const gateErrors=validateWorldGateBindings(composition);
       if(!result.valid || gateErrors.length) throw new Error(`Invalid ${composition.groupName}: ${JSON.stringify([result.errors,gateErrors])}`);
     }
-    const forestValidation=validateComposition(FOREST_COMPOSITION,{registeredAssets:REGISTERED_ASSETS,worldBlueprint:WORLD_BLUEPRINT});
+    const forestValidation=validateComposition(FOREST_COMPOSITION,{registeredAssets:registered,worldBlueprint:WORLD_BLUEPRINT});
     if(!forestValidation.valid) throw new Error(`Invalid Forest composition: ${JSON.stringify(forestValidation.errors)}`);
     const validation = validateComposition(PLAZA_COMPOSITION, {
-      registeredAssets: REGISTERED_ASSETS,
+      registeredAssets: registered,
       worldBlueprint: WORLD_BLUEPRINT
     });
     for (const warning of validation.warnings) console.warn('[CompositionBlueprint]', warning);
@@ -507,6 +510,8 @@ export class WorldGenerator {
     // 1. Terreno
     const terrain = this.buildTerrain();
     worldGroup.add(terrain);
+    this.colliders.push(...authoredLimitColliders());
+    for(const light of getWorldDesign().lights){const lamp=new THREE.PointLight(light.color,light.intensity,light.distance,2);lamp.position.set(light.position[0],calculateTerrainElevation(light.position[0],light.position[2])+light.position[1],light.position[2]);worldGroup.add(lamp);}
 
     // 2. Caminos
     // IMPLEMENTACION VISUAL PROVISIONAL: retain ribbon for migration parity.

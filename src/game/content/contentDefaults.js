@@ -10,6 +10,7 @@ import { OBSERVATORY_COMPOSITION } from '../world/composition/observatoryComposi
 import { ALL_ADVENTURE_OBJECTS } from '../adventure/adventureState.js';
 import { createGameplayContent, ACTIVITY_PET_REWARDS, upgradeGameplayContent, setGameplayContent } from '../gameplay/gameplayContent.js';
 import {applyWorldEvents} from '../world/composition/authoredWorldEvents.js';
+import {applyWorldDesign} from '../world/worldDesign.js';
 
 export const CONTENT_COMPOSITIONS = [PLAZA_COMPOSITION, FOREST_ADVENTURE_COMPOSITION, JUNCTION_COMPOSITION,
   RIVER_COMPOSITION, MOUNTAIN_COMPOSITION, GROTTO_ENTRANCE_COMPOSITION, GROTTO_COMPOSITION, RUINS_COMPOSITION, OBSERVATORY_COMPOSITION];
@@ -33,6 +34,7 @@ export function createDefaultContent() {
 export function applyGameContent(content) {
   if (content?.schemaVersion !== 1) throw new Error('Unsupported game content version');
   content = applyWorldEvents(upgradeGameplayContent(content));
+  applyWorldDesign(content,CONTENT_COMPOSITIONS);
   setGameplayContent(content);
   // Optional authored activities never change the fixed regional curriculum/gates.
   for (let i=ALL_ADVENTURE_OBJECTS.length-1;i>=0;i--) if(ALL_ADVENTURE_OBJECTS[i].id.startsWith('editor-')) ALL_ADVENTURE_OBJECTS.splice(i,1);

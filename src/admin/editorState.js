@@ -21,11 +21,13 @@ export function contentDiff(before,after) {
     return records.map(item=>[`${key}:${item.id}`,{collection:key,item}]);
   }));
   const old=flatten(before),next=flatten(after);
-  return [...new Set([...Object.keys(old),...Object.keys(next)])].flatMap(key=>{
+  const changes=[...new Set([...Object.keys(old),...Object.keys(next)])].flatMap(key=>{
     if(JSON.stringify(old[key]?.item)===JSON.stringify(next[key]?.item))return [];
     const item=next[key]?.item||old[key].item,fields=Object.keys({...old[key]?.item,...next[key]?.item}).filter(f=>JSON.stringify(old[key]?.item[f])!==JSON.stringify(next[key]?.item[f]));
     return [{collection:(next[key]||old[key]).collection,id:item.id,kind:!old[key]?'Agregar':!next[key]?'Eliminar':'Modificar',fields}];
   });
+  if(JSON.stringify(before.worldDesign)!==JSON.stringify(after.worldDesign))changes.push({collection:'worldDesign',id:'world-design',kind:'Modificar',fields:Object.keys(after.worldDesign||{})});
+  return changes;
 }
 export function prepareEditorContent(content) {
   return { ...content, editorVersion:1, worldActions: toyWorldActions(content,[PLAZA_COMPOSITION,FOREST_COMPOSITION]).map(t=>({defeatEffect:'musical-particles',...t})),

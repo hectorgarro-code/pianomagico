@@ -13,3 +13,8 @@ const runtimeAssets = ['chest_wood', 'chest_gold', 'gate'].map(name => ({ id: `r
 // Catalog records describe availability only. No placement or behavior is instantiated.
 export const ASSET_CATALOG = Object.freeze({ schemaVersion: 1, categories: ASSET_CATEGORIES, packs: audited.packs, animationLibraries: audited.animationLibraries, assets: [...new Map([...existing, ...players, ...newAssets, ...runtimeAssets].map(asset => [asset.url, asset])).values()] });
 export const getCatalogAssets = category => ASSET_CATALOG.assets.filter(asset => asset.category === category);
+export function setImportedAssets(records){
+  const imported=records.filter(a=>/^imported:[a-f0-9]{64}$/.test(a.id)&&a.url===`/models/imported/${a.id.slice(9)}.glb`&&['PROP','DESTRUCTIBLE','ARCHITECTURE','VEGETATION','DECORATION'].includes(a.category));
+  for(let i=ASSET_CATALOG.assets.length-1;i>=0;i--)if(ASSET_CATALOG.assets[i].id.startsWith('imported:'))ASSET_CATALOG.assets.splice(i,1);
+  ASSET_CATALOG.assets.push(...imported);
+}

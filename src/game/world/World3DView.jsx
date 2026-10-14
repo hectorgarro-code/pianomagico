@@ -9,6 +9,7 @@ import { createWeaponCuts } from '../audio/weaponCuts.js';
 import { createDoorSound } from '../audio/doorSound.js';
 import { createImpactSounds, targetImpactSound } from '../audio/impactSounds.js';
 import { createToyNoteSound } from '../audio/toyNoteSound.js';
+import {getWorldDesign,createRevealController} from './worldDesign.js';
 import { readMusicSettings } from '../audio/worldMusic.js';
 import { usePianoMicStore } from '../../hooks/usePianoMicStore.js';
 import {FIRST_MINUTES as F,firstMinutesPhase,firstMinutesStarted} from '../gameplay/firstMinutes.js';
@@ -439,6 +440,7 @@ export default function World3DView({
     const doorSound=createDoorSound({baseUrl:import.meta.env.BASE_URL});doorSoundRef.current=doorSound;
     const impactSounds=createImpactSounds({baseUrl:import.meta.env.BASE_URL});
     const noteSound=createToyNoteSound();
+    const revealController=createRevealController(),sourceTimes=new Map();
     worldCueRef.current=kind=>noteSound.cue(kind,{silent:audioSilent(),volume:stepSettings.volume});
     let runePointer=null;
     const runeDown=event=>{runePointer={x:event.clientX,y:event.clientY};};
@@ -733,6 +735,10 @@ export default function World3DView({
 
       if(!mapOpenRef.current)gameplayRef.current?.update(delta,now/1000,playerPosRef.current,playerRotYRef.current,collisionWorldRef.current);
       weaponCuts.update(delta,{silent:audioSilent(),volume:stepSettings.volume});
+      if(!audioSilent()&&!gameplayRef.current?.musicFocus())for(const source of getWorldDesign().sounds){
+        const elapsed=(sourceTimes.get(source.id)||0)+delta;sourceTimes.set(source.id,elapsed);
+        if(elapsed>=source.interval&&Math.hypot(playerPosRef.current.x-source.position[0],playerPosRef.current.z-source.position[2])<source.radius){sourceTimes.set(source.id,0);noteSound.play(source.pitch,{volume:source.volume*stepSettings.volume,position:{x:source.position[0],z:source.position[2]},player:playerPosRef.current,yaw:cameraAngleRef.current.currentYaw});}
+      }
       doorSound.update({active:!mapOpenRef.current,silent:audioSilent(),volume:stepSettings.volume,player:playerPosRef.current});
       if(audioSilent())impactSounds.stop();
       footsteps.update({moved:stepDistance,grounded:isGroundedRef.current && !gameplayRef.current?.staggered,
@@ -820,6 +826,8 @@ export default function World3DView({
         focusY + 1.15,
         focusZ - Math.cos(angles.currentYaw) * lookAhead*(1-combatBlend)
       );
+      const reveal=revealController.step(playerPosRef.current,delta,!!opponent||isDraggingMouseRef.current||mapOpenRef.current||!!gameplayRef.current?.musicFocus());
+      if(reveal){targetCamPos.set(...reveal.camera);targetLookAt.set(reveal.target[0],getTerrainHeight(reveal.target[0],reveal.target[2])+reveal.target[1],reveal.target[2]);}
 
       camera.position.lerp(targetCamPos, Math.min(1.0, 8.5 * delta));
       camera.position.y=terrainSafeCameraHeight(camera.position,{x:pX,y:pY+.25,z:pZ},getTerrainHeight);

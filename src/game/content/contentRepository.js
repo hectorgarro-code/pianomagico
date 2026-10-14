@@ -11,4 +11,5 @@ export async function contentRequest(action, payload) {
   if (data.csrfToken) csrfToken = data.csrfToken;
   return data;
 }
-export const loadGameContent = () => contentRequest('public_content');
+export const loadGameContent = async () => {const [content,catalog]=await Promise.all([contentRequest('public_content'),contentRequest('public_assets')]);setImportedAssets(catalog.assets);return content;};
+import {setImportedAssets} from '../assets/assetCatalog.js';

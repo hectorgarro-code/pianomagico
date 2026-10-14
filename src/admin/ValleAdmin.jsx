@@ -2,7 +2,7 @@ import { createElement, useEffect, useState, useReducer, useCallback } from 'rea
 import {createPortal} from 'react-dom';
 import { BookOpen, Map, Boxes, ListChecks, Gift, Skull, Package, Puzzle, Settings, LogOut, RefreshCw, Download, Plus, Copy, Trash2, Save, Play, X, Undo2, Redo2, Upload, History } from 'lucide-react';
 import { contentRequest } from '../game/content/contentRepository.js';
-import { ASSET_CATALOG, ASSET_CATEGORIES } from '../game/assets/assetCatalog.js';
+import { ASSET_CATALOG, ASSET_CATEGORIES,setImportedAssets } from '../game/assets/assetCatalog.js';
 import PianoMagico from '../modules/piano-magico/PianoMagico.jsx';
 import ContentPreview from './ContentPreview.jsx';
 import './valleAdmin.css';
@@ -16,10 +16,13 @@ import MinigameEditor from './MinigameEditor.jsx';
 import MinigameView from '../game/gameplay/MinigameView.jsx';
 import PublicationReview from './PublicationReview.jsx';
 import WorldEventEditor from './WorldEventEditor.jsx';
+import WorldDesignEditor from './WorldDesignEditor.jsx';
+import AssetImporter from './AssetImporter.jsx';
+import AssetThumbnail from './AssetThumbnail.jsx';
 import './visualEditor.css';
 
 const PAGES = [['LECCIONES', BookOpen], ['MUNDO', Map], ['ASSETS', Boxes], ['ACTIVIDADES', ListChecks], ['RECOMPENSAS', Gift],
-  ['WORLD CREATURES', Skull], ['DESTRUCTIBLES', Package], ['MINIJUEGOS', Puzzle], ['EVENTOS', Gift], ['CONFIGURACION', Settings]];
+  ['WORLD CREATURES', Skull], ['DESTRUCTIBLES', Package], ['MINIJUEGOS', Puzzle], ['EVENTOS', Gift], ['PRESENTACION',Play],['GEOGRAFIA',Map],['REGIONES',Map],['CONFIGURACION', Settings]];
 const TYPE_NAMES = { CHARACTER_PLAYER: 'PLAYERS', PET: 'PETS', WORLD_CREATURE: 'WORLD CREATURES', PROP: 'PROPS' };
 const newLesson = () => ({ title: '', sequence: ['C:1'], speed: 100, rhythm: 'pop', stickerId: 1, order_index: 0, enabled: true });
 const immutableEdit = (items, id, patch) => items.map(item => item.id === id ? { ...item, ...patch } : item);
@@ -35,6 +38,7 @@ export default function ValleAdmin() {
   const content=documentState.value, setContent=value=>dispatchDocument({type:'change',value});
   const [history,setHistory]=useState([]),[notice,setNotice]=useState(''),[localDraft,setLocalDraft]=useState(null);
   const [sandbox,setSandbox]=useState(null);
+  const [worldPreviewRevision,setWorldPreviewRevision]=useState(0);
   const [miniPreview,setMiniPreview]=useState(null);
   const [review,setReview]=useState(false);
   const [saved, setSaved] = useState(''), [editor, setEditor] = useState(null), [preview, setPreview] = useState(null);
@@ -43,7 +47,8 @@ export default function ValleAdmin() {
   const [assetClip, setAssetClip] = useState('');
   useEffect(() => { contentRequest('session').then(setSession).catch(e => setError(e.message)); }, []);
   const load = useCallback(async () => {
-    const [rows, document] = await Promise.all([contentRequest('lessons'), contentRequest('content')]);
+    const [rows, document,catalog] = await Promise.all([contentRequest('lessons'), contentRequest('content'),contentRequest('public_assets')]);
+    setImportedAssets(catalog.assets);
     try {setLocalDraft(JSON.parse(localStorage.getItem(`valle-admin-world-draft:${session.username}`)));}catch{setLocalDraft(null);}
     setLessons(rows); dispatchDocument({type:'reset',value:prepareEditorContent(upgradeGameplayContent(document))}); setSaved(JSON.stringify(document));
     setHistory(await contentRequest('history'));setNotice('');
@@ -99,10 +104,10 @@ export default function ValleAdmin() {
             <td>{a.requirements.completedObjects.join(', ') || 'Ninguno'}</td><td><select aria-label={`Recompensa ${a.id}`} value={a.rewardId || ''} onChange={e => editCollection('activities', a.id, { rewardId: e.target.value || null })}><option value="">Sin recompensa adicional</option>{content.rewards.map(r => <option key={r.id} value={r.id}>{r.id}</option>)}</select><small>{a.progressionReward?.id || 'Práctica'}</small></td>
             <td>{a.assignmentStatus}{a.type !== 'SECRET_REWARD' && !lessons.some(l => String(l.id) === String(a.lessonId) && l.enabled) && <strong> · Referencia inválida</strong>}</td></tr>)}
         </tbody></table></div>}
-        {page === 'ASSETS' && <><div className="admin-toolbar"><select aria-label="Categoría de asset" value={category} onChange={e => { setCategory(e.target.value); setAssetId(null); }}>{ASSET_CATEGORIES.map(c => <option key={c} value={c}>{TYPE_NAMES[c] || c}</option>)}</select><input aria-label="Buscar assets" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} /></div>
-          <div className="admin-split"><div className="admin-asset-list">{ASSET_CATALOG.assets.filter(a => a.category === category && a.name.toLowerCase().includes(query.toLowerCase())).map(a => <button key={a.id} className={assetId === a.id ? 'selected' : ''} onClick={() => { setAssetId(a.id); setAssetClip(''); }}>{a.previewUrl && <img src={a.previewUrl} alt="" />}<span>{a.name}<small>{a.packId}</small></span></button>)}</div>
+        {page === 'ASSETS' && <><AssetImporter onImported={asset=>{setAssetId(asset.id);setCategory(asset.category);setNotice('Asset registrado. Todavia no fue colocado ni publicado en el mundo.');}}/><div className="admin-toolbar"><select aria-label="Categoría de asset" value={category} onChange={e => { setCategory(e.target.value); setAssetId(null); }}>{ASSET_CATEGORIES.map(c => <option key={c} value={c}>{TYPE_NAMES[c] || c}</option>)}</select><input aria-label="Buscar assets" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} /></div>
+          <div className="admin-split"><div className="admin-asset-list">{ASSET_CATALOG.assets.filter(a => a.category === category && a.name.toLowerCase().includes(query.toLowerCase())).map(a => <button key={a.id} className={assetId === a.id ? 'selected' : ''} onClick={() => { setAssetId(a.id); setAssetClip(''); }}><AssetThumbnail asset={a}/><span>{a.name}<small>{a.packId}</small></span></button>)}</div>
             <section>{selectedAsset && <><h2>{selectedAsset.name}</h2><ContentPreview asset={selectedAsset} clipName={assetClip} /><Field label="Animación"><select value={assetClip} onChange={e => setAssetClip(e.target.value)}><option value="">Idle / predeterminada</option>{[...new Set([...(selectedAsset.animations || []).map(a => a.name), ...(selectedAsset.animationSources || []).flatMap(s => s.clips)])].map(name => <option key={name}>{name}</option>)}</select></Field><dl><dt>Categoría</dt><dd>{TYPE_NAMES[selectedAsset.category] || selectedAsset.category}</dd><dt>Formato</dt><dd>{selectedAsset.url.split('.').pop().toUpperCase()}</dd><dt>Pack</dt><dd>{selectedAsset.packId}</dd><dt>Licencia</dt><dd>{selectedAsset.license ? JSON.stringify(selectedAsset.license) : 'No reauditada'}</dd><dt>Animaciones</dt><dd>{JSON.stringify(selectedAsset.animations || [])}</dd><dt>Bibliotecas externas</dt><dd>{JSON.stringify(selectedAsset.animationSources || [])}</dd></dl></>}</section></div></>}
-        {page === 'MUNDO' && <WorldEditor content={content} onChange={setContent} lessons={lessons} onTest={spawn=>run(async()=>{const draft=prepareEditorContent(content);await contentRequest('validate_content',{content:draft});setSandbox({content:structuredClone(draft),spawn});})} onEditLesson={lesson=>{if(lesson)setEditor({...lesson,sequence:[...lesson.sequence]});}}/>}
+        {page === 'MUNDO' && <WorldEditor content={content} previewRevision={worldPreviewRevision} onChange={setContent} lessons={lessons} onTest={spawn=>run(async()=>{const draft=prepareEditorContent(content);await contentRequest('validate_content',{content:draft});setSandbox({content:structuredClone(draft),spawn});})} onEditLesson={lesson=>{if(lesson)setEditor({...lesson,sequence:[...lesson.sequence]});}}/>}
         {page === 'RECOMPENSAS' && <><button onClick={() => addRecord('rewards', { id: `reward-${Date.now()}`, type: 'PET', referenceId: ASSET_CATALOG.assets.find(a => a.category === 'PET').id, presentation: '', enabled: false })}><Plus size={18} />Crear recompensa</button>
           {content.rewards.map(r => <section className="admin-record" key={r.id}><div className="admin-toolbar"><h2>{r.id}</h2><Tool icon={Trash2} label="Eliminar recompensa" onClick={() => removeRecord('rewards', r.id)} /></div><div className="admin-form-grid">
             <Field label="ID"><input defaultValue={r.id} onBlur={e => editCollection('rewards', r.id, { id: e.target.value })} /></Field><Field label="Tipo"><select value={r.type} onChange={e => editCollection('rewards', r.id, { type: e.target.value, referenceId: e.target.value === 'PET' ? ASSET_CATALOG.assets.find(a => a.category === 'PET').id : 'future-reference' })}><option>PET</option><option>SECRET</option><option>COSMETIC_FUTURE</option></select></Field>
@@ -116,9 +121,10 @@ export default function ValleAdmin() {
             <Field label="Recompensa opcional"><select value={r.optionalReward || ''} onChange={e => editCollection('worldActions', r.id, { optionalReward: e.target.value || null })}><option value="">Ninguna</option>{content.rewards.map(reward => <option key={reward.id}>{reward.id}</option>)}</select></Field></div></section>)}</>}
         {page === 'MINIJUEGOS' && <MinigameEditor content={content} onChange={setContent} onPreview={m=>run(async()=>{await contentRequest('validate_content',{content:prepareEditorContent(content)});setMiniPreview(structuredClone(m));})}/>}
         {page === 'EVENTOS' && <WorldEventEditor content={content} onChange={setContent} onTest={spawn=>run(async()=>{const draft=prepareEditorContent(content);await contentRequest('validate_content',{content:draft});setSandbox({content:structuredClone(draft),spawn});})}/>}
+        {['PRESENTACION','GEOGRAFIA','REGIONES'].includes(page)&&<WorldDesignEditor content={content} onChange={setContent} section={page} onTest={spawn=>run(async()=>{const draft=prepareEditorContent(content);await contentRequest('validate_content',{content:draft});setSandbox({content:structuredClone(draft),spawn});})}/>}
         {page === 'CONFIGURACION' && <><div className="admin-toolbar"><button onClick={()=>setPage('LECCIONES')}><BookOpen size={18}/>Editor de lecciones</button><button onClick={()=>setPage('MUNDO')}><Map size={18}/>Editor del Valle</button></div><section className="admin-record"><h2><History size={18}/> Versiones del mundo</h2>{history.length===0?<p>El historial comienza con la primera publicacion desde este editor.</p>:history.map(version=><div className="admin-toolbar" key={version.revision}><span>Revision {version.revision} · {version.created_at}</span><button onClick={()=>run(async()=>{const snapshot=await contentRequest('history_content',{revision:version.revision});if(confirm('Recuperar esta version como borrador? No cambia lecciones ni progreso.'))setContent({...prepareEditorContent(upgradeGameplayContent(snapshot)),revision:content.revision});})}>Recuperar como borrador</button></div>)}</section><GameplayEditor content={content} onChange={setContent}/><dl><dt>Versión</dt><dd>{content.schemaVersion}</dd><dt>Revisión</dt><dd>{content.revision}</dd><dt>Actualización</dt><dd>{content.updated_at}</dd><dt>Persistencia</dt><dd>MySQL · contenido separado de progreso</dd></dl></>}
       </main></div>
-    {sandbox&&<WorldSandbox content={sandbox.content} spawn={sandbox.spawn} lessons={lessons} onClose={()=>setSandbox(null)}/>}
+    {sandbox&&<WorldSandbox content={sandbox.content} spawn={sandbox.spawn} lessons={lessons} onClose={()=>{setSandbox(null);setWorldPreviewRevision(v=>v+1);}}/>}
     {review&&<PublicationReview before={JSON.parse(saved)} content={content} busy={busy} error={error} onClose={()=>setReview(false)} onPublish={saveContent}/>}
     {miniPreview&&createPortal(<MinigameView definition={miniPreview} onClose={()=>setMiniPreview(null)} onComplete={()=>setMiniPreview(null)}/>,document.body)}
     {editor && <LessonEditor lesson={editor} busy={busy} onClose={()=>setEditor(null)} onPreview={setPreview} onSave={async lesson=>{setBusy(true);try{await contentRequest('save_lesson',{id:editor.id??null,revision:editor.revision,lesson});setLessons(await contentRequest('lessons'));setEditor(null);setNotice('Leccion publicada.');}finally{setBusy(false);}}}/>}
